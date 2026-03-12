@@ -1,0 +1,248 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Udacity Project - Enterprise Multi-Agent Architecture with Amazon Bedrock AgentCore
+  Pre-deployed infrastructure: DynamoDB, S3, IAM Roles, CloudWatch.
+  Cognito and API Gateway removed - project is tested via terminal, no UI required.
+  Students do NOT modify this stack. They build the AI agent layer on top of it.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: udacity-agentcore
+  StudentId:
+    Type: String
+    Default: student001
+    Description: Used to namespace resources per student in shared workspaces
+
+Resources:
+
+  # ─────────────────────────────────────────────
+  # DYNAMODB - Application Data
+  # ─────────────────────────────────────────────
+
+  OrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${ProjectName}-orders
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: customer_id
+          AttributeType: S
+        - AttributeName: order_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: customer_id
+          KeyType: HASH
+        - AttributeName: order_id
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+  CustomersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${ProjectName}-customers
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: customer_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: customer_id
+          KeyType: HASH
+
+  # Shared workflow state table.
+  # Each customer session gets one record here.
+  # Agents read and write to it as the orchestrator routes through them.
+  # version attribute enables optimistic locking (conditional writes).
+  WorkflowStateTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${ProjectName}-workflow-state
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: session_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: session_id
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  # ─────────────────────────────────────────────
+  # S3 - Policy Documents + Vector Storage
+  # ─────────────────────────────────────────────
+
+  PolicyDocumentsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${ProjectName}-policy-docs-${AWS::AccountId}
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  # Used by Bedrock Knowledge Bases as the S3 Vectors backing store.
+  # Each Knowledge Base (returns, shipping, warranty) stores its
+  # vector index here under separate prefixes managed by Bedrock.
+  VectorStoreBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${ProjectName}-vectors-${AWS::AccountId}
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  # ─────────────────────────────────────────────
+  # IAM - Role for AgentCore
+  # ─────────────────────────────────────────────
+
+  AgentCoreExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-agentcore-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - bedrock.amazonaws.com
+                - bedrock-agentcore.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AgentCoreProjectPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+
+              # Bedrock model invocation + guardrail enforcement
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                  - bedrock:ApplyGuardrail
+                Resource: "*"
+
+              # Bedrock Knowledge Base retrieval
+              # Used by the three policy retriever agents
+              # (ReturnsPolicyRetrieverAgent, ShippingPolicyRetrieverAgent,
+              #  WarrantyPolicyRetrieverAgent) to call bedrock-agent-runtime.retrieve()
+              - Effect: Allow
+                Action:
+                  - bedrock:Retrieve
+                  - bedrock-agent:Retrieve
+                Resource: "*"
+
+              # CloudWatch Logs - agent execution logs (Task 6: Observability)
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:CreateLogDelivery
+                  - logs:PutLogEvents
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                Resource: "*"
+
+              # X-Ray - distributed tracing
+              - Effect: Allow
+                Action:
+                  - xray:PutTraceSegments
+                  - xray:PutTelemetryRecords
+                Resource: "*"
+
+              # DynamoDB - all tables the agents read/write
+              # OrdersTable:        InventoryAgent (read), RefundAgent (write)
+              # CustomersTable:     InventoryAgent (read), RefundAgent (read fallback)
+              # WorkflowStateTable: OrchestratorAgent (read + write, optimistic lock)
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                Resource:
+                  - !GetAtt OrdersTable.Arn
+                  - !GetAtt CustomersTable.Arn
+                  - !GetAtt WorkflowStateTable.Arn
+
+              # S3 - policy documents bucket
+              # Used by seed_data.py to upload docs and by Bedrock KB sync
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:ListBucket
+                Resource:
+                  - !GetAtt PolicyDocumentsBucket.Arn
+                  - !Sub ${PolicyDocumentsBucket.Arn}/*
+                  - !GetAtt VectorStoreBucket.Arn
+                  - !Sub ${VectorStoreBucket.Arn}/*
+
+              # S3 Vectors - backing store for Bedrock Knowledge Bases (Task 5)
+              - Effect: Allow
+                Action:
+                  - s3vectors:*
+                Resource: "*"
+
+  # ─────────────────────────────────────────────
+  # CLOUDWATCH - Log Groups
+  # ─────────────────────────────────────────────
+
+  AgentLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/bedrock/agentcore/${ProjectName}
+      RetentionInDays: 14
+
+
+# ─────────────────────────────────────────────
+# OUTPUTS - Exported for config.py to read
+# ─────────────────────────────────────────────
+Outputs:
+
+  OrdersTableName:
+    Value: !Ref OrdersTable
+    Export:
+      Name: !Sub ${ProjectName}-OrdersTable
+
+  CustomersTableName:
+    Value: !Ref CustomersTable
+    Export:
+      Name: !Sub ${ProjectName}-CustomersTable
+
+  WorkflowStateTableName:
+    Value: !Ref WorkflowStateTable
+    Export:
+      Name: !Sub ${ProjectName}-WorkflowStateTable
+
+  PolicyDocumentsBucketName:
+    Value: !Ref PolicyDocumentsBucket
+    Export:
+      Name: !Sub ${ProjectName}-PolicyBucket
+
+  VectorStoreBucketName:
+    Value: !Ref VectorStoreBucket
+    Export:
+      Name: !Sub ${ProjectName}-VectorBucket
+
+  AgentCoreRoleArn:
+    Value: !GetAtt AgentCoreExecutionRole.Arn
+    Export:
+      Name: !Sub ${ProjectName}-AgentCoreRoleArn
+
+  AgentLogGroupName:
+    Value: !Ref AgentLogGroup
+    Export:
+      Name: !Sub ${ProjectName}-AgentLogGroup
