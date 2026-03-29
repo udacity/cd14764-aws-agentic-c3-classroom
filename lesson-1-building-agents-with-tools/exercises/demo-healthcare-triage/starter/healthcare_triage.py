@@ -14,7 +14,7 @@ lookup_symptoms  classify_urgency  book_appointment
 (symptoms→conditions) (condition→priority) (priority→time slot)
 
 Instructions:
-  Complete all TODO sections below (7 TODOs). You need to:
+  Complete all TODO sections below (3 TODOs). You need to:
   1. Create a BedrockModel
   2. Write a system prompt
   3. Build the Agent with the 3 tools

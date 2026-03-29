@@ -242,11 +242,4 @@ def main():
         print(f"{'─' * 60}")
 
         # Fresh agent per device to avoid context accumulation
-        manager = build_device_manager()
-
-        response = manager(f"Check device {s['device_id']}. Read sensors, diagnose issues, send corrective commands.")
-        print(f"\n  Result:\n  {response}\n")
-
-
-if __name__ == "__main__":
-    main()
+   
