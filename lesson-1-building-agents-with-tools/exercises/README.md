@@ -7,11 +7,10 @@ This lesson covers the fundamentals of the Strands Agents SDK: Agent class, @too
 ```
 exercises
     |_ demo-healthcare-triage
-    |   |_ starter          (3 TODOs: BedrockModel, system prompt, Agent)
-    |   |_ solution         (working solution - tested)
+    |   |_ solution         (working solution - instructor runs this live)
     |_ exercise-smart-home-device-mgmt
-    |   |_ starter          (3 TODOs: same pattern, different domain)
-    |   |_ solution         (working solution - tested)
+    |   |_ starter          (3 TODOs: BedrockModel, system prompt, Agent)
+    |   |_ solution         (working solution - reference answer)
     |_ README.md
 ```
 
