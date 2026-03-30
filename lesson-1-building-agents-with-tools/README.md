@@ -5,13 +5,19 @@ This lesson covers the fundamentals of the Strands Agents SDK: Agent class, @too
 ## Folder Structure
 
 ```
-exercises
-    |_ demo-healthcare-triage
-    |   |_ solution         (working solution - instructor runs this live)
-    |_ exercise-smart-home-device-mgmt
-    |   |_ starter          (3 TODOs: BedrockModel, system prompt, Agent)
-    |   |_ solution         (working solution - reference answer)
-    |_ README.md
+lesson-1-building-agents-with-tools/
+├── README.md
+├── demo-healthcare-triage/
+│   └── solution/
+│       ├── README.md
+│       └── healthcare_triage.py
+└── exercise-smart-home-device-mgmt/
+    ├── solution/
+    │   ├── README.md
+    │   └── smart_home_device_mgmt.py
+    └── starter/
+        ├── README.md
+        └── smart_home_device_mgmt.py
 ```
 
 ## Demo: Healthcare Triage System (Instructor-led)

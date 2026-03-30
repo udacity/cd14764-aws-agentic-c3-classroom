@@ -5,13 +5,19 @@ This lesson covers assigning different Bedrock foundation models to different ag
 ## Folder Structure
 
 ```
-exercises
-    |_ demo-multi-model-incident-response
-    |   |_ solution         (instructor runs this live - 3 agents: Nova Lite, Claude, Nova Pro)
-    |_ exercise-content-moderation-pipeline
-    |   |_ starter          (3 TODOs: one BedrockModel + Agent per build function)
-    |   |_ solution         (working solution - conditional routing: borderline -> Claude only)
-    |_ README.md
+lesson-2-multi-model-systems/
+├── README.md
+├── demo-multi-model-incident-response/
+│   └── solution/
+│       ├── README.md
+│       └── incident_response.py
+└── exercise-content-moderation-pipeline/
+    ├── solution/
+    │   ├── README.md
+    │   └── content_moderation.py
+    └── starter/
+        ├── README.md
+        └── content_moderation.py
 ```
 
 ## Demo: Multi-Model Incident Response (Instructor-led)
