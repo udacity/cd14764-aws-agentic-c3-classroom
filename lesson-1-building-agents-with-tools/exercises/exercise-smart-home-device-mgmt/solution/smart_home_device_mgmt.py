@@ -81,14 +81,17 @@ CORRECTIVE_ACTIONS = {
 def build_device_manager() -> Agent:
     """
     Build the Device Manager Agent with three specialized tools.
+    Same pattern as the demo (healthcare_triage.py): model + prompt + tools.
     """
 
+    # STEP 1: Create the model (same as demo)
     model = BedrockModel(
         model_id=MODEL_ID,
         region_name=AWS_REGION,
         temperature=0.0,
     )
 
+    # STEP 2: System prompt — same strict pattern as demo
     system_prompt = """You are a smart home device manager agent. For each device, call these 3 tools in EXACT order:
 
 1. read_sensor_data — pass the device_id
@@ -212,6 +215,7 @@ CRITICAL RULES:
             "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
         }, indent=2)
 
+    # STEP 3: Build the Agent (same as demo)
     return Agent(
         model=model,
         system_prompt=system_prompt,

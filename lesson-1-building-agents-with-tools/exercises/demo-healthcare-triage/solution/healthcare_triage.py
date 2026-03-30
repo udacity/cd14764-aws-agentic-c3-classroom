@@ -97,12 +97,19 @@ def build_triage_agent() -> Agent:
     3. book_appointment — reserves a slot based on urgency
     """
 
+    # STEP 1: Create the model
+    # - BedrockModel wraps Amazon Bedrock's Converse API
+    # - temperature=0.0 makes output deterministic (no randomness)
     model = BedrockModel(
         model_id=MODEL_ID,
         region_name=AWS_REGION,
         temperature=0.0,
     )
 
+    # STEP 2: Write the system prompt
+    # - This controls HOW the agent uses its tools
+    # - Be explicit about tool calling order and data passing
+    # - Without strict instructions, the LLM may skip tools or add unwanted commentary
     system_prompt = """You are a healthcare triage agent. For each patient, call these 3 tools in EXACT order:
 
 1. lookup_symptoms — pass the patient's complaint text
@@ -233,6 +240,9 @@ CRITICAL RULES:
             }.get(urgency_key, "Please arrive on time."),
         }, indent=2)
 
+    # STEP 3: Build the Agent
+    # - Bind the model, system prompt, and tools together
+    # - The agent will use the LLM to decide when/how to call each tool
     return Agent(
         model=model,
         system_prompt=system_prompt,
@@ -258,7 +268,9 @@ def main():
         print(f"  Complaint: {patient['complaint'][:80]}...")
         print(f"{'─' * 60}")
 
-        # Fresh agent per patient to avoid context accumulation
+        # KEY PATTERN: Fresh agent per test case to avoid context accumulation
+        # If you reuse one agent across patients, the 3rd+ patient gets
+        # confused by prior conversation history and may loop or repeat.
         triage_agent = build_triage_agent()
 
         prompt = (

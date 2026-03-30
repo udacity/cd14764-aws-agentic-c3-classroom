@@ -17,6 +17,11 @@ Instructions:
   Complete all TODO sections below (3 TODOs). The tool functions are
   pre-written — you need to create the model, system prompt, and agent.
 
+  PATTERN: Follow the same 3 steps shown in the demo (healthcare_triage.py):
+    Step 1 → BedrockModel(model_id=..., region_name=..., temperature=0.0)
+    Step 2 → system_prompt = "..." (tell agent which tools to call and in what order)
+    Step 3 → return Agent(model=model, system_prompt=system_prompt, tools=[...])
+
 Tech Stack:
   - Python 3.11+
   - Strands Agents SDK (Agent class, @tool decorator)
