@@ -257,16 +257,16 @@ CRITICAL RULES:
 def main():
     """Run the healthcare triage system with sample patient complaints."""
 
-    print("=" * 60)
+    print("=" * 70)
     print("  Healthcare Triage System — Module 1 Demo")
     print("  Strands Agents SDK: Agent + @tool + BedrockModel")
-    print("=" * 60)
+    print("=" * 70)
 
     for patient in PATIENT_COMPLAINTS:
-        print(f"\n{'─' * 60}")
+        print(f"\n{'─' * 70}")
         print(f"  Patient: {patient['name']} ({patient['patient_id']})")
         print(f"  Complaint: {patient['complaint'][:80]}...")
-        print(f"{'─' * 60}")
+        print(f"{'─' * 70}")
 
         # KEY PATTERN: Fresh agent per test case to avoid context accumulation
         # If you reuse one agent across patients, the 3rd+ patient gets

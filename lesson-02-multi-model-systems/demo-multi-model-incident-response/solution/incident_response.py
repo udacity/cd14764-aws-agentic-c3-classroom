@@ -303,19 +303,19 @@ Match the tone to the severity. Do NOT exceed 4 lines."""
 # ═══════════════════════════════════════════════════════
 
 def main():
-    print("=" * 60)
+    print("=" * 70)
     print("  Multi-Model Incident Response — Module 2 Demo")
     print("  Nova Lite (fast) + Claude (deep) + Nova Pro (balanced)")
-    print("=" * 60)
+    print("=" * 70)
 
     latency_report = []
 
     for incident in INCIDENTS:
         inc_id = incident["id"]
-        print(f"\n{'━' * 60}")
+        print(f"\n{'━' * 70}")
         print(f"  Processing: {inc_id}")
         print(f"  Alert: {incident['message'][:80]}...")
-        print(f"{'━' * 60}")
+        print(f"{'━' * 70}")
 
         # ── Step 1: Route with Nova Lite (fast) ─────────────────
         print(f"\n  [Agent 1] Alert Router (Nova Lite)")
@@ -358,12 +358,12 @@ def main():
         })
 
     # ── Latency Comparison Table ────────────────────────────
-    print(f"\n{'═' * 60}")
+    print(f"\n{'═' * 70}")
     print("  LATENCY COMPARISON TABLE")
-    print(f"{'═' * 60}")
+    print(f"{'═' * 70}")
     header = f"  {'Incident':<10} {'Severity':<10} {'Nova Lite':<11} {'Claude':<10} {'Nova Pro':<10} {'Total':<8}"
     print(header)
-    print(f"  {'─' * 56}")
+    print(f"  {'─' * 66}")
     for r in latency_report:
         print(f"  {r['incident']:<10} {r['severity']:<10} {r['nova_lite_s']:<11.1f} {r['claude_s']:<10.1f} {r['nova_pro_s']:<10.1f} {r['total_s']:<8.1f}")
 

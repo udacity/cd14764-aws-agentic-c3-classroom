@@ -49,13 +49,8 @@ def clean_response(text: str) -> str:
 
 
 def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> float:
-    """
-    Run an agent with retry logic for transient Bedrock errors.
-
-    When running multiple agents in parallel, Bedrock may throttle
-    or return serviceUnavailableException. Retrying with backoff
-    handles this gracefully.
-    """
+    """Run an agent with retry logic for transient Bedrock errors.
+    Uses exponential backoff (1s, 2s, 4s) to handle throttling."""
     for attempt in range(max_retries):
         try:
             agent = agent_builder()
@@ -452,21 +447,21 @@ def run_specialists_sequential(contract_id: str) -> dict:
 # Main
 
 def main():
-    print("=" * 65)
+    print("=" * 70)
     print("  Parallel Contract Compliance — Module 3 Exercise")
     print("  3 Specialist Agents (parallel) + 1 Synthesizer Agent")
     print("  ThreadPoolExecutor for concurrent execution")
-    print("=" * 65)
+    print("=" * 70)
 
     comparison = []
 
     for contract in CONTRACTS:
         contract_id = contract["id"]
-        print(f"\n{'━' * 65}")
+        print(f"\n{'━' * 70}")
         print(f"  Contract: {contract_id} — {contract['title']}")
         print(f"  Type: {contract['type']} | Value: ${contract['value']:,} | Duration: {contract['duration_months']}mo")
         print(f"  {contract['description'][:65]}...")
-        print(f"{'━' * 65}")
+        print(f"{'━' * 70}")
 
         # ── Clear caches ──
         regulatory_cache.clear()
@@ -551,9 +546,9 @@ def main():
         })
 
     # ── Performance Comparison ───────────────────────────
-    print(f"\n{'═' * 65}")
+    print(f"\n{'═' * 70}")
     print("  PARALLEL vs SEQUENTIAL — PERFORMANCE COMPARISON")
-    print(f"{'═' * 65}")
+    print(f"{'═' * 70}")
     print(f"  {'Contract':<15} {'Type':<18} {'Decision':<28} {'Par.':<7} {'Seq.':<7} {'Speed':<6}")
     print(f"  {'─' * 75}")
     for r in comparison:

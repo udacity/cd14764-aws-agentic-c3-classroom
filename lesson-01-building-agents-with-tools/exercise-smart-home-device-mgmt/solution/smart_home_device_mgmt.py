@@ -228,10 +228,10 @@ CRITICAL RULES:
 # ═══════════════════════════════════════════════════════
 
 def main():
-    print("=" * 60)
+    print("=" * 70)
     print("  Smart Home Device Management — Module 1 Exercise")
     print("  Strands Agents SDK: Agent + @tool + BedrockModel")
-    print("=" * 60)
+    print("=" * 70)
 
     test_scenarios = [
         {"device_id": "DEV-001", "expected": "overheating",   "desc": "Thermostat at 92.5°F"},
@@ -240,10 +240,10 @@ def main():
     ]
 
     for s in test_scenarios:
-        print(f"\n{'─' * 60}")
+        print(f"\n{'─' * 70}")
         print(f"  Scenario: {s['desc']}")
         print(f"  Device: {s['device_id']} | Expected: {s['expected']}")
-        print(f"{'─' * 60}")
+        print(f"{'─' * 70}")
 
         # Fresh agent per device to avoid context accumulation
    

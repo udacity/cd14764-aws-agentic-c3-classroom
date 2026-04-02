@@ -546,21 +546,21 @@ def run_specialists_sequential(contract_id: str) -> dict:
 # ═══════════════════════════════════════════════════════
 
 def main():
-    print("=" * 65)
+    print("=" * 70)
     print("  Parallel Contract Compliance — Module 3 Exercise")
     print("  3 Specialist Agents (parallel) + 1 Synthesizer Agent")
     print("  ThreadPoolExecutor for concurrent execution")
-    print("=" * 65)
+    print("=" * 70)
 
     comparison = []
 
     for contract in CONTRACTS:
         contract_id = contract["id"]
-        print(f"\n{'━' * 65}")
+        print(f"\n{'━' * 70}")
         print(f"  Contract: {contract_id} — {contract['title']}")
         print(f"  Type: {contract['type']} | Value: ${contract['value']:,} | Duration: {contract['duration_months']}mo")
         print(f"  {contract['description'][:65]}...")
-        print(f"{'━' * 65}")
+        print(f"{'━' * 70}")
 
         # ── Clear caches ──
         regulatory_cache.clear()
@@ -645,9 +645,9 @@ def main():
         })
 
     # ── Performance Comparison ───────────────────────────
-    print(f"\n{'═' * 65}")
+    print(f"\n{'═' * 70}")
     print("  PARALLEL vs SEQUENTIAL — PERFORMANCE COMPARISON")
-    print(f"{'═' * 65}")
+    print(f"{'═' * 70}")
     print(f"  {'Contract':<15} {'Type':<18} {'Decision':<28} {'Par.':<7} {'Seq.':<7} {'Speed':<6}")
     print(f"  {'─' * 75}")
     for r in comparison:

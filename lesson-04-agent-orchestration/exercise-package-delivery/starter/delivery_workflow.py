@@ -57,7 +57,8 @@ def clean_response(text: str) -> str:
 
 
 def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> float:
-    """Run an agent with retry logic for transient Bedrock errors."""
+    """Run an agent with retry logic for transient Bedrock errors.
+    Uses exponential backoff (1s, 2s, 4s) to handle throttling."""
     for attempt in range(max_retries):
         try:
             agent = agent_builder()
@@ -573,11 +574,11 @@ def orchestrate_delivery(package_id: str) -> dict:
 # ═══════════════════════════════════════════════════════
 
 def main():
-    print("=" * 65)
+    print("=" * 70)
     print("  Package Delivery Workflow — Module 4 Exercise")
     print("  Sequential Gate + Parallel + Conditional Orchestration")
     print("  6 Worker Agents managed by Python orchestrator")
-    print("=" * 65)
+    print("=" * 70)
 
     results = []
 
@@ -586,13 +587,13 @@ def main():
         is_domestic = pkg["sender_country"] == pkg["country"]
         route = "Domestic" if is_domestic else "International"
 
-        print(f"\n{'━' * 65}")
+        print(f"\n{'━' * 70}")
         print(f"  Package: {pkg_id} — {pkg['contents'][:40]}...")
         print(f"  From: {pkg['sender']} ({pkg['sender_country']}) → To: {pkg['recipient']} ({pkg['country']})")
         print(f"  Address: {pkg['address'] or '(empty)'}")
         print(f"  Weight: {pkg['weight_lbs']} lbs | Value: ${pkg['declared_value']:.2f}")
         print(f"  Expected route: {route}")
-        print(f"{'━' * 65}")
+        print(f"{'━' * 70}")
 
         workflow_state.clear()
 
@@ -637,9 +638,9 @@ def main():
         })
 
     # ── Summary Table ────────────────────────────────────
-    print(f"\n{'═' * 65}")
+    print(f"\n{'═' * 70}")
     print("  ORCHESTRATION SUMMARY")
-    print(f"{'═' * 65}")
+    print(f"{'═' * 70}")
     print(f"  {'Package':<10} {'Route':<16} {'Gate':<7} {'Par.':<7} {'Cond.':<7} {'Total':<7}")
     print(f"  {'─' * 58}")
     for r in results:

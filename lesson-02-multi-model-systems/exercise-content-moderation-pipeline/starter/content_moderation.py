@@ -255,20 +255,20 @@ def build_notice_agent() -> Agent:
 # ═══════════════════════════════════════════════════════
 
 def main():
-    print("=" * 60)
+    print("=" * 70)
     print("  Content Moderation Pipeline — Module 2 Exercise")
     print("  Nova Lite (screen) + Claude (review) + Nova Pro (notice)")
-    print("=" * 60)
+    print("=" * 70)
 
     latency_report = []
     results_summary = []
 
     for post in POSTS:
         post_id = post["id"]
-        print(f"\n{'━' * 60}")
+        print(f"\n{'━' * 70}")
         print(f"  Post: {post_id} by @{post['user']}")
         print(f"  Text: {post['text'][:70]}...")
-        print(f"{'━' * 60}")
+        print(f"{'━' * 70}")
 
         # ── Step 1: Screen with Nova Lite (ALL posts) ───────
         print(f"\n  [Agent 1] Screening (Nova Lite)")
@@ -327,9 +327,9 @@ def main():
         })
 
     # ── Results Summary ─────────────────────────────────────
-    print(f"\n{'═' * 60}")
+    print(f"\n{'═' * 70}")
     print("  MODERATION RESULTS")
-    print(f"{'═' * 60}")
+    print(f"{'═' * 70}")
     print(f"  {'Post':<10} {'User':<16} {'Screen':<12} {'Final':<10}")
     print(f"  {'─' * 48}")
     for r in results_summary:
@@ -340,9 +340,9 @@ def main():
     print(f"\n  Safe: {safe_count} | Harmful: {harmful_count} | Total: {len(results_summary)}")
 
     # ── Latency Comparison ──────────────────────────────────
-    print(f"\n{'═' * 60}")
+    print(f"\n{'═' * 70}")
     print("  LATENCY COMPARISON BY PATH")
-    print(f"{'═' * 60}")
+    print(f"{'═' * 70}")
     print(f"  {'Post':<10} {'Path':<15} {'Screen':<9} {'Review':<9} {'Notice':<9} {'Total':<8}")
     print(f"  {'─' * 56}")
     for r in latency_report:

@@ -49,21 +49,8 @@ def clean_response(text: str) -> str:
 
 
 def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> float:
-    """
-    Run an agent with retry logic for transient Bedrock errors.
-
-    When running multiple agents in parallel, Bedrock may throttle
-    or return serviceUnavailableException. Retrying with backoff
-    handles this gracefully.
-
-    Args:
-        agent_builder: Function that returns a fresh Agent instance
-        prompt: The prompt to send to the agent
-        max_retries: Maximum retry attempts (default 3)
-
-    Returns:
-        Elapsed time in seconds
-    """
+    """Run an agent with retry logic for transient Bedrock errors.
+    Uses exponential backoff (1s, 2s, 4s) to handle throttling."""
     for attempt in range(max_retries):
         try:
             agent = agent_builder()
@@ -453,21 +440,21 @@ def run_specialists_sequential(doc_id: str) -> dict:
 # Main — Analyze documents and compare parallel vs sequential
 
 def main():
-    print("=" * 65)
+    print("=" * 70)
     print("  Parallel Document Analysis — Module 3 Demo")
     print("  3 Specialist Agents (parallel) + 1 Synthesizer Agent")
     print("  ThreadPoolExecutor for concurrent execution")
-    print("=" * 65)
+    print("=" * 70)
 
     comparison = []
 
     for doc in DOCUMENTS:
         doc_id = doc["id"]
-        print(f"\n{'━' * 65}")
+        print(f"\n{'━' * 70}")
         print(f"  Document: {doc_id} — {doc['title']}")
         print(f"  {doc['description'][:70]}...")
         print(f"  Expected Load: {doc['expected_load']}")
-        print(f"{'━' * 65}")
+        print(f"{'━' * 70}")
 
         security_cache.clear()
         scalability_cache.clear()
@@ -544,9 +531,9 @@ def main():
         })
 
     # ── Performance Comparison ───────────────────────────
-    print(f"\n{'═' * 65}")
+    print(f"\n{'═' * 70}")
     print("  PARALLEL vs SEQUENTIAL — PERFORMANCE COMPARISON")
-    print(f"{'═' * 65}")
+    print(f"{'═' * 70}")
     print(f"  {'Document':<10} {'Decision':<28} {'Parallel':<11} {'Sequential':<13} {'Speedup':<8}")
     print(f"  {'─' * 66}")
     for r in comparison:

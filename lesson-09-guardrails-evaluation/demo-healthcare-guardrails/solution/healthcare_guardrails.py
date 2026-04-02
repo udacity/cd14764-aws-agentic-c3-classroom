@@ -61,7 +61,8 @@ def clean_response(text: str) -> str:
 
 
 def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> float:
-    """Run an agent with retry logic for transient Bedrock errors."""
+    """Run an agent with retry logic for transient Bedrock errors.
+    Uses exponential backoff (1s, 2s, 4s) to handle throttling."""
     for attempt in range(max_retries):
         try:
             agent = agent_builder()

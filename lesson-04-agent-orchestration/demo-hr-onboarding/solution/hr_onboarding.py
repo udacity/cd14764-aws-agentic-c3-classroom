@@ -59,7 +59,8 @@ def clean_response(text: str) -> str:
 
 
 def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> float:
-    """Run an agent with retry logic for transient Bedrock errors."""
+    """Run an agent with retry logic for transient Bedrock errors.
+    Uses exponential backoff (1s, 2s, 4s) to handle throttling."""
     for attempt in range(max_retries):
         try:
             agent = agent_builder()
@@ -542,23 +543,23 @@ def orchestrate_onboarding(employee_id: str) -> dict:
 # Main
 
 def main():
-    print("=" * 65)
+    print("=" * 70)
     print("  HR Employee Onboarding — Module 4 Demo")
     print("  Sequential + Parallel + Conditional Orchestration")
     print("  6 Worker Agents managed by Python orchestrator")
-    print("=" * 65)
+    print("=" * 70)
 
     results = []
 
     for emp in EMPLOYEES:
         emp_id = emp["id"]
-        print(f"\n{'━' * 65}")
+        print(f"\n{'━' * 70}")
         print(f"  Employee: {emp_id} — {emp['name']}")
         print(f"  Department: {emp['department']} | Role: {emp['role']}")
         print(f"  Start Date: {emp['start_date']}")
         if emp.get("simulate_failure"):
             print(f"  ⚠ Simulated failure: laptop provisioning will fail first attempt")
-        print(f"{'━' * 65}")
+        print(f"{'━' * 70}")
 
         # Clear workflow state for this employee
         workflow_state.clear()
@@ -599,9 +600,9 @@ def main():
         })
 
     # ── Summary Table ────────────────────────────────────
-    print(f"\n{'═' * 65}")
+    print(f"\n{'═' * 70}")
     print("  ORCHESTRATION SUMMARY")
-    print(f"{'═' * 65}")
+    print(f"{'═' * 70}")
     print(f"  {'Employee':<10} {'Name':<18} {'Path':<12} {'Seq.':<7} {'Par.':<7} {'Cond.':<7} {'Total':<7}")
     print(f"  {'─' * 63}")
     for r in results:
