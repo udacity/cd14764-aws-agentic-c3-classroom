@@ -97,7 +97,7 @@ NOVA_PRO_MODEL = "amazon.nova-pro-v1:0"
 TOP_K = 5  # Number of top passages to pass to synthesis
 
 
-# SIMULATED KNOWLEDGE BASES
+# STEP 1: KNOWLEDGE BASE DATA — Simulated domain-specific paper collections
 # Production: bedrock_agent.retrieve(knowledgeBaseId, retrievalQuery, vectorSearchConfiguration)
 # Returns: retrievalResults[].content.text, .score, .location
 # Here: In-memory docs + keyword matching
@@ -215,32 +215,7 @@ BIO_PAPERS = [
     },
 ]
 
-# ─────────────────────────────────────────────────────
-# SAMPLE QUERIES
-# ─────────────────────────────────────────────────────
-QUERIES = [
-    {
-        "query": "applications of machine learning in genomics",
-        "description": "Cross-domain query — should hit BOTH CS and Bio KBs",
-        "expected_domains": ["CS", "Bio"],
-    },
-    {
-        "query": "CRISPR gene editing for crop improvement",
-        "description": "Domain-specific query — should primarily hit Bio KB",
-        "expected_domains": ["Bio"],
-    },
-    {
-        "query": "blockchain consensus mechanisms for IoT networks",
-        "description": "Out-of-scope query — should find no relevant results",
-        "expected_domains": [],
-    },
-]
-
-
-# SIMULATED RETRIEVAL ENGINE
-# Production: bedrock_agent.retrieve(knowledgeBaseId, retrievalQuery, vectorSearchConfiguration)
-# Returns passages with score, source from retrievalResults
-
+# STEP 2: SIMULATED KB RETRIEVAL — Keyword matching for semantic search
 def retrieve_from_kb(documents: list[dict], query: str, kb_name: str,
                      top_k: int = 5, simulate_failure: bool = False) -> list[dict]:
     """Simulated KB retrieval: keyword overlap scoring. Production: Bedrock KB with Titan embeddings."""
@@ -279,15 +254,37 @@ def retrieve_from_kb(documents: list[dict], query: str, kb_name: str,
     return results[:top_k]
 
 
-# RETRIEVER AGENTS — Each owns one Knowledge Base
+# ─────────────────────────────────────────────────────
+# SAMPLE QUERIES
+# ─────────────────────────────────────────────────────
+QUERIES = [
+    {
+        "query": "applications of machine learning in genomics",
+        "description": "Cross-domain query — should hit BOTH CS and Bio KBs",
+        "expected_domains": ["CS", "Bio"],
+    },
+    {
+        "query": "CRISPR gene editing for crop improvement",
+        "description": "Domain-specific query — should primarily hit Bio KB",
+        "expected_domains": ["Bio"],
+    },
+    {
+        "query": "blockchain consensus mechanisms for IoT networks",
+        "description": "Out-of-scope query — should find no relevant results",
+        "expected_domains": [],
+    },
+]
+
+
+# STEP 3: RETRIEVER AGENTS — 2 specialized agents for CS and Bio KBs
 retrieval_results = {"cs": [], "bio": []}
 
 
 def build_cs_retriever(query: str) -> Agent:
     """CS Papers retriever agent — queries the Computer Science KB."""
-
+    # STEP 3.1: BedrockModel — Nova Lite for CS KB retrieval (temperature 0.0)
     model = BedrockModel(model_id=NOVA_LITE_MODEL, region_name=AWS_REGION, temperature=0.0)
-
+    # STEP 3.2: System prompt — Query CS papers knowledge base
     system_prompt = f"""You are a Computer Science paper retrieval agent. Your ONLY job:
 1. Call retrieve_cs_papers with the query
 2. Report how many passages were found and their relevance scores
@@ -317,14 +314,15 @@ Do NOT add any other commentary."""
             ],
         }, indent=2)
 
+    # STEP 3.3: Build Agent — CS retriever with retrieve_cs_papers tool
     return Agent(model=model, system_prompt=system_prompt, tools=[retrieve_cs_papers])
 
 
 def build_bio_retriever(query: str, simulate_failure: bool = False) -> Agent:
     """Biology Papers retriever agent — queries the Biology KB."""
-
+    # STEP 3.4: BedrockModel — Nova Lite for Bio KB retrieval (temperature 0.0)
     model = BedrockModel(model_id=NOVA_LITE_MODEL, region_name=AWS_REGION, temperature=0.0)
-
+    # STEP 3.5: System prompt — Query Biology papers knowledge base
     system_prompt = f"""You are a Biology paper retrieval agent. Your ONLY job:
 1. Call retrieve_bio_papers with the query
 2. Report how many passages were found and their relevance scores
@@ -363,10 +361,11 @@ Do NOT add any other commentary."""
             ],
         }, indent=2)
 
+    # STEP 3.6: Build Agent — Bio retriever with retrieve_bio_papers tool
     return Agent(model=model, system_prompt=system_prompt, tools=[retrieve_bio_papers])
 
 
-# RESULT AGGREGATION — Combine, rank, select top-K
+# STEP 4: RESULT AGGREGATION — Combine and rank retrieved passages
 def aggregate_results(cs_passages: list, bio_passages: list, top_k: int = TOP_K) -> list[dict]:
     """Combine passages from both KBs, rank by relevance score, select top-K."""
     all_passages = cs_passages + bio_passages
@@ -374,10 +373,10 @@ def aggregate_results(cs_passages: list, bio_passages: list, top_k: int = TOP_K)
     return all_passages[:top_k]
 
 
-# SYNTHESIS AGENT — Grounded answer with citations
+# STEP 5: SYNTHESIS AGENT — Grounded answer with citations
 def build_synthesis_agent(passages: list[dict], query: str) -> Agent:
     """Produces grounded research summary with citations from top passages."""
-
+    # STEP 5.1: BedrockModel — Nova Pro for synthesis (temperature 0.2)
     model = BedrockModel(model_id=NOVA_PRO_MODEL, region_name=AWS_REGION, temperature=0.2)
 
     # Format passages for the synthesis prompt
@@ -388,6 +387,7 @@ def build_synthesis_agent(passages: list[dict], query: str) -> Agent:
         for p in passages
     )
 
+    # STEP 5.2: System prompt — Synthesis rules for grounded answers with citations
     system_prompt = f"""You are a research synthesis agent. Your job is to answer the research
 question using ONLY the retrieved passages below. Rules:
 1. Every factual claim MUST cite a specific passage using [DOC_ID] format
@@ -403,10 +403,11 @@ RESEARCH QUESTION: {query}
 
 Provide a grounded research summary with citations."""
 
+    # STEP 5.3: Build Agent — synthesis with no external tools, grounded in passages
     return Agent(model=model, system_prompt=system_prompt, tools=[])
 
 
-# RAG ORCHESTRATOR — Parallel retrieval → aggregation → synthesis
+# STEP 6: RAG ORCHESTRATOR — Parallel retrieval + aggregation + synthesis
 def run_rag_query(query_data: dict):
     """Execute a full RAG pipeline for a research query."""
     query = query_data["query"]
@@ -480,7 +481,7 @@ def run_rag_query(query_data: dict):
 
 
 # ═══════════════════════════════════════════════════════
-#  MAIN
+#  STEP 7: DEMO EXECUTION — Run 3 RAG query scenarios
 # ═══════════════════════════════════════════════════════
 
 def main():

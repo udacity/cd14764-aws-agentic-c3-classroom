@@ -138,6 +138,7 @@ class ConditionalCheckFailedException(Exception):
     pass
 
 
+# STEP 1: SIMULATED DYNAMODB — Shared State Store with Optimistic Locking
 class SimulatedDynamoDB:
     """In-memory DynamoDB simulator with optimistic locking support.
     Production: dynamodb = boto3.resource('dynamodb', region_name='us-east-1'); table = dynamodb.Table('TripState')"""
@@ -192,8 +193,9 @@ db.create_table("TripState")
 rider_memory = {}
 
 
+# STEP 2: STATE HELPERS — Create, update, and read trip records
 def create_trip(trip_data: dict) -> dict:
-    """STEP 1: Create initial trip state (version 0, TTL 1 hour)."""
+    """Create initial trip state (version 0, TTL 1 hour)."""
     trip_id = trip_data["trip_id"]
     now = time.time()
     record = {
@@ -207,7 +209,7 @@ def create_trip(trip_data: dict) -> dict:
 
 
 def update_trip(trip_id: str, updates: dict, max_retries: int = 3) -> dict:
-    """STEP 2: Update trip state with optimistic locking + retry.
+    """Update trip state with optimistic locking + retry.
     Pattern: 1. Read current (get version N), 2. Apply updates with condition: version == N,
     3. If conflict → re-read, get new version, retry"""
     for attempt in range(max_retries):
@@ -229,13 +231,16 @@ def update_trip(trip_id: str, updates: dict, max_retries: int = 3) -> dict:
 
 
 def get_trip(trip_id: str) -> dict | None:
-    """STEP 3: Read current trip state."""
+    """Read current trip state."""
     return db.get_item("TripState", trip_id)
 
 
+# STEP 3: AGENT BUILDERS — 3 agents updating shared trip state
 def build_driver_match_agent() -> Agent:
     """Worker: Matches a driver and writes to shared state."""
+    # STEP 3.1: BedrockModel — Nova Lite for driver matching (temperature 0.0)
     model = BedrockModel(model_id=NOVA_LITE_MODEL, region_name=AWS_REGION, temperature=0.0)
+    # STEP 3.2: System prompt — Instructions for matching best available driver
     system_prompt = """You are a driver matching agent. Your ONLY job:
 1. Call match_driver with the trip_id
 2. Report: Driver <name> matched for <trip_id>
@@ -267,12 +272,15 @@ Do NOT add any other commentary."""
         result = {**driver_info["driver"], "trip_id": trip_id}
         return json.dumps(result, indent=2)
 
+    # STEP 3.3: Build Agent — bind model + prompt + match_driver tool
     return Agent(model=model, system_prompt=system_prompt, tools=[match_driver])
 
 
 def build_pricing_agent() -> Agent:
     """Worker: Calculates fare and writes to shared state."""
+    # STEP 3.4: BedrockModel — Nova Lite for fare calculation (temperature 0.0)
     model = BedrockModel(model_id=NOVA_LITE_MODEL, region_name=AWS_REGION, temperature=0.0)
+    # STEP 3.5: System prompt — Instructions for calculating fare estimates
     system_prompt = """You are a pricing agent. Your ONLY job:
 1. Call calculate_fare with the trip_id
 2. Report: Fare for <trip_id>: $<amount>
@@ -294,12 +302,15 @@ Do NOT add any other commentary."""
         result = {**fare_info["fare"], "trip_id": trip_id}
         return json.dumps(result, indent=2)
 
+    # STEP 3.6: Build Agent — bind model + prompt + calculate_fare tool
     return Agent(model=model, system_prompt=system_prompt, tools=[calculate_fare])
 
 
 def build_eta_agent() -> Agent:
     """Worker: Calculates ETA and writes to shared state."""
+    # STEP 3.7: BedrockModel — Nova Lite for ETA calculation (temperature 0.0)
     model = BedrockModel(model_id=NOVA_LITE_MODEL, region_name=AWS_REGION, temperature=0.0)
+    # STEP 3.8: System prompt — Instructions for estimating arrival time
     system_prompt = """You are an ETA calculation agent. Your ONLY job:
 1. Call calculate_eta with the trip_id
 2. Report: ETA for <trip_id>: <minutes> minutes
@@ -321,9 +332,11 @@ Do NOT add any other commentary."""
         result = {**eta_info["eta"], "trip_id": trip_id}
         return json.dumps(result, indent=2)
 
+    # STEP 3.9: Build Agent — bind model + prompt + calculate_eta tool
     return Agent(model=model, system_prompt=system_prompt, tools=[calculate_eta])
 
 
+# STEP 4: DEMO EXECUTION — Run 3 scenarios with shared state management
 def main():
     print("=" * 70)
     print("  Ride-Sharing Trip Management — Module 6 Demo")

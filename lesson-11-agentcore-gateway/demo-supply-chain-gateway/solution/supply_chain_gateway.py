@@ -74,7 +74,7 @@ AWS_REGION = "us-east-1"
 NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"
 
 
-# SIMULATED AgentCore GATEWAY
+# STEP 1: SIMULATED AgentCore GATEWAY — Tool registry and invocation
 # Production: agentcore.create_gateway() + agentcore.create_gateway_target()
 
 class SimulatedGateway:
@@ -126,7 +126,7 @@ class SimulatedGateway:
         return result
 
 
-# SIMULATED REST APIs (Gateway targets)
+# STEP 2: API HANDLERS — REST API endpoints registered as Gateway targets
 def inventory_api_handler(params: dict) -> dict:
     """Simulated Inventory REST API."""
     inventory = {
@@ -180,16 +180,17 @@ def quality_inspection_handler(params: dict) -> dict:
     return {"status": "ok", "all_inspections": list(inspections.values())}
 
 
-# BUILD AGENT WITH GATEWAY TOOLS
+# STEP 3: AGENT BUILDER — Supply chain agent with Gateway-based tools
 def build_supply_chain_agent(gateway: SimulatedGateway) -> Agent:
     """Build a supply chain agent connected to the Gateway."""
-
+    # STEP 3.1: BedrockModel — Nova Lite for supply chain reasoning (temperature 0.1)
     model = BedrockModel(model_id=NOVA_LITE_MODEL, region_name=AWS_REGION, temperature=0.1)
 
     # List available tools from Gateway
     available_tools = gateway.discover_tools()
     tool_list = "\n".join(f"  - {t['name']}: {t['description']}" for t in available_tools)
 
+    # STEP 3.2: System prompt — Supply chain management with dynamic tool discovery
     system_prompt = f"""You are a supply chain management agent. You have access to the following
 tools via AgentCore Gateway:
 
@@ -255,6 +256,7 @@ If a query doesn't match any tool, say so."""
                                      {"item_id": item_id if item_id != "all" else ""})
         return json.dumps(result, indent=2)
 
+    # STEP 3.3: Build Agent — bind model + prompt + 4 Gateway-based tools
     return Agent(model=model, system_prompt=system_prompt,
                  tools=[check_inventory, track_shipment, lookup_supplier, inspect_quality])
 
@@ -283,6 +285,7 @@ TEST_QUERIES = [
 ]
 
 
+# STEP 4: DEMO EXECUTION — Gateway setup and agent queries
 def main():
     print("=" * 70)
     print("  AgentCore Gateway Demo — Module 11")

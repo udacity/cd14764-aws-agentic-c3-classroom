@@ -104,6 +104,7 @@ NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"
 # ─────────────────────────────────────────────────────
 # SAMPLE BOOKING DATA
 # ─────────────────────────────────────────────────────
+# STEP 1: SAGA STATE CONFIGURATION — Travel booking packages with failure scenarios
 TRAVEL_PACKAGES = [
     {
         "saga_id": "SAGA-001",
@@ -136,7 +137,7 @@ TRAVEL_PACKAGES = [
 
 
 # ═══════════════════════════════════════════════════════
-#  SIMULATED DYNAMODB — Saga State Machine
+#  STEP 2: SIMULATED DYNAMODB — Saga State Machine
 #  Production: dynamodb = boto3.resource('dynamodb'); table = dynamodb.Table('SagaState')
 # ═══════════════════════════════════════════════════════
 
@@ -198,17 +199,11 @@ db.create_table("SagaState")
 
 
 # ═══════════════════════════════════════════════════════
-#  SAGA STATE MACHINE
-#
-#  STEP 1: create_saga()     — Initialize state machine
-#  STEP 2: update_step()     — Transition a step's status
-#  STEP 3: acquire_lock()    — Distributed lock for compensation
-#  STEP 4: release_lock()    — Release lock after compensation
-#  STEP 5: get_saga()        — Read current state
+#  STEP 3: SAGA STATE FUNCTIONS — Create, update, lock, and manage saga state
 # ═══════════════════════════════════════════════════════
 
 def create_saga(saga_id: str, steps: list[str]) -> dict:
-    """STEP 1: Initialize saga state machine with steps=pending, overall_status=in_progress, locked=False."""
+    """Initialize saga state machine with steps=pending, overall_status=in_progress, locked=False."""
     record = {
         "saga_id": saga_id,
         "steps": [
@@ -225,7 +220,7 @@ def create_saga(saga_id: str, steps: list[str]) -> dict:
 
 
 def update_step(saga_id: str, step_index: int, updates: dict) -> dict:
-    """STEP 2: Update step status (pending→executing→completed or completed→compensating→compensated)."""
+    """Update step status (pending→executing→completed or completed→compensating→compensated)."""
     saga = db.get_item("SagaState", saga_id)
     saga["steps"][step_index].update(updates)
     db.update_item("SagaState", saga_id, {"steps": saga["steps"]})
@@ -233,7 +228,7 @@ def update_step(saga_id: str, step_index: int, updates: dict) -> dict:
 
 
 def acquire_lock(saga_id: str) -> bool:
-    """STEP 3: Acquire distributed lock (conditional write, only if locked==False)."""
+    """Acquire distributed lock (conditional write, only if locked==False)."""
     try:
         db.update_item_conditional(
             "SagaState", saga_id,
@@ -246,28 +241,26 @@ def acquire_lock(saga_id: str) -> bool:
 
 
 def release_lock(saga_id: str):
-    """STEP 4: Release lock after compensation completes."""
+    """Release lock after compensation completes."""
     db.update_item("SagaState", saga_id, {"locked": False})
 
 def get_saga(saga_id: str) -> dict | None:
-    """STEP 5: Read current saga state."""
+    """Read current saga state."""
     return db.get_item("SagaState", saga_id)
 
 # ═══════════════════════════════════════════════════════
-#  BOOKING AGENTS — Each has forward + compensating action
-#
-#  FlightAgent:  book_flight / cancel_flight
-#  HotelAgent:   book_hotel  / cancel_hotel
-#  CarAgent:     book_car    / cancel_car
+#  STEP 4: BOOKING AGENTS — Each has forward + compensating action
+#  FlightAgent, HotelAgent, CarAgent (3 agents)
 # ═══════════════════════════════════════════════════════
 
 def build_flight_agent(flight_data: dict, saga_id: str,
                        cancel_mode: bool = False) -> Agent:
     """Booking agent for flights (forward or compensating)."""
-
+    # STEP 4.1: BedrockModel — Nova Lite for flight booking (temperature 0.0)
     model = BedrockModel(model_id=NOVA_LITE_MODEL, region_name=AWS_REGION, temperature=0.0)
 
     if cancel_mode:
+        # STEP 4.2: System prompt — Flight cancellation (compensating action)
         system_prompt = f"""You are a flight cancellation agent. Your ONLY job:
 1. Call cancel_flight with saga_id '{saga_id}'
 2. Report: Flight cancelled for {saga_id}
@@ -303,9 +296,11 @@ Do NOT add any other commentary."""
                 "refund": flight_data["price"],
             }, indent=2)
 
+        # STEP 4.3: Build Agent — cancel_flight tool (compensation)
         return Agent(model=model, system_prompt=system_prompt, tools=[cancel_flight])
 
     else:
+        # STEP 4.4: System prompt — Flight booking (forward action)
         system_prompt = f"""You are a flight booking agent. Your ONLY job:
 1. Call book_flight with saga_id '{saga_id}'
 2. Report: Flight booked for {saga_id}
@@ -338,6 +333,7 @@ Do NOT add any other commentary."""
                 "status": "confirmed",
             }, indent=2)
 
+        # STEP 4.5: Build Agent — book_flight tool (forward)
         return Agent(model=model, system_prompt=system_prompt, tools=[book_flight])
 
 
@@ -345,10 +341,11 @@ def build_hotel_agent(hotel_data: dict, saga_id: str,
                       simulate_failure: bool = False,
                       cancel_mode: bool = False) -> Agent:
     """Booking agent for hotels (forward or compensating)."""
-
+    # STEP 4.6: BedrockModel — Nova Lite for hotel booking (temperature 0.0)
     model = BedrockModel(model_id=NOVA_LITE_MODEL, region_name=AWS_REGION, temperature=0.0)
 
     if cancel_mode:
+        # STEP 4.7: System prompt — Hotel cancellation (compensating action)
         system_prompt = f"""You are a hotel cancellation agent. Your ONLY job:
 1. Call cancel_hotel with saga_id '{saga_id}'
 2. Report: Hotel cancelled for {saga_id}
@@ -383,9 +380,11 @@ Do NOT add any other commentary."""
                 "refund": hotel_data["price"],
             }, indent=2)
 
+        # STEP 4.8: Build Agent — cancel_hotel tool (compensation)
         return Agent(model=model, system_prompt=system_prompt, tools=[cancel_hotel])
 
     else:
+        # STEP 4.9: System prompt — Hotel booking (forward action)
         system_prompt = f"""You are a hotel booking agent. Your ONLY job:
 1. Call book_hotel with saga_id '{saga_id}'
 2. Report: Hotel booked for {saga_id} OR Hotel booking failed for {saga_id}
@@ -428,6 +427,7 @@ Do NOT add any other commentary."""
                 "status": "confirmed",
             }, indent=2)
 
+        # STEP 4.10: Build Agent — book_hotel tool (forward)
         return Agent(model=model, system_prompt=system_prompt, tools=[book_hotel])
 
 
@@ -435,10 +435,11 @@ def build_car_agent(car_data: dict, saga_id: str,
                     simulate_failure: bool = False,
                     cancel_mode: bool = False) -> Agent:
     """Booking agent for car rental (forward or compensating)."""
-
+    # STEP 4.11: BedrockModel — Nova Lite for car booking (temperature 0.0)
     model = BedrockModel(model_id=NOVA_LITE_MODEL, region_name=AWS_REGION, temperature=0.0)
 
     if cancel_mode:
+        # STEP 4.12: System prompt — Car cancellation (compensating action)
         system_prompt = f"""You are a car rental cancellation agent. Your ONLY job:
 1. Call cancel_car with saga_id '{saga_id}'
 2. Report: Car rental cancelled for {saga_id}
@@ -473,9 +474,11 @@ Do NOT add any other commentary."""
                 "refund": car_data["price"],
             }, indent=2)
 
+        # STEP 4.13: Build Agent — cancel_car tool (compensation)
         return Agent(model=model, system_prompt=system_prompt, tools=[cancel_car])
 
     else:
+        # STEP 4.14: System prompt — Car booking (forward action)
         system_prompt = f"""You are a car rental booking agent. Your ONLY job:
 1. Call book_car with saga_id '{saga_id}'
 2. Report: Car booked for {saga_id} OR Car booking failed for {saga_id}
@@ -518,19 +521,12 @@ Do NOT add any other commentary."""
                 "status": "confirmed",
             }, indent=2)
 
+        # STEP 4.15: Build Agent — book_car tool (forward)
         return Agent(model=model, system_prompt=system_prompt, tools=[book_car])
 
 
 # ═══════════════════════════════════════════════════════
-#  SAGA ORCHESTRATOR — Forward execution + compensation
-#
-#  This is a Python orchestrator (NOT LLM-driven).
-#  The orchestrator:
-#    1. Runs agents sequentially (forward execution)
-#    2. Detects failures via state machine
-#    3. Acquires distributed lock
-#    4. Runs compensating agents in REVERSE order
-#    5. Releases lock
+#  STEP 5: SAGA ORCHESTRATOR — Forward execution + compensation
 # ═══════════════════════════════════════════════════════
 
 def run_saga(package: dict):
@@ -679,7 +675,7 @@ def run_saga(package: dict):
 
 
 # ═══════════════════════════════════════════════════════
-#  MAIN
+#  STEP 6: DEMO EXECUTION — Run 3 saga scenarios
 # ═══════════════════════════════════════════════════════
 
 def main():
