@@ -7,7 +7,7 @@ The lesson uses simulated Bedrock Guardrails, CloudWatch, and API Gateway so stu
 ## Folder Structure
 
 ```
-lesson-9-guardrails-evaluation/
+lesson-09-guardrails-evaluation/
 ├── README.md
 ├── demo-healthcare-guardrails/
 │   └── solution/

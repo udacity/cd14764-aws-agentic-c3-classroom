@@ -5,7 +5,7 @@ This lesson teaches how to build a hybrid routing system that combines rule-base
 ## Folder Structure
 
 ```
-lesson-5-routing/
+lesson-05-routing/
 ├── README.md
 ├── demo-financial-router/
 │   └── solution/

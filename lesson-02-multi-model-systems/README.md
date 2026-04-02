@@ -5,7 +5,7 @@ This lesson covers assigning different Bedrock foundation models to different ag
 ## Folder Structure
 
 ```
-lesson-2-multi-model-systems/
+lesson-02-multi-model-systems/
 ├── README.md
 ├── demo-multi-model-incident-response/
 │   └── solution/

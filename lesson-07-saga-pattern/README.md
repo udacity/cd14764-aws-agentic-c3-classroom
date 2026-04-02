@@ -7,7 +7,7 @@ The lesson uses in-memory simulations of DynamoDB so students can focus on the s
 ## Folder Structure
 
 ```
-lesson-7-saga-pattern/
+lesson-07-saga-pattern/
 ├── README.md
 ├── demo-travel-booking/
 │   └── solution/
