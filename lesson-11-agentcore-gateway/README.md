@@ -4,6 +4,10 @@ This lesson teaches the AgentCore Gateway pattern for decoupling agents from the
 
 The lesson uses a simulated Gateway so students can focus on the architectural pattern without infrastructure setup. Production-mapping comments show the exact boto3 API calls for create_gateway and create_gateway_target.
 
+## Architecture
+
+![Architecture Diagram](architecture.svg)
+
 ## Folder Structure
 
 ```

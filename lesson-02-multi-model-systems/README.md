@@ -2,6 +2,10 @@
 
 This lesson covers assigning different Bedrock foundation models to different agents based on task requirements (fast vs. deep vs. balanced).
 
+## Architecture
+
+![Architecture Diagram](architecture.svg)
+
 ## Folder Structure
 
 ```

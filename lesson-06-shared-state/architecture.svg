@@ -1,0 +1,118 @@
+<svg viewBox="0 0 720 850" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow6" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+    </filter>
+    <marker id="arrow6" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+    </marker>
+    <style>
+      text { font-family: 'Segoe UI', system-ui, sans-serif; }
+      .title { font-size: 18px; font-weight: bold; text-anchor: middle; }
+      .subtitle { font-size: 12px; fill: #6b7280; text-anchor: middle; }
+      .label { font-size: 13px; text-anchor: middle; }
+      .mono { font-family: 'Courier New', monospace; font-size: 11px; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="360" y="30" class="title">Lesson 6: Shared State with Optimistic Locking</text>
+  <text x="360" y="48" class="subtitle">Multi-agent coordination via DynamoDB with version control</text>
+
+  <!-- Trip Request Input -->
+  <rect x="280" y="70" width="160" height="50" rx="25" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" filter="url(#shadow6)"/>
+  <text x="360" y="100" class="label" fill="#92400e">Trip Request</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="120" x2="360" y2="160" stroke="#475569" stroke-width="2" marker-end="url(#arrow6)"/>
+
+  <!-- Central Shared State Box -->
+  <rect x="160" y="160" width="400" height="140" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="3" filter="url(#shadow6)"/>
+  <text x="360" y="185" class="label" fill="#475569" font-weight="bold">Shared State (SimulatedDynamoDB)</text>
+
+  <!-- Table header -->
+  <line x1="170" y1="200" x2="550" y2="200" stroke="#94a3b8" stroke-width="1"/>
+  <text x="200" y="218" class="mono" fill="#475569">trip_id (PK)</text>
+  <text x="290" y="218" class="mono" fill="#475569">version</text>
+  <text x="380" y="218" class="mono" fill="#475569">driver_id</text>
+  <text x="480" y="218" class="mono" fill="#475569">price</text>
+
+  <line x1="170" y1="225" x2="550" y2="225" stroke="#94a3b8" stroke-width="1"/>
+  <text x="180" y="248" class="mono" fill="#475569">trip_123</text>
+  <text x="290" y="248" class="mono" fill="#475569">v3</text>
+  <text x="380" y="248" class="mono" fill="#475569">drv_456</text>
+  <text x="480" y="248" class="mono" fill="#475569">$45.50</text>
+
+  <!-- Optimistic Locking badge -->
+  <rect x="300" y="270" width="120" height="25" rx="3" fill="#fee2e2" stroke="#ef4444" stroke-width="1"/>
+  <text x="360" y="287" class="label" fill="#991b1b" font-size="11px">Optimistic Locking</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="300" x2="360" y2="340" stroke="#475569" stroke-width="2" marker-end="url(#arrow6)"/>
+
+  <!-- Three Agents Reading/Writing -->
+  <!-- DriverMatch Agent -->
+  <rect x="60" y="360" width="140" height="60" rx="4" fill="#f0fdf4" stroke="#22c55e" stroke-width="2" filter="url(#shadow6)"/>
+  <text x="130" y="383" class="label" fill="#166534" font-weight="bold">DriverMatch</text>
+  <text x="130" y="403" class="label" fill="#166534" font-size="11px">Agent</text>
+
+  <!-- Pricing Agent -->
+  <rect x="290" y="360" width="140" height="60" rx="4" fill="#f0fdf4" stroke="#22c55e" stroke-width="2" filter="url(#shadow6)"/>
+  <text x="360" y="383" class="label" fill="#166534" font-weight="bold">Pricing</text>
+  <text x="360" y="403" class="label" fill="#166534" font-size="11px">Agent</text>
+
+  <!-- ETA Agent -->
+  <rect x="520" y="360" width="140" height="60" rx="4" fill="#f0fdf4" stroke="#22c55e" stroke-width="2" filter="url(#shadow6)"/>
+  <text x="590" y="383" class="label" fill="#166534" font-weight="bold">ETA</text>
+  <text x="590" y="403" class="label" fill="#166534" font-size="11px">Agent</text>
+
+  <!-- Arrows from state to agents -->
+  <line x1="240" y1="300" x2="130" y2="360" stroke="#475569" stroke-width="2" marker-end="url(#arrow6)"/>
+  <line x1="360" y1="300" x2="360" y2="360" stroke="#475569" stroke-width="2" marker-end="url(#arrow6)"/>
+  <line x1="480" y1="300" x2="590" y2="360" stroke="#475569" stroke-width="2" marker-end="url(#arrow6)"/>
+
+  <!-- Arrows from agents back to state (dashed for write operations) -->
+  <line x1="130" y1="420" x2="240" y2="300" stroke="#475569" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow6)"/>
+  <line x1="360" y1="420" x2="360" y2="300" stroke="#475569" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow6)"/>
+  <line x1="590" y1="420" x2="480" y2="300" stroke="#475569" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow6)"/>
+
+  <!-- Agent Operation labels -->
+  <text x="95" y="445" class="label" fill="#475569" font-size="10px">read/write</text>
+  <text x="340" y="445" class="label" fill="#475569" font-size="10px">read/write</text>
+  <text x="570" y="445" class="label" fill="#475569" font-size="10px">read/write</text>
+
+  <!-- Coordination info -->
+  <rect x="140" y="480" width="440" height="70" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" filter="url(#shadow6)"/>
+  <text x="360" y="503" class="label" fill="#92400e" font-weight="bold">Version-Based Conflict Resolution</text>
+  <text x="360" y="523" class="label" fill="#92400e" font-size="11px">Each agent reads version, modifies data, and writes back</text>
+  <text x="360" y="540" class="label" fill="#92400e" font-size="11px">Failed version match = retry with exponential backoff</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="550" x2="360" y2="590" stroke="#475569" stroke-width="2" marker-end="url(#arrow6)"/>
+
+  <!-- AgentCore Memory Box -->
+  <rect x="180" y="590" width="360" height="80" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" filter="url(#shadow6)"/>
+  <text x="360" y="615" class="label" fill="#475569" font-weight="bold">AgentCore Memory</text>
+  <text x="360" y="635" class="label" fill="#475569" font-size="11px">Cross-session agent preferences, conversation history,</text>
+  <text x="360" y="652" class="label" fill="#475569" font-size="11px">learned customer context, and decision audit trails</text>
+
+  <!-- Legend -->
+  <g>
+    <text x="40" y="730" class="subtitle" text-anchor="start" font-weight="bold">Legend:</text>
+
+    <rect x="40" y="745" width="12" height="12" rx="2" fill="#f1f5f9" stroke="#94a3b8"/>
+    <text x="58" y="753" class="label" text-anchor="start" font-size="11px">Infrastructure/State</text>
+
+    <rect x="280" y="745" width="12" height="12" rx="2" fill="#f0fdf4" stroke="#22c55e"/>
+    <text x="298" y="753" class="label" text-anchor="start" font-size="11px">Agents</text>
+
+    <rect x="460" y="745" width="12" height="12" rx="2" fill="#fef3c7" stroke="#f59e0b"/>
+    <text x="478" y="753" class="label" text-anchor="start" font-size="11px">Data/Operations</text>
+
+    <path d="M 40 775 L 60 775" stroke="#475569" stroke-width="2" marker-end="url(#arrow6)"/>
+    <text x="75" y="782" class="label" text-anchor="start" font-size="11px">Read Operation</text>
+
+    <path d="M 280 775 L 300 775" stroke="#475569" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow6)"/>
+    <text x="315" y="782" class="label" text-anchor="start" font-size="11px">Write Operation</text>
+  </g>
+</svg>

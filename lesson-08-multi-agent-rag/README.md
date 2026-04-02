@@ -4,6 +4,10 @@ This lesson teaches the Multi-Agent RAG (Retrieval-Augmented Generation) pattern
 
 The lesson uses in-memory simulated Knowledge Bases with keyword-based relevance scoring so students can focus on the RAG pattern without infrastructure setup. Production-mapping comments throughout the code show the exact `bedrock-agent-runtime.retrieve()` API calls.
 
+## Architecture
+
+![Architecture Diagram](architecture.svg)
+
 ## Folder Structure
 
 ```

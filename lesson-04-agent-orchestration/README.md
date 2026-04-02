@@ -2,6 +2,10 @@
 
 This lesson teaches how to combine sequential, parallel, and conditional execution patterns into a single orchestrated workflow using a Python code orchestrator (not an LLM).
 
+## Architecture
+
+![Architecture Diagram](architecture.svg)
+
 ## Folder Structure
 
 ```

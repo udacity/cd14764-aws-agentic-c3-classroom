@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrow1" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <filter id="shadow1">
+      <feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- Title -->
+  <text x="360" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">Lesson 1: Building Agents with Tools</text>
+  <text x="360" y="52" text-anchor="middle" font-size="12" fill="#64748b">Single agent with 3 specialized tools — each tool has one responsibility</text>
+
+  <!-- Patient Input -->
+  <rect x="270" y="70" width="180" height="44" rx="22" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" filter="url(#shadow1)"/>
+  <text x="360" y="97" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">Patient Complaint</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="114" x2="360" y2="148" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+
+  <!-- Triage Agent -->
+  <rect x="230" y="150" width="260" height="54" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow1)"/>
+  <text x="360" y="174" text-anchor="middle" font-size="14" font-weight="700" fill="#1e40af">TriageAgent</text>
+  <text x="360" y="192" text-anchor="middle" font-size="11" fill="#3b82f6">Claude 3 Sonnet · temperature 0.1</text>
+
+  <!-- Arrow down to tools -->
+  <line x1="280" y1="204" x2="140" y2="248" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+  <line x1="360" y1="204" x2="360" y2="248" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+  <line x1="440" y1="204" x2="580" y2="248" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+
+  <!-- Tool 1 -->
+  <rect x="40" y="250" width="200" height="54" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5" filter="url(#shadow1)"/>
+  <text x="140" y="274" text-anchor="middle" font-size="13" font-weight="600" fill="#166534">lookup_symptoms</text>
+  <text x="140" y="292" text-anchor="middle" font-size="10" fill="#4ade80">symptoms → conditions</text>
+
+  <!-- Tool 2 -->
+  <rect x="260" y="250" width="200" height="54" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5" filter="url(#shadow1)"/>
+  <text x="360" y="274" text-anchor="middle" font-size="13" font-weight="600" fill="#166534">classify_urgency</text>
+  <text x="360" y="292" text-anchor="middle" font-size="10" fill="#4ade80">condition → priority</text>
+
+  <!-- Tool 3 -->
+  <rect x="480" y="250" width="200" height="54" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5" filter="url(#shadow1)"/>
+  <text x="580" y="274" text-anchor="middle" font-size="13" font-weight="600" fill="#166534">book_appointment</text>
+  <text x="580" y="292" text-anchor="middle" font-size="10" fill="#4ade80">priority → time slot</text>
+
+  <!-- Sequential flow arrows -->
+  <line x1="240" y1="277" x2="258" y2="277" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow1)"/>
+  <line x1="460" y1="277" x2="478" y2="277" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow1)"/>
+
+  <!-- Output -->
+  <line x1="360" y1="304" x2="360" y2="335" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+  <rect x="245" y="337" width="230" height="36" rx="18" fill="#fae8ff" stroke="#a855f7" stroke-width="1.5" filter="url(#shadow1)"/>
+  <text x="360" y="360" text-anchor="middle" font-size="12" font-weight="600" fill="#7e22ce">Triage Decision + Appointment</text>
+
+  <!-- Legend -->
+  <rect x="15" y="340" width="10" height="10" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="30" y="349" font-size="10" fill="#64748b">Agent</text>
+  <rect x="75" y="340" width="10" height="10" rx="2" fill="#f0fdf4" stroke="#22c55e" stroke-width="1"/>
+  <text x="90" y="349" font-size="10" fill="#64748b">Tool</text>
+  <rect x="125" y="340" width="10" height="10" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+  <text x="140" y="349" font-size="10" fill="#64748b">Input</text>
+  <rect x="175" y="340" width="10" height="10" rx="2" fill="#fae8ff" stroke="#a855f7" stroke-width="1"/>
+  <text x="190" y="349" font-size="10" fill="#64748b">Output</text>
+</svg>

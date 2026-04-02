@@ -2,6 +2,10 @@
 
 This lesson covers the fundamentals of the Strands Agents SDK: Agent class, @tool decorator, BedrockModel, and system prompts.
 
+## Architecture
+
+![Architecture Diagram](architecture.svg)
+
 ## Folder Structure
 
 ```
