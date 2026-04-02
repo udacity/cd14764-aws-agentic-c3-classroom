@@ -1,43 +1,18 @@
 """
 ecommerce_checkout_saga.py - EXERCISE STARTER (Student-Led)
-==============================================================
-Module 7 Exercise: Build a Saga with Compensations for E-Commerce Checkout
+Module 7 Exercise: Build Saga with Compensations + Barrier for E-Commerce Checkout
 
-Architecture:
-    Customer places checkout order
-         │
-    ┌────┴─────────────────────────────────────────────────┐
-    │  Saga Orchestrator (Python, NOT LLM-driven)           │
-    │  Forward: Inventory → Payment → Shipping (sequential) │
-    │  Compensate: reverse order on failure                  │
-    └────┬─────────────────────────────────────────────────┘
-         │
-    ┌────┴─────────────────────────────────────────────────┐
-    │  Saga State Machine (Simulated DynamoDB)              │
-    │  checkout_id (PK) | steps[] | overall_status | lock   │
-    │  + Barrier counter: compensations_completed           │
-    │  Saga resolves to 'failed' only when barrier reached  │
-    └────┬─────────────────────────────────────────────────┘
-         │
-    Three checkout agents (each has forward + compensating action):
-    ┌────┴─────────────────────────────────────────────────┐
-    │ InventoryAgent:  reserve_items   / release_items      │
-    │ PaymentAgent:    charge_card     / refund_card         │
-    │ ShippingAgent:   schedule_delivery / cancel_delivery   │
-    └──────────────────────────────────────────────────────┘
+Architecture: Saga Orchestrator → Saga State Machine + Barrier → Three Checkout Agents
+  - Orchestrator: Python, forward Inventory→Payment→Shipping, compensate in reverse
+  - State Machine: checkout_id (PK) | steps[] | overall_status | lock | barrier counter
+  - Agents: InventoryAgent (reserve/release), PaymentAgent (charge/refund), ShippingAgent (schedule/cancel)
 
-Same saga pattern as the demo (travel_booking_saga.py),
-with one addition:
-  BARRIER COORDINATION — an atomic counter that each compensation
-  increments. Saga resolves to 'failed' only when the counter
-  equals the number of steps to compensate.
+Key Addition: BARRIER COORDINATION — atomic counter ensures saga doesn't resolve prematurely
 
-Instructions:
-  - Follow the demo pattern (travel_booking_saga.py)
-  - Look for TODO 1-18 below
-  - Saga state machine functions: create/update/lock/barrier
-  - Each agent has a forward action and a compensating action
-  - The orchestrator runs forward, detects failure, compensates in reverse
+Instructions: Follow demo pattern (travel_booking_saga.py), look for TODO 1-18
+  - State machine: create/update/lock/barrier functions
+  - Agents: forward action + compensating action each
+  - Orchestrator: forward → detect failure → compensate in reverse → barrier check
 """
 
 import json
@@ -130,9 +105,8 @@ CHECKOUTS = [
 # ═══════════════════════════════════════════════════════
 
 class ConditionalCheckFailedException(Exception):
-    """Version mismatch on conditional write."""
+    """Version mismatch on conditional write. Production: botocore.exceptions.ClientError."""
     pass
-
 
 class SimulatedDynamoDB:
     """In-memory DynamoDB simulator for saga state machine + barrier."""
@@ -183,10 +157,7 @@ class SimulatedDynamoDB:
 
     def atomic_increment(self, table_name: str, pk_value: str,
                           counter_field: str, increment: int = 1) -> int:
-        """Atomic counter increment (used for barrier coordination).
-
-        Production: DynamoDB ADD expression for atomic counter.
-        """
+        """Atomic counter increment for barrier coordination. Production: DynamoDB ADD expression."""
         with self._lock:
             record = self._tables.get(table_name, {}).get(pk_value)
             if not record:
@@ -242,12 +213,8 @@ def release_lock(checkout_id: str):
 
 
 # TODO 5: Implement increment_barrier(checkout_id) -> tuple[int, int]
-#   - This is the NEW pattern (not in the demo!)
-#   - Call db.atomic_increment("CheckoutSaga", checkout_id, "compensations_completed")
-#   - Read saga to get compensations_needed
-#   - Return (completed_count, needed_count)
-#   Hint: The barrier ensures the saga doesn't resolve to 'failed' until
-#         ALL compensations have finished
+#   - Call db.atomic_increment, read saga, return (completed, needed)
+#   Hint: NEW pattern. Barrier ensures saga doesn't resolve until all compensations finish
 def increment_barrier(checkout_id: str) -> tuple[int, int]:
     pass
 
@@ -267,12 +234,11 @@ def get_saga(checkout_id: str) -> dict | None:
 def build_inventory_agent(items: list, checkout_id: str,
                           cancel_mode: bool = False) -> Agent:
     """Agent for inventory reservation / release."""
-
     # TODO 6: Create BedrockModel with NOVA_LITE_MODEL, temperature=0.0
     model = None  # Replace with BedrockModel(...)
 
     if cancel_mode:
-        # TODO 7: Write system prompt for inventory release (compensating action)
+        # TODO 7: Write system prompt for inventory release
         system_prompt = ""  # Replace with system prompt
 
         @tool
@@ -306,7 +272,7 @@ def build_inventory_agent(items: list, checkout_id: str,
         return Agent(model=model, system_prompt=system_prompt, tools=[release_items])
 
     else:
-        # TODO 8: Write system prompt for inventory reservation (forward action)
+        # TODO 8: Write system prompt for inventory reservation
         system_prompt = ""  # Replace with system prompt
 
         @tool
@@ -344,12 +310,11 @@ def build_payment_agent(payment_data: dict, total: float, checkout_id: str,
                         simulate_failure: bool = False,
                         cancel_mode: bool = False) -> Agent:
     """Agent for payment processing / refund."""
-
     # TODO 9: Create BedrockModel with NOVA_LITE_MODEL, temperature=0.0
     model = None  # Replace with BedrockModel(...)
 
     if cancel_mode:
-        # TODO 10: Write system prompt for refund (compensating action)
+        # TODO 10: Write system prompt for refund
         system_prompt = ""  # Replace with system prompt
 
         @tool
@@ -382,7 +347,7 @@ def build_payment_agent(payment_data: dict, total: float, checkout_id: str,
         return Agent(model=model, system_prompt=system_prompt, tools=[refund_card])
 
     else:
-        # TODO 11: Write system prompt for charge (forward action)
+        # TODO 11: Write system prompt for charge
         system_prompt = ""  # Replace with system prompt
 
         @tool
@@ -428,12 +393,11 @@ def build_shipping_agent(shipping_data: dict, checkout_id: str,
                          simulate_failure: bool = False,
                          cancel_mode: bool = False) -> Agent:
     """Agent for shipping scheduling / cancellation."""
-
     # TODO 12: Create BedrockModel with NOVA_LITE_MODEL, temperature=0.0
     model = None  # Replace with BedrockModel(...)
 
     if cancel_mode:
-        # TODO 13: Write system prompt for delivery cancellation (compensating action)
+        # TODO 13: Write system prompt for delivery cancellation
         system_prompt = ""  # Replace with system prompt
 
         @tool
@@ -464,7 +428,7 @@ def build_shipping_agent(shipping_data: dict, checkout_id: str,
         return Agent(model=model, system_prompt=system_prompt, tools=[cancel_delivery])
 
     else:
-        # TODO 14: Write system prompt for delivery scheduling (forward action)
+        # TODO 14: Write system prompt for delivery scheduling
         system_prompt = ""  # Replace with system prompt
 
         @tool
@@ -555,12 +519,8 @@ def run_checkout_saga(checkout: dict):
         },
     ]
 
-    # TODO 15: Forward execution — run agents sequentially
-    #   - Loop through agents_config
-    #   - For each: update_step to "executing", update current_phase
-    #   - Run agent with run_agent_with_retry
-    #   - Check step status in state machine: if "failed", record failed_step and break
-    #   - If all succeed, set overall_status to "completed" and return
+    # TODO 15: Forward execution — run agents sequentially, detect failure
+    #   Loop: update_step→executing, run_agent_with_retry, check status, break if failed
     #   Hint: Same pattern as demo's run_saga() forward execution
     failed_step = None
     pass  # Replace with forward execution loop
@@ -571,22 +531,16 @@ def run_checkout_saga(checkout: dict):
         print(f"\n  ✓ Checkout {checkout_id} COMPLETED — order confirmed!")
         return get_saga(checkout_id)
 
-    # TODO 16: Compensation with lock — compensate completed steps in REVERSE order
-    #   a) Set overall_status to "compensating"
-    #   b) Acquire distributed lock (acquire_lock)
-    #   c) Find completed steps, reverse them
-    #   d) Set compensations_needed to len(completed_steps) (barrier target)
-    #   e) For each completed step (in reverse): set status to "compensating",
-    #      run compensating agent, print result
-    #   f) Release lock
-    #   Hint: Same as demo's compensation phase, but also set the barrier target
+    # TODO 16: Compensation with lock — compensate in REVERSE order
+    #   a) Set overall_status→"compensating", acquire lock
+    #   b) Find completed steps, reverse, set barrier target
+    #   c) Run compensating agents, release lock
+    #   Hint: Same as demo, but also set compensations_needed for barrier
     compensation_builders = {
         "inventory": lambda: build_inventory_agent(checkout["items"], checkout_id, cancel_mode=True),
         "payment": lambda: build_payment_agent(checkout["payment"], total, checkout_id, cancel_mode=True),
         "shipping": lambda: build_shipping_agent(checkout["shipping"], checkout_id, cancel_mode=True),
     }
-
-    # Prompts must match the actual tool names so the LLM calls the right tool
     compensation_prompts = {
         "inventory": f"Release items for checkout {checkout_id}",
         "payment": f"Refund card for checkout {checkout_id}",
@@ -594,22 +548,14 @@ def run_checkout_saga(checkout: dict):
     }
     pass  # Replace with compensation logic
 
-    # TODO 17: Barrier check — verify all compensations completed
-    #   - Read saga, compare compensations_completed vs compensations_needed
-    #   - If barrier reached: set overall_status to "failed"
-    #   - If not: print warning
-    #   Hint: This is the NEW pattern. The barrier prevents premature resolution.
+    # TODO 17: Barrier check — read saga, verify completed==needed, set status
+    #   Hint: NEW pattern prevents premature resolution while compensations run
     pass  # Replace with barrier check
 
     return get_saga(checkout_id)
 
 
-# TODO 18: Wire up main() to run all 3 checkout scenarios
-#   - Loop through CHECKOUTS
-#   - Print checkout details
-#   - Call run_checkout_saga(checkout)
-#   - Print saga state machine after each
-#   - Print summary at the end
+# TODO 18: Wire up main() — loop through CHECKOUTS, run sagas, print results
 #   Hint: Same structure as demo's main()
 def main():
     print("=" * 70)
@@ -617,7 +563,6 @@ def main():
     print("  Saga Pattern with Compensating Transactions + Barrier")
     print("  3 Checkout Agents: Inventory → Payment → Shipping")
     print("=" * 70)
-
     pass  # Replace with main scenario loop
 
 

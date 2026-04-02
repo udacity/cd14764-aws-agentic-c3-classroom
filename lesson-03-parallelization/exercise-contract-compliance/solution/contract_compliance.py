@@ -1,35 +1,11 @@
 """
 contract_compliance.py - SOLUTION
-===================================
 Module 3 Exercise: Parallel Contract Compliance Analysis
 
-Architecture:
-    Legal Contract
-         │
-    ┌────┴────────────────────────┐
-    │           │                 │       ← ThreadPoolExecutor (parallel)
-  Regulatory  Financial        IP
-  Compliance  Risk           Protection
-  Agent       Agent          Agent
-(Nova Lite)  (Claude)       (Nova Pro)
-    │           │                 │
-    └────┬──────┴────────────────┘
-         │
-    Synthesizer Agent (Claude)       ← Produces compliance report
-         │
-    Recommendation: APPROVE / APPROVE-WITH-CONDITIONS / REJECT
+3 specialist agents (regulatory/financial/IP) analyze contracts in parallel.
+Synthesizer produces unified compliance recommendation. Same STEP 1/2/3 pattern as demo.
 
-PATTERN: Follow the same steps shown in the demo (document_analysis.py)
-  STEP 1: Create BedrockModel (choose model + temperature)
-  STEP 2: Write system prompt (tell agent which tool to call)
-  STEP 3: Build Agent (bind model + prompt + tools)
-  Then: ThreadPoolExecutor for parallel specialists, Synthesizer after.
-
-Tech Stack:
-  - Python 3.11+
-  - Strands Agents SDK (Agent class, @tool decorator)
-  - Amazon Bedrock (Nova Lite, Claude 3 Sonnet, Nova Pro)
-  - concurrent.futures.ThreadPoolExecutor (parallel execution)
+Tech: Strands Agents SDK, Amazon Bedrock (Nova Lite/Claude/Nova Pro), ThreadPoolExecutor
 """
 
 import json
@@ -72,17 +48,13 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
                 raise
 
 
-# ─────────────────────────────────────────────────────
-# CONFIGURATION — Models for specialist and synthesizer agents
-# ─────────────────────────────────────────────────────
+# Configuration — Models for specialist and synthesizer agents
 AWS_REGION = "us-east-1"
 NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"                    # Regulatory compliance (fast)
 CLAUDE_MODEL = "anthropic.claude-3-sonnet-20240229-v1:0"     # Financial risk + Synthesis (deep)
 NOVA_PRO_MODEL = "amazon.nova-pro-v1:0"                      # IP protection (balanced)
 
-# ─────────────────────────────────────────────────────
-# SAMPLE CONTRACTS (clean vendor agreement + risky outsourcing)
-# ─────────────────────────────────────────────────────
+# Sample contracts (clean vendor agreement + risky outsourcing)
 CONTRACTS = [
     {
         "id": "CONTRACT-001",
@@ -214,15 +186,8 @@ ip_cache = {}
 
 def build_regulatory_agent() -> Agent:
     """Build the Regulatory Compliance Agent using Nova Lite."""
-
-    # STEP 1: Create BedrockModel (same pattern as demo)
-    # - Nova Lite for fast regulatory checklist verification
-    # - temperature=0.0 for deterministic compliance assessment
-    model = BedrockModel(
-        model_id=NOVA_LITE_MODEL,
-        region_name=AWS_REGION,
-        temperature=0.0,
-    )
+    # STEP 1: BedrockModel (Nova Lite, temperature 0.0)
+    model = BedrockModel(model_id=NOVA_LITE_MODEL, region_name=AWS_REGION, temperature=0.0)
 
     # STEP 2: System prompt — tell agent which tool to call
     system_prompt = """You are a regulatory compliance reviewer. Your ONLY job:
@@ -235,18 +200,7 @@ Do NOT add any other commentary."""
 
     @tool
     def check_regulatory(contract_id: str) -> str:
-        """
-        Check contract for GDPR, SOX, HIPAA regulatory compliance.
-
-        Examines: data residency, certifications, data processing agreements,
-        retention policies, and cross-border transfer safeguards.
-
-        Args:
-            contract_id: The contract ID (e.g., "CONTRACT-001")
-
-        Returns:
-            JSON with regulatory compliance findings
-        """
+        """Check GDPR/SOX/HIPAA compliance (residency, certs, DPA, retention)."""
         contract = next((c for c in CONTRACTS if c["id"] == contract_id), None)
         if not contract:
             return json.dumps({"error": f"Contract {contract_id} not found"})
@@ -268,21 +222,12 @@ Do NOT add any other commentary."""
     return Agent(model=model, system_prompt=system_prompt, tools=[check_regulatory])
 
 
-# ═══════════════════════════════════════════════════════
-#  SPECIALIST 2: FINANCIAL RISK  (Claude — deep analysis)
-# ═══════════════════════════════════════════════════════
+# Specialist 2: Financial Risk (Claude — deep analysis)
 
 def build_financial_agent() -> Agent:
     """Build the Financial Risk Agent using Claude."""
-
-    # STEP 1: Create BedrockModel (same pattern as demo)
-    # - Claude for deep analysis of complex financial terms
-    # - temperature=0.1 for analytical precision
-    model = BedrockModel(
-        model_id=CLAUDE_MODEL,
-        region_name=AWS_REGION,
-        temperature=0.1,
-    )
+    # STEP 1: BedrockModel (Claude, temperature 0.1)
+    model = BedrockModel(model_id=CLAUDE_MODEL, region_name=AWS_REGION, temperature=0.1)
 
     # STEP 2: System prompt — tell agent which tool to call
     system_prompt = """You are a financial risk analyst. Your ONLY job:
@@ -295,18 +240,7 @@ Do NOT add any other commentary."""
 
     @tool
     def assess_financial_risk(contract_id: str) -> str:
-        """
-        Assess financial risk in contract terms.
-
-        Examines: payment terms, liability caps, indemnification,
-        penalty structures, and auto-renewal traps.
-
-        Args:
-            contract_id: The contract ID (e.g., "CONTRACT-001")
-
-        Returns:
-            JSON with financial risk assessment
-        """
+        """Assess financial risk (payment terms, liability, penalties, auto-renewal)."""
         contract = next((c for c in CONTRACTS if c["id"] == contract_id), None)
         if not contract:
             return json.dumps({"error": f"Contract {contract_id} not found"})
@@ -328,21 +262,12 @@ Do NOT add any other commentary."""
     return Agent(model=model, system_prompt=system_prompt, tools=[assess_financial_risk])
 
 
-# ═══════════════════════════════════════════════════════
-#  SPECIALIST 3: IP PROTECTION  (Nova Pro — balanced)
-# ═══════════════════════════════════════════════════════
+# Specialist 3: IP Protection (Nova Pro — balanced)
 
 def build_ip_agent() -> Agent:
     """Build the IP Protection Agent using Nova Pro."""
-
-    # STEP 1: Create BedrockModel (same pattern as demo)
-    # - Nova Pro for balanced IP clause analysis
-    # - temperature=0.1 for consistent assessment
-    model = BedrockModel(
-        model_id=NOVA_PRO_MODEL,
-        region_name=AWS_REGION,
-        temperature=0.1,
-    )
+    # STEP 1: BedrockModel (Nova Pro, temperature 0.1)
+    model = BedrockModel(model_id=NOVA_PRO_MODEL, region_name=AWS_REGION, temperature=0.1)
 
     # STEP 2: System prompt — tell agent which tool to call
     system_prompt = """You are an IP protection reviewer. Your ONLY job:
@@ -355,18 +280,7 @@ Do NOT add any other commentary."""
 
     @tool
     def review_ip_clauses(contract_id: str) -> str:
-        """
-        Review IP ownership, licensing, and non-compete clauses.
-
-        Examines: IP assignment, work-for-hire provisions, licensing grants,
-        NDA reciprocity, and non-compete scope.
-
-        Args:
-            contract_id: The contract ID (e.g., "CONTRACT-001")
-
-        Returns:
-            JSON with IP protection assessment
-        """
+        """Review IP ownership, licensing, work-for-hire, NDA, non-compete."""
         contract = next((c for c in CONTRACTS if c["id"] == contract_id), None)
         if not contract:
             return json.dumps({"error": f"Contract {contract_id} not found"})
@@ -387,23 +301,12 @@ Do NOT add any other commentary."""
     return Agent(model=model, system_prompt=system_prompt, tools=[review_ip_clauses])
 
 
-# ═══════════════════════════════════════════════════════
-#  SYNTHESIZER AGENT  (Claude — produces compliance report)
-#
-#  Same pattern as demo (document_analysis.py):
-#  After parallel specialists finish, the Synthesizer
-#  reads ALL findings and produces a unified recommendation.
-# ═══════════════════════════════════════════════════════
+# Synthesizer Agent (Claude — produces compliance report)
 
 def build_synthesizer_agent() -> Agent:
     """Build the Synthesizer Agent using Claude."""
-
-    # STEP 1: Create BedrockModel (same pattern as demo)
-    model = BedrockModel(
-        model_id=CLAUDE_MODEL,
-        region_name=AWS_REGION,
-        temperature=0.2,
-    )
+    # STEP 1: BedrockModel (Claude, temperature 0.2)
+    model = BedrockModel(model_id=CLAUDE_MODEL, region_name=AWS_REGION, temperature=0.2)
 
     # STEP 2: System prompt — synthesize all specialist findings
     system_prompt = """You are a contract compliance synthesizer. Your ONLY job:
@@ -418,18 +321,7 @@ Do NOT re-analyze the contract. Use ONLY the specialist findings."""
 
     @tool
     def synthesize_compliance(contract_id: str) -> str:
-        """
-        Combine findings from all 3 specialists into a compliance recommendation.
-
-        Reads from shared caches populated by the parallel specialist agents.
-        Produces: APPROVE, APPROVE-WITH-CONDITIONS, or REJECT.
-
-        Args:
-            contract_id: The contract ID (e.g., "CONTRACT-001")
-
-        Returns:
-            JSON with unified compliance recommendation
-        """
+        """Combine specialist findings into APPROVE/APPROVE-WITH-CONDITIONS/REJECT."""
         reg = regulatory_cache.get(contract_id, {})
         fin = financial_cache.get(contract_id, {})
         ip = ip_cache.get(contract_id, {})
@@ -477,11 +369,7 @@ Do NOT re-analyze the contract. Use ONLY the specialist findings."""
     return Agent(model=model, system_prompt=system_prompt, tools=[synthesize_compliance])
 
 
-# ═══════════════════════════════════════════════════════
-#  PARALLEL EXECUTION ENGINE
-#  Same pattern as demo: ThreadPoolExecutor for specialists,
-#  then Synthesizer runs sequentially after.
-# ═══════════════════════════════════════════════════════
+# Parallel execution engine (ThreadPoolExecutor for specialists)
 
 def run_specialists_parallel(contract_id: str) -> dict:
     """Run all 3 specialist agents in PARALLEL using ThreadPoolExecutor."""
@@ -537,9 +425,7 @@ def run_specialists_sequential(contract_id: str) -> dict:
     return timings
 
 
-# ═══════════════════════════════════════════════════════
-#  MAIN
-# ═══════════════════════════════════════════════════════
+# Main
 
 def main():
     print("=" * 65)

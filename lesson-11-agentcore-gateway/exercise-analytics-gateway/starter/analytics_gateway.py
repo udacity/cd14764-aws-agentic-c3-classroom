@@ -1,25 +1,11 @@
 """
 analytics_gateway.py - EXERCISE STARTER (Student-Led)
-==============================================================
 Module 11 Exercise: Register and Invoke Tools through AgentCore Gateway
 
-Same Gateway pattern as the demo (supply_chain_gateway.py),
-with additions:
-  1. MIXED TARGET TYPES: 2 Lambda + 1 REST API
-  2. DIFFERENT DOMAIN: Analytics utilities
-  3. SEMANTIC ROUTING: Agent selects tool by query meaning
+Follow demo pattern. Look for TODO 1-8.
+Key additions: MIXED TARGET TYPES | SEMANTIC ROUTING
 
-Instructions:
-  - Follow the demo pattern (supply_chain_gateway.py)
-  - Look for TODO 1-8 below
-  - Register 3 targets on the Gateway
-  - Build an agent that discovers and uses Gateway tools
-
-Tech Stack:
-  - Python 3.11+
-  - Strands Agents SDK (Agent class, @tool decorator)
-  - Amazon Bedrock (Nova Lite for the agent)
-  - Simulated AgentCore Gateway
+Tech: Python 3.11+ | Strands SDK | Bedrock Nova | Simulated Gateway
 """
 
 import json
@@ -62,10 +48,7 @@ AWS_REGION = "us-east-1"
 NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"
 
 
-# ═══════════════════════════════════════════════════════
-#  SIMULATED GATEWAY (provided — same as demo)
-# ═══════════════════════════════════════════════════════
-
+# SIMULATED GATEWAY
 class SimulatedGateway:
     """Simulates AgentCore Gateway with tool registration and discovery."""
 
@@ -96,10 +79,7 @@ class SimulatedGateway:
         return result
 
 
-# ═══════════════════════════════════════════════════════
-#  SIMULATED APIs (provided — same as demo pattern)
-# ═══════════════════════════════════════════════════════
-
+# SIMULATED APIs
 def weather_lambda_handler(params: dict) -> dict:
     """Simulated Lambda: weather lookup by city."""
     weather_data = {
@@ -111,7 +91,7 @@ def weather_lambda_handler(params: dict) -> dict:
     city = params.get("city", "").lower()
     if city in weather_data:
         return {"status": "ok", "weather": weather_data[city]}
-    return {"status": "error", "message": f"City '{city}' not found"}
+    return {"status": "error", "message": "City not found"}
 
 
 def currency_lambda_handler(params: dict) -> dict:
@@ -121,11 +101,9 @@ def currency_lambda_handler(params: dict) -> dict:
     from_c = params.get("from", "USD").upper()
     to_c = params.get("to", "EUR").upper()
     if from_c not in rates or to_c not in rates:
-        return {"status": "error", "message": "Unsupported currency"}
+        return {"status": "error", "message": "Currency not supported"}
     converted = round((amount / rates[from_c]) * rates[to_c], 2)
-    return {"status": "ok", "conversion": {"from": from_c, "to": to_c,
-            "original_amount": amount, "converted_amount": converted,
-            "rate": round(rates[to_c] / rates[from_c], 4)}}
+    return {"status": "ok", "conversion": {"from": from_c, "to": to_c, "amount": converted}}
 
 
 def news_api_handler(params: dict) -> dict:
@@ -149,11 +127,7 @@ def news_api_handler(params: dict) -> dict:
     return {"status": "ok", "topic": topic, "headlines": headlines.get(topic, headlines["ai"])}
 
 
-# ═══════════════════════════════════════════════════════
-#  ANALYTICS AGENT
-#  Follow the demo pattern (build_supply_chain_agent)
-# ═══════════════════════════════════════════════════════
-
+# ANALYTICS AGENT
 def build_analytics_agent(gateway: SimulatedGateway) -> Agent:
     """Build an analytics agent connected to the Gateway."""
 
@@ -206,11 +180,6 @@ def build_analytics_agent(gateway: SimulatedGateway) -> Agent:
     # TODO 6: Return Agent with model, system_prompt, and all 3 tools
     pass  # Replace with return Agent(...)
 
-
-# ═══════════════════════════════════════════════════════
-#  TEST QUERIES (provided)
-# ═══════════════════════════════════════════════════════
-
 TEST_QUERIES = [
     {"query": "What is the weather in Tokyo right now?",
      "expected_tool": "weather_lambda", "description": "Weather lookup — routes to Weather Lambda"},
@@ -220,10 +189,6 @@ TEST_QUERIES = [
      "expected_tool": "news_api", "description": "News headlines — routes to News REST API"},
 ]
 
-
-# ═══════════════════════════════════════════════════════
-#  MAIN
-# ═══════════════════════════════════════════════════════
 
 def main():
     print("=" * 70)
@@ -236,8 +201,7 @@ def main():
         name="analytics-gateway",
         description="MCP endpoint for analytics utility services"
     )
-    print(f"\n  Created Gateway: {gateway.gateway_id}")
-
+    print(f"\n  Gateway: {gateway.gateway_id}")
     # TODO 7: Register 3 targets on the Gateway
     # Hint: Same as demo — register_target() for each API
     #   weather_lambda (LAMBDA), currency_lambda (LAMBDA), news_api (REST_API)
@@ -246,8 +210,7 @@ def main():
 
     print(f"  Registered {len(gateway.targets)} targets:")
     for t in gateway.discover_tools():
-        print(f"    [{t['type']:8s}] {t['name']}: {t['description'][:60]}...")
-
+        print(f"    [{t['type']:8s}] {t['name']}")
     # TODO 8: Run test queries through the agent
     # Hint: Same as demo — loop through TEST_QUERIES,
     #   run_agent_with_retry(lambda: build_analytics_agent(gateway), query)
@@ -257,21 +220,14 @@ def main():
         print(f"  Expected tool: {test['expected_tool']}")
         print(f"  {test['description']}")
         print(f"{'━' * 70}")
-        # Replace with agent invocation
-
-    # ── Gateway Log ──
     print(f"\n{'═' * 70}")
-    print("  GATEWAY INVOCATION LOG")
+    print("INVOCATION LOG")
     print(f"{'═' * 70}")
     for entry in gateway.invocation_log:
         print(f"  Tool: {entry['tool']:20s} Params: {json.dumps(entry['params'])}")
 
-    print(f"\n  Key Insights:")
-    print(f"  1. MIXED TARGETS — 2 Lambda + 1 REST API, all via same Gateway endpoint")
-    print(f"  2. SEMANTIC ROUTING — agent picks correct tool based on query meaning")
-    print(f"  3. ZERO CODE CHANGES — adding a new API = Gateway config only")
-    print(f"  4. USE @tool FOR CAPSTONE — tight integration, no network overhead")
-    print(f"  5. USE GATEWAY FOR ENTERPRISE — multi-team APIs, centralized auth\n")
+    print(f"\n  Key: 1) MIXED TARGETS — 2 Lambda + 1 REST API 2) SEMANTIC ROUTING")
+    print(f"       3) ZERO CODE CHANGES — new API = config only\n")
 
 
 if __name__ == "__main__":

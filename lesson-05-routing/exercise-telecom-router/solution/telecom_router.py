@@ -1,43 +1,11 @@
 """
 telecom_router.py - EXERCISE SOLUTION (Student-Led)
-====================================================
 Module 5 Exercise: Build a Multi-Strategy Router for Telecom Customer Tickets
 
-Architecture:
-    Incoming Ticket
-         │
-    ┌────┴────┐
-    │ PRIORITY │  Cancellation intent detected?
-    │  Check   │  YES → RetentionAgent (bypass all other routing)
-    └────┬────┘
-         │ NO
-    ┌────┴────┐
-    │ RULE-   │  Keyword matching
-    │ BASED   │  bill/charge/payment/invoice → BillingAgent
-    │ ROUTER  │  outage/no signal/slow/drop  → TechnicalAgent
-    └────┬────┘
-         │ NO MATCH
-    ┌────┴────┐
-    │  LLM    │  Bedrock classification (Nova Lite)
-    │ CLASSIFY│  Returns {intent, confidence}
-    │         │  confidence ≥ 0.6 → route to classified agent
-    └────┬────┘
-         │ LOW CONFIDENCE
-    ┌────┴────┐
-    │FALLBACK │  GeneralSupportAgent
-    │         │  (flag for human review)
-    └─────────┘
+Same hybrid routing pattern as demo: Priority (cancellation) → Rules (billing/technical)
+→ LLM (ambiguous) → Fallback. Applied to telecom domain vs financial domain.
 
-Same hybrid routing pattern as the demo (financial_router.py),
-applied to a different domain:
-  - Demo: Financial transactions (payments/fraud/account)
-  - Exercise: Telecom support tickets (billing/technical/cancellation)
-
-Tech Stack:
-  - Python 3.11+
-  - Strands Agents SDK (Agent class, @tool decorator)
-  - Amazon Bedrock (Nova Lite for all agents)
-  - Simulated DynamoDB audit log
+Tech: Strands Agents SDK, Amazon Bedrock (Nova Lite), simulated DynamoDB
 """
 
 import json
@@ -74,17 +42,11 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
                 raise
 
 
-# ─────────────────────────────────────────────────────
-# CONFIGURATION
-# ─────────────────────────────────────────────────────
+# Configuration
 AWS_REGION = "us-east-1"
 NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"
 
-# ─────────────────────────────────────────────────────
-# SAMPLE TELECOM TICKETS (20 total)
-# Distribution: 8 billing (40%), 6 technical (30%),
-#               2 cancellation (10%), 4 ambiguous (20%)
-# ─────────────────────────────────────────────────────
+# Sample telecom tickets (20 total — 8 billing 40%, 6 technical 30%, 2 cancel 10%, 4 ambiguous 20%)
 TICKETS = [
     # ── Billing (8 tickets — 40%) → Rule-based → BillingAgent ──
     {"id": "TKT-001", "text": "My bill is way too high this month, I was charged $200 extra",
@@ -135,9 +97,7 @@ TICKETS = [
      "expected_agent": "GeneralSupportAgent", "expected_method": "fallback"},
 ]
 
-# ─────────────────────────────────────────────────────
-# SIMULATED DYNAMODB AUDIT LOG
-# ─────────────────────────────────────────────────────
+# Simulated DynamoDB audit log
 routing_audit_log = []
 
 
@@ -161,15 +121,9 @@ classification_result = {}
 worker_response = {}
 
 
-# ═══════════════════════════════════════════════════════
-#  ROUTING STRATEGIES
-#  Same hybrid pattern as demo: Priority → Rules → LLM → Fallback
-# ═══════════════════════════════════════════════════════
+# Routing strategies (same hybrid pattern as demo)
 
-# ── STEP 1: Priority Routing — Cancellation Detection ──
-# Cancellation requests go straight to RetentionAgent.
-# Business reason: cancellations are revenue-critical;
-# retention specialists can offer deals to save customers.
+# STEP 1: Priority routing (cancellation detection → RetentionAgent)
 
 PRIORITY_PATTERNS = [
     r"\b(cancel\w*|switch provider|terminate|discontinue|done with this company)\b",
@@ -189,8 +143,7 @@ def priority_route(text: str) -> str | None:
     return None
 
 
-# ── STEP 2: Rule-Based Routing — Billing & Technical ──
-# Keyword matching handles 70% of tickets instantly.
+# STEP 2: Rule-based routing (billing/technical keywords)
 
 ROUTING_RULES = [
     (r"\b(bill\w*|charg\w*|payment\w*|invoice\w*|subscription\w*|rate\b|roaming)\b", "BillingAgent"),
@@ -210,7 +163,7 @@ def rule_based_route(text: str) -> str | None:
     return None
 
 
-# ── STEP 3: LLM Classification — Ambiguous Tickets ──
+# STEP 3: LLM classification (ambiguous tickets)
 
 def build_classifier_agent() -> Agent:
     """LLM-powered intent classifier for ambiguous telecom tickets."""
@@ -288,9 +241,7 @@ def llm_classify(ticket_text: str) -> tuple:
     return agent_name, confidence, latency
 
 
-# ═══════════════════════════════════════════════════════
-#  HYBRID ROUTER
-# ═══════════════════════════════════════════════════════
+# Hybrid router
 
 def hybrid_route(ticket: dict) -> dict:
     """
@@ -349,9 +300,7 @@ def hybrid_route(ticket: dict) -> dict:
     }
 
 
-# ═══════════════════════════════════════════════════════
-#  WORKER AGENTS
-# ═══════════════════════════════════════════════════════
+# Worker agents
 
 def build_billing_agent() -> Agent:
     """Worker: Handles billing-related tickets."""
@@ -509,9 +458,7 @@ AGENT_BUILDERS = {
 }
 
 
-# ═══════════════════════════════════════════════════════
-#  MAIN — Process all 20 tickets
-# ═══════════════════════════════════════════════════════
+# Main — Process all 20 tickets
 
 def main():
     print("=" * 70)

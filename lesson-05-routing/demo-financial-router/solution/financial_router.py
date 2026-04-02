@@ -1,46 +1,11 @@
 """
 financial_router.py - DEMO (Instructor-Led)
-=============================================
-Module 5 Demo: Building a Hybrid Router for Financial Transaction Processing
+Module 5: Building a Hybrid Router for Financial Transaction Processing
 
-Architecture:
-    Incoming Request
-         │
-    ┌────┴────┐
-    │ PRIORITY │  Check first: amount > $10,000?
-    │  Check   │  YES → SeniorReviewAgent (bypass all other routing)
-    └────┬────┘
-         │ NO
-    ┌────┴────┐
-    │ RULE-   │  Keyword/regex matching
-    │ BASED   │  wire/transfer → PaymentsAgent
-    │ ROUTER  │  fraud/stolen  → FraudAgent
-    │         │  balance/stmt  → AccountAgent
-    └────┬────┘
-         │ NO MATCH
-    ┌────┴────┐
-    │  LLM    │  Bedrock classification (Nova Lite)
-    │ CLASSIFY│  Returns {intent, confidence}
-    │         │  confidence ≥ 0.6 → route to classified agent
-    └────┬────┘
-         │ LOW CONFIDENCE
-    ┌────┴────┐
-    │FALLBACK │  GeneralSupportAgent
-    │         │  (flag for human review)
-    └─────────┘
+Hybrid routing: Priority (amount > $10K) → Rules (keywords) → LLM (ambiguous) → Fallback.
+Rules handle 70%, LLM handles 30%, audit logged (simulated DynamoDB).
 
-Key Concepts (NEW in Module 5):
-  1. RULE-BASED ROUTING: Fast, free, deterministic — handles 70% of requests
-  2. LLM CLASSIFICATION: Flexible, handles ambiguity — handles remaining 30%
-  3. PRIORITY ROUTING: Business-critical override (high-value transactions)
-  4. FALLBACK: Safety net when both rules and LLM are uncertain
-  5. AUDIT LOGGING: Every routing decision logged (simulated DynamoDB)
-
-Tech Stack:
-  - Python 3.11+
-  - Strands Agents SDK (Agent class, @tool decorator)
-  - Amazon Bedrock (Nova Lite for all agents — routing needs speed, not depth)
-  - Simulated DynamoDB audit log (in-memory, production would use real DynamoDB)
+Tech: Strands Agents SDK, Amazon Bedrock (Nova Lite), simulated DynamoDB
 """
 
 import json
@@ -77,16 +42,11 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
                 raise
 
 
-# ─────────────────────────────────────────────────────
-# CONFIGURATION
-# ─────────────────────────────────────────────────────
+# Configuration
 AWS_REGION = "us-east-1"
 NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"   # All agents use Nova Lite (routing needs speed)
 
-# ─────────────────────────────────────────────────────
-# SAMPLE FINANCIAL REQUESTS (10 total)
-# Covers all 4 routing paths: rule, priority, LLM, fallback
-# ─────────────────────────────────────────────────────
+# Sample financial requests (10 total — covers rule/priority/LLM/fallback)
 REQUESTS = [
     # ── Rule-based routing (4 requests) ──
     {"id": "TXN-001", "text": "I need to wire $5,000 to account 12345",
@@ -115,13 +75,7 @@ REQUESTS = [
      "amount": 0, "expected_agent": "GeneralSupportAgent", "expected_method": "fallback"},
 ]
 
-# ─────────────────────────────────────────────────────
-# SIMULATED DYNAMODB AUDIT LOG
-# In production, this would be a DynamoDB table:
-#   PK: request_id, SK: timestamp
-#   Attributes: input_text, routing_method, target_agent,
-#               confidence, latency_ms
-# ─────────────────────────────────────────────────────
+# Simulated DynamoDB audit log (PK: request_id, SK: timestamp, attrs: routing_method/agent/confidence/latency)
 routing_audit_log = []
 
 
@@ -151,35 +105,19 @@ classification_result = {}
 worker_response = {}
 
 
-# ═══════════════════════════════════════════════════════
-#  ROUTING STRATEGIES
-#  The router is Python code — deterministic, debuggable.
-#  Three strategies checked in order:
-#    1. Priority (business-critical override)
-#    2. Rule-based (keyword/regex — fast, free)
-#    3. LLM classification (flexible, handles ambiguity)
-#    4. Fallback (safety net)
-# ═══════════════════════════════════════════════════════
+# Routing strategies (Python code — deterministic, debuggable)
+# Order: Priority → Rules → LLM → Fallback
 
-# ── STEP 1: Priority Routing ──────────────────────────
-# High-value transactions (>$10,000) go straight to senior review.
-# This is an OVERRIDE — it runs before any other routing.
-# Business reason: large transactions carry higher risk.
+# STEP 1: Priority routing (high-value override)
 
 def priority_route(request: dict) -> str | None:
-    """
-    Check if request is high-priority (amount > $10,000).
-    Returns target agent name or None if not priority.
-    """
+    """Check if request is high-priority (amount > $10,000)."""
     if request.get("amount", 0) > 10000:
         return "SeniorReviewAgent"
     return None
 
 
-# ── STEP 2: Rule-Based Routing ────────────────────────
-# Keyword/regex matching — handles 70% of requests.
-# Fast (no LLM call), free (no API cost), deterministic (same input → same route).
-# Rules are checked in order; first match wins.
+# STEP 2: Rule-based routing (keyword/regex — 70% of requests, fast/free)
 
 ROUTING_RULES = [
     # (pattern, target_agent)
@@ -201,10 +139,7 @@ def rule_based_route(text: str) -> str | None:
     return None
 
 
-# ── STEP 3: LLM Classification ───────────────────────
-# When rules don't match, use a fast model (Nova Lite) to
-# classify intent. Returns {intent, confidence}.
-# If confidence < 0.6, we don't trust it → fallback.
+# STEP 3: LLM classification (ambiguous requests, confidence >= 0.6)
 
 def build_classifier_agent() -> Agent:
     """LLM-powered intent classifier for ambiguous requests."""
@@ -282,10 +217,7 @@ def llm_classify(request_text: str) -> tuple:
     return agent_name, confidence, latency
 
 
-# ═══════════════════════════════════════════════════════
-#  HYBRID ROUTER — Combines all strategies
-#  Order: Priority → Rules → LLM → Fallback
-# ═══════════════════════════════════════════════════════
+# Hybrid router — combines all strategies
 
 def hybrid_route(request: dict) -> dict:
     """
@@ -346,10 +278,7 @@ def hybrid_route(request: dict) -> dict:
     }
 
 
-# ═══════════════════════════════════════════════════════
-#  WORKER AGENTS — Specialist agents that process routed requests
-#  Each worker does ONE thing. The router decides who handles what.
-# ═══════════════════════════════════════════════════════
+# Worker agents — Specialist agents (router decides who handles what)
 
 def build_payments_agent() -> Agent:
     """Worker: Processes payment and transfer requests."""
@@ -548,9 +477,7 @@ AGENT_BUILDERS = {
 }
 
 
-# ═══════════════════════════════════════════════════════
-#  MAIN — Process all requests through the hybrid router
-# ═══════════════════════════════════════════════════════
+# Main — Process all requests through hybrid router
 
 def main():
     print("=" * 70)

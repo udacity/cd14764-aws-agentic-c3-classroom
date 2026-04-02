@@ -1,63 +1,21 @@
 """
 travel_booking_saga.py - DEMO (Instructor-Led)
-================================================
-Module 7 Demo: Implementing the Saga Pattern for Travel Booking
+Module 7 Demo: Saga Pattern with Compensating Transactions for Travel Booking
 
-Architecture:
-    Customer books vacation package
-         │
-    ┌────┴─────────────────────────────────────────────────┐
-    │  Saga Orchestrator (Python, NOT LLM-driven)           │
-    │  Forward: Flight → Hotel → Car (sequential)           │
-    │  Compensate: reverse order on failure                  │
-    └────┬─────────────────────────────────────────────────┘
-         │
-    ┌────┴─────────────────────────────────────────────────┐
-    │  Saga State Machine (Simulated DynamoDB)              │
-    │  saga_id (PK) | current_phase | steps[] | lock       │
-    │  Each step: {name, status, booking_ref, comp_ref}     │
-    │  Statuses: pending → executing → completed            │
-    │            → compensating → compensated                │
-    └────┬─────────────────────────────────────────────────┘
-         │
-    Three booking agents (each has forward + compensating action):
-    ┌────┴─────────────────────────────────────────────────┐
-    │ FlightAgent:  book_flight / cancel_flight             │
-    │ HotelAgent:   book_hotel  / cancel_hotel              │
-    │ CarAgent:     book_car    / cancel_car                │
-    └──────────────────────────────────────────────────────┘
+Architecture: Saga Orchestrator → Saga State Machine → Three Booking Agents
+  - Orchestrator: Python (NOT LLM-driven), forward Flight→Hotel→Car, compensate in reverse
+  - State Machine: saga_id (PK) | steps[] | overall_status | lock (Simulated DynamoDB)
+  - Agents: FlightAgent (book/cancel), HotelAgent (book/cancel), CarAgent (book/cancel)
 
-Saga Pattern:
-    1. Forward execution: call each agent sequentially
-       - On success: update state machine, move to next step
-       - On failure: transition to "compensating" mode
-    2. Compensation: iterate completed steps in REVERSE order
-       - Each agent has a cancel_X tool (the compensating action)
-       - Update step status: completed → compensating → compensated
-    3. Distributed lock: conditional write on lock field before compensating
-       - Prevents concurrent compensation attempts
-    4. State persistence: crash recovery reads state and resumes
+Key Concepts:
+  1. SAGA: sequence of local transactions, each reversible
+  2. COMPENSATING TRANSACTION: undoes completed step on failure
+  3. REVERSE ORDER: compensate last-completed first
+  4. DISTRIBUTED LOCK: prevents concurrent compensations
+  5. CRASH RECOVERY: read state, resume from last recorded phase
 
-    Why sagas? Distributed systems can't use traditional ACID transactions
-    across services. Sagas provide eventual consistency via compensating
-    transactions.
-
-Key Concepts (Module 7):
-  1. SAGA: sequence of local transactions, each with a compensating action
-  2. COMPENSATING TRANSACTION: undoes a completed step on failure
-  3. REVERSE ORDER: compensate step 2 before step 1
-  4. STATE MACHINE: tracks saga progress (pending → completed → compensated)
-  5. DISTRIBUTED LOCK: prevents concurrent compensations
-  6. CRASH RECOVERY: read state machine, resume from last recorded phase
-
-Tech Stack:
-  - Python 3.11+
-  - Strands Agents SDK (Agent class, @tool decorator)
-  - Amazon Bedrock (Nova Lite for all agents)
-  - Simulated DynamoDB (in-memory; production uses boto3 DynamoDB)
-
-Note: This lesson uses in-memory simulations to keep the exercise self-contained.
-Production-mapping comments show the exact boto3 API calls used in real systems.
+Tech Stack: Python 3.11+, Strands Agents SDK, Amazon Bedrock (Nova Lite)
+Production-mapping comments show exact boto3 API calls used in real systems.
 """
 
 import json
@@ -137,21 +95,11 @@ TRAVEL_PACKAGES = [
 
 # ═══════════════════════════════════════════════════════
 #  SIMULATED DYNAMODB — Saga State Machine
-#
-#  Production equivalent (boto3):
-#    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-#    table = dynamodb.Table('SagaState')
-#    # Table created via CloudFormation with:
-#    #   KeySchema: [{AttributeName: saga_id, KeyType: HASH}]
-#    #   BillingMode: PAY_PER_REQUEST
+#  Production: dynamodb = boto3.resource('dynamodb'); table = dynamodb.Table('SagaState')
 # ═══════════════════════════════════════════════════════
 
 class ConditionalCheckFailedException(Exception):
-    """Version mismatch on conditional write.
-
-    Production: botocore.exceptions.ClientError with
-    error code 'ConditionalCheckFailedException'.
-    """
+    """Version mismatch on conditional write. Production: botocore.exceptions.ClientError."""
     pass
 
 
@@ -166,13 +114,11 @@ class SimulatedDynamoDB:
         self._tables[table_name] = {}
 
     def put_item(self, table_name: str, item: dict):
-        """Production: table.put_item(Item=item)"""
         with self._lock:
             pk = item.get("saga_id") or item.get("checkout_id")
             self._tables[table_name][pk] = item.copy()
 
     def get_item(self, table_name: str, pk_value: str) -> dict | None:
-        """Production: table.get_item(Key={'saga_id': pk_value})['Item']"""
         with self._lock:
             record = self._tables.get(table_name, {}).get(pk_value)
             return record.copy() if record else None
@@ -180,16 +126,7 @@ class SimulatedDynamoDB:
     def update_item_conditional(self, table_name: str, pk_value: str,
                                  updates: dict, condition_field: str,
                                  expected_value) -> dict:
-        """Conditional update (used for distributed locking).
-
-        Production:
-            table.update_item(
-                Key={'saga_id': pk_value},
-                UpdateExpression='SET #lock = :locked, ...',
-                ConditionExpression='#lock = :expected',
-                ExpressionAttributeValues={':expected': False, ':locked': True},
-            )
-        """
+        """Conditional update for distributed locking. Production: table.update_item with ConditionExpression."""
         with self._lock:
             record = self._tables.get(table_name, {}).get(pk_value)
             if not record:
@@ -204,10 +141,6 @@ class SimulatedDynamoDB:
             return record.copy()
 
     def update_item(self, table_name: str, pk_value: str, updates: dict) -> dict:
-        """Unconditional update (for state transitions).
-
-        Production: table.update_item(Key=..., UpdateExpression='SET ...')
-        """
         with self._lock:
             record = self._tables.get(table_name, {}).get(pk_value)
             if not record:
@@ -233,14 +166,7 @@ db.create_table("SagaState")
 # ═══════════════════════════════════════════════════════
 
 def create_saga(saga_id: str, steps: list[str]) -> dict:
-    """
-    STEP 1: Initialize saga state machine.
-
-    Each step starts as 'pending'. The saga tracks:
-    - current_phase: which step is being executed
-    - overall_status: in_progress | completed | compensating | failed
-    - locked: distributed lock for compensation
-    """
+    """STEP 1: Initialize saga state machine with steps=pending, overall_status=in_progress, locked=False."""
     record = {
         "saga_id": saga_id,
         "steps": [
@@ -257,12 +183,7 @@ def create_saga(saga_id: str, steps: list[str]) -> dict:
 
 
 def update_step(saga_id: str, step_index: int, updates: dict) -> dict:
-    """
-    STEP 2: Update a specific step in the saga.
-
-    Transitions: pending → executing → completed
-                 completed → compensating → compensated
-    """
+    """STEP 2: Update step status (pending→executing→completed or completed→compensating→compensated)."""
     saga = db.get_item("SagaState", saga_id)
     saga["steps"][step_index].update(updates)
     db.update_item("SagaState", saga_id, {"steps": saga["steps"]})
@@ -270,20 +191,7 @@ def update_step(saga_id: str, step_index: int, updates: dict) -> dict:
 
 
 def acquire_lock(saga_id: str) -> bool:
-    """
-    STEP 3: Acquire distributed lock before compensation.
-
-    Uses conditional write: only succeeds if locked == False.
-    Prevents concurrent compensation attempts.
-
-    Production:
-        table.update_item(
-            Key={'saga_id': saga_id},
-            UpdateExpression='SET locked = :true',
-            ConditionExpression='locked = :false',
-            ExpressionAttributeValues={':true': True, ':false': False},
-        )
-    """
+    """STEP 3: Acquire distributed lock (conditional write, only if locked==False)."""
     try:
         db.update_item_conditional(
             "SagaState", saga_id,
@@ -299,11 +207,9 @@ def release_lock(saga_id: str):
     """STEP 4: Release lock after compensation completes."""
     db.update_item("SagaState", saga_id, {"locked": False})
 
-
 def get_saga(saga_id: str) -> dict | None:
     """STEP 5: Read current saga state."""
     return db.get_item("SagaState", saga_id)
-
 
 # ═══════════════════════════════════════════════════════
 #  BOOKING AGENTS — Each has forward + compensating action
@@ -745,29 +651,24 @@ def main():
 
     for package in TRAVEL_PACKAGES:
         print(f"\n{'━' * 70}")
-        print(f"  SAGA: {package['saga_id']} — {package['customer']}")
-        print(f"  Trip: {package['trip']}")
-        print(f"  Flight: {package['flight']['route']} ({package['flight']['class']}) — ${package['flight']['price']:.2f}")
-        print(f"  Hotel:  {package['hotel']['name']} ({package['hotel']['nights']} nights) — ${package['hotel']['price']:.2f}")
-        print(f"  Car:    {package['car']['type']} ({package['car']['days']} days) — ${package['car']['price']:.2f}")
+        print(f"  {package['saga_id']} — {package['customer']}: {package['trip']}")
         total = package['flight']['price'] + package['hotel']['price'] + package['car']['price']
-        print(f"  Total:  ${total:.2f}")
+        print(f"    Flight: {package['flight']['route']} ({package['flight']['class']}) ${package['flight']['price']:.2f}")
+        print(f"    Hotel: {package['hotel']['name']} ({package['hotel']['nights']}n) ${package['hotel']['price']:.2f}")
+        print(f"    Car: {package['car']['type']} ({package['car']['days']}d) ${package['car']['price']:.2f} | Total: ${total:.2f}")
         if package['simulate_failure']:
-            print(f"  ⚠ Simulated failure: {package['simulate_failure']} booking will fail")
+            print(f"    ⚠ Failure scenario: {package['simulate_failure']} will fail")
         print(f"{'━' * 70}")
 
         result = run_saga(package)
         results.append(result)
 
         # Print state machine
-        print(f"\n  ┌─── Saga State Machine ──────────────────────────┐")
-        print(f"  │ Saga:    {result['saga_id']}")
-        print(f"  │ Status:  {result['overall_status']}")
+        print(f"\n  Saga {result['saga_id']} | Status: {result['overall_status']}")
         for step in result["steps"]:
             ref = step.get("booking_ref") or "—"
             comp = step.get("compensation_ref") or "—"
-            print(f"  │ {step['name']:<8} {step['status']:<14} book={ref:<20} cancel={comp}")
-        print(f"  └────────────────────────────────────────────────┘")
+            print(f"    {step['name']:<8} {step['status']:<14} book={ref:<20} cancel={comp}")
 
     # ── Summary ──────────────────────────────────────────
     print(f"\n{'═' * 70}")

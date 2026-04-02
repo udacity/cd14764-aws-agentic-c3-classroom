@@ -1,37 +1,14 @@
 """
 supply_chain_gateway.py - DEMO (Instructor-Led)
-==============================================================
-Module 11 Demo: Connecting Agents to Tools via AgentCore Gateway
+Module 11: Connecting Agents to Tools via AgentCore Gateway
 
 Architecture:
-    SupplyChainAgent
-         │
-    ┌────┴─────────────────────────────────────────────────┐
-    │  AgentCore Gateway (Simulated MCP Endpoint)            │
-    │  Converts REST APIs into MCP-compatible tools           │
-    │  Agent discovers tools via semantic search at runtime   │
-    └────┬──────────────┬──────────────┬──────────────────┘
-         │              │              │
-    ┌────┴────┐   ┌────┴────┐   ┌────┴──────────┐
-    │Inventory│   │Shipping │   │  Supplier     │
-    │  API    │   │  API    │   │    API        │
-    └─────────┘   └─────────┘   └───────────────┘
+  Agent → Gateway (semantic tool discovery) → 3 REST APIs
+  Key: Gateway = plugin architecture for dynamic tool registration
 
-Gateway vs @tool:
-  @tool: In-process Python functions, fast, tightly coupled
-  Gateway: Runtime discovery, loose coupling, network latency
+Gateway vs @tool: Gateway for multi-team/independent APIs, @tool for tight integration
 
-When to use Gateway:
-  - Tools are independently deployed services
-  - You need centralized auth and observability
-  - Agents need to discover tools dynamically
-  - Different teams manage different tools
-
-Tech Stack:
-  - Python 3.11+
-  - Strands Agents SDK (Agent class, @tool decorator)
-  - Amazon Bedrock (Nova Lite for the agent)
-  - Simulated AgentCore Gateway (in-memory tool registry)
+Tech: Python 3.11+ | Strands SDK | Bedrock Nova | Simulated Gateway
 """
 
 import json
@@ -74,40 +51,11 @@ AWS_REGION = "us-east-1"
 NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"
 
 
-# ═══════════════════════════════════════════════════════
-# STEP 1: SIMULATED AgentCore GATEWAY
-#
-# Production equivalent:
-#   agentcore = boto3.client('bedrock-agentcore')
-#   gateway = agentcore.create_gateway(
-#       name='supply-chain-gateway',
-#       description='MCP endpoint for supply chain APIs',
-#       authorizationConfig={'type': 'OAUTH2', ...}
-#   )
-#   agentcore.create_gateway_target(
-#       gatewayIdentifier=gateway['gatewayId'],
-#       name='inventory-api',
-#       targetConfiguration={
-#           'mcpTargetConfiguration': {
-#               'openApiSchema': open('inventory-openapi.json').read(),
-#               'lambdaArn': 'arn:aws:lambda:...:inventory-api'
-#           }
-#       },
-#       credentialProviderConfigurations=[{'credentialProviderType': 'GATEWAY_IAM_ROLE'}]
-#   )
-# ═══════════════════════════════════════════════════════
+# SIMULATED AgentCore GATEWAY
+# Production: agentcore.create_gateway() + agentcore.create_gateway_target()
 
 class SimulatedGateway:
-    """
-    Simulates AgentCore Gateway — converts APIs into MCP-compatible tools.
-
-    In production, Gateway:
-      1. Accepts REST API / Lambda / OpenAPI specs as targets
-      2. Auto-generates MCP tool definitions from specs
-      3. Provides a single endpoint for agents to discover tools
-      4. Handles authentication (inbound OAuth, outbound IAM/API key)
-      5. Logs all tool invocations for observability
-    """
+    """Simulates AgentCore Gateway: API → MCP-compatible tools, tool discovery, invocation logging."""
 
     def __init__(self, name: str, description: str):
         self.gateway_id = f"gw-{name.lower().replace(' ', '-')[:20]}"
@@ -118,11 +66,7 @@ class SimulatedGateway:
 
     def register_target(self, name: str, description: str, target_type: str,
                         handler: callable, openapi_spec: dict = None):
-        """
-        Register an API as a Gateway target.
-
-        Production: agentcore.create_gateway_target(...)
-        """
+        """Register an API as a Gateway target. Production: agentcore.create_gateway_target()"""
         self.targets[name] = {
             "name": name,
             "description": description,
@@ -132,12 +76,7 @@ class SimulatedGateway:
         }
 
     def discover_tools(self, query: str = None) -> list[dict]:
-        """
-        Discover available tools via semantic search.
-
-        Production: Agent connects to Gateway MCP endpoint and
-        discovers tools via the MCP list_tools protocol.
-        """
+        """Discover tools via semantic search. Production: MCP list_tools protocol."""
         tools = []
         for name, target in self.targets.items():
             tools.append({
@@ -164,11 +103,7 @@ class SimulatedGateway:
         return result
 
 
-# ═══════════════════════════════════════════════════════
-# STEP 2: SIMULATED REST APIs (Gateway targets)
-# ═══════════════════════════════════════════════════════
-
-# ── Inventory API ──
+# SIMULATED REST APIs (Gateway targets)
 def inventory_api_handler(params: dict) -> dict:
     """Simulated Inventory REST API."""
     inventory = {
@@ -183,8 +118,6 @@ def inventory_api_handler(params: dict) -> dict:
         return {"status": "ok", "item": item}
     return {"status": "ok", "inventory": list(inventory.values())}
 
-
-# ── Shipping API ──
 def shipping_api_handler(params: dict) -> dict:
     """Simulated Shipping REST API."""
     shipments = {
@@ -198,8 +131,6 @@ def shipping_api_handler(params: dict) -> dict:
         return {"status": "ok", "shipment": shipments[tracking_id]}
     return {"status": "ok", "all_shipments": list(shipments.values())}
 
-
-# ── Supplier API ──
 def supplier_api_handler(params: dict) -> dict:
     """Simulated Supplier REST API."""
     suppliers = {
@@ -212,8 +143,6 @@ def supplier_api_handler(params: dict) -> dict:
         return {"status": "ok", "supplier": suppliers[supplier_id]}
     return {"status": "ok", "all_suppliers": list(suppliers.values())}
 
-
-# ── Quality Inspection API (added dynamically — STEP 5) ──
 def quality_inspection_handler(params: dict) -> dict:
     """Simulated Quality Inspection API — added AFTER initial setup."""
     inspections = {
@@ -228,10 +157,7 @@ def quality_inspection_handler(params: dict) -> dict:
     return {"status": "ok", "all_inspections": list(inspections.values())}
 
 
-# ═══════════════════════════════════════════════════════
-# STEP 3: BUILD THE AGENT WITH GATEWAY TOOLS
-# ═══════════════════════════════════════════════════════
-
+# BUILD AGENT WITH GATEWAY TOOLS
 def build_supply_chain_agent(gateway: SimulatedGateway) -> Agent:
     """Build a supply chain agent connected to the Gateway."""
 
@@ -310,10 +236,6 @@ If a query doesn't match any tool, say so."""
                  tools=[check_inventory, track_shipment, lookup_supplier, inspect_quality])
 
 
-# ═══════════════════════════════════════════════════════
-# TEST QUERIES
-# ═══════════════════════════════════════════════════════
-
 TEST_QUERIES = [
     {
         "query": "Check the inventory level for WIDGET-002 Copper Wire",
@@ -338,10 +260,6 @@ TEST_QUERIES = [
 ]
 
 
-# ═══════════════════════════════════════════════════════
-# MAIN
-# ═══════════════════════════════════════════════════════
-
 def main():
     print("=" * 70)
     print("  AgentCore Gateway Demo — Module 11")
@@ -353,9 +271,7 @@ def main():
         name="supply-chain-gateway",
         description="MCP endpoint for supply chain REST APIs"
     )
-    print(f"\n  Created Gateway: {gateway.gateway_id}")
-
-    # ── Register 3 initial APIs ──
+    print(f"\n  Gateway: {gateway.gateway_id}")
     gateway.register_target(
         name="inventory_api",
         description="Check inventory levels, stock counts, and reorder status for warehouse items",
@@ -375,23 +291,19 @@ def main():
         handler=supplier_api_handler,
     )
 
-    print(f"  Registered 3 API targets:")
+    print(f"  Registered 3 targets:")
     for t in gateway.discover_tools():
-        print(f"    [{t['type']:8s}] {t['name']}: {t['description'][:60]}...")
-
-    # ── Dynamically add a NEW API (no agent code changes!) ──
-    print(f"\n  Adding Quality Inspection API to Gateway (NO agent code changes)...")
+        print(f"    [{t['type']:8s}] {t['name']}")
+    print(f"\n  Adding Quality Inspection API (NO code changes)...")
     gateway.register_target(
         name="quality_inspection_api",
         description="Check quality inspection results, defect rates, and pass/fail status for items",
         target_type="LAMBDA",
         handler=quality_inspection_handler,
     )
-    print(f"  Now {len(gateway.targets)} tools available via Gateway:")
+    print(f"  {len(gateway.targets)} tools available:")
     for t in gateway.discover_tools():
         print(f"    [{t['type']:8s}] {t['name']}")
-
-    # ── Run test queries ──
     for i, test in enumerate(TEST_QUERIES):
         print(f"\n{'━' * 70}")
         print(f"  QUERY {i + 1}: \"{test['query']}\"")
@@ -403,36 +315,16 @@ def main():
             lambda: build_supply_chain_agent(gateway),
             test["query"]
         )
-        print(f"    Response time: {elapsed:.1f}s")
-
-    # ── Gateway Invocation Log ──
+        print(f"    Time: {elapsed:.1f}s")
     print(f"\n{'═' * 70}")
-    print("  GATEWAY INVOCATION LOG")
+    print("INVOCATION LOG")
     print(f"{'═' * 70}")
     for entry in gateway.invocation_log:
         print(f"  Tool: {entry['tool']:25s} Params: {json.dumps(entry['params'])}")
 
-    # ── Comparison: Gateway vs @tool ──
-    print(f"\n{'═' * 70}")
-    print("  GATEWAY vs @tool COMPARISON")
-    print(f"{'═' * 70}")
-    print(f"  {'Feature':<30s} {'@tool (Lessons 1-9)':<25s} {'Gateway (This Lesson)'}")
-    print(f"  {'─' * 80}")
-    print(f"  {'Coupling':<30s} {'Tight (in-process)':<25s} {'Loose (network call)'}")
-    print(f"  {'Discovery':<30s} {'Static (hardcoded)':<25s} {'Dynamic (runtime)'}")
-    print(f"  {'Latency':<30s} {'~0ms (function call)':<25s} {'~50-200ms (network)'}")
-    print(f"  {'Auth':<30s} {'IAM role (shared)':<25s} {'Inbound OAuth + Outbound IAM'}")
-    print(f"  {'Adding new tools':<30s} {'Code change + deploy':<25s} {'Gateway config only'}")
-    print(f"  {'Observability':<30s} {'Custom logging':<25s} {'Built-in via Gateway'}")
-    print(f"  {'Best for':<30s} {'Tight integration':<25s} {'Multi-team, independent APIs'}")
 
-    print(f"\n  Key Insights:")
-    print(f"  1. GATEWAY = PLUGIN ARCHITECTURE — register APIs, agents discover them")
-    print(f"  2. DYNAMIC DISCOVERY — Quality Inspection API added with zero agent code changes")
-    print(f"  3. SEMANTIC TOOL SELECTION — agent matches query to tool by description")
-    print(f"  4. DUAL AUTH — inbound OAuth (agent→Gateway), outbound IAM (Gateway→API)")
-    print(f"  5. USE @tool FOR CAPSTONE — tight integration, no network latency")
-    print(f"  6. USE GATEWAY FOR ENTERPRISE — independent APIs, multi-team, centralized auth\n")
+    print(f"\n  Key: 1) PLUGIN ARCH — register APIs 2) DYNAMIC DISCOVERY — no code changes")
+    print(f"       3) SEMANTIC ROUTING — agent selects by description 4) MULTI-TEAM APIs\n")
 
 
 if __name__ == "__main__":

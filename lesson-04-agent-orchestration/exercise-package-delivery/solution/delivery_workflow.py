@@ -1,45 +1,11 @@
 """
 delivery_workflow.py - EXERCISE SOLUTION (Student-Led)
-======================================================
 Module 4 Exercise: Build an Orchestrated Package Delivery Workflow
 
-Architecture:
-    New Delivery Request
-         │
-    ┌────┴────┐
-    │ SEQUENTIAL │  (gate — must pass before continuing)
-    │  Phase 1   │
-    │ AddressValidator → valid? If NO → halt workflow
-    └────┬────┘
-         │ (only if valid)
-    ┌────┴────────────────────────┐
-    │ PARALLEL                    │  (independent, run simultaneously)
-    │  Phase 2                    │
-    │ LabelGenerator              │
-    │ InsuranceCalculator         │
-    │ CarrierSelector             │
-    └────┬────────────────────────┘
-         │
-    ┌────┴────┐
-    │ CONDITIONAL │  (route based on destination country)
-    │  Phase 3    │
-    │ if same country  → DomesticShipping
-    │ if diff country  → InternationalShipping
-    └────┬────┘
-         │
-    Delivery Processed
+3 phases: SEQUENTIAL GATE (address validation) → PARALLEL (label+insurance+carrier)
+→ CONDITIONAL (domestic vs international). Gate pattern halts workflow on failure.
 
-Key Concepts (same as demo):
-  1. SEQUENTIAL GATE: AddressValidator must pass before continuing (vs demo's sequential chain)
-  2. PARALLEL: Independent prep steps run simultaneously (label, insurance, carrier)
-  3. CONDITIONAL: Route based on destination country (domestic vs international)
-  4. FAILURE HANDLING: Retry with backoff, workflow halt on validation failure
-
-Tech Stack:
-  - Python 3.11+
-  - Strands Agents SDK (Agent class, @tool decorator)
-  - Amazon Bedrock (Nova Lite for all workers)
-  - concurrent.futures.ThreadPoolExecutor (parallel branches)
+Tech: Strands Agents SDK, Amazon Bedrock (Nova Lite), ThreadPoolExecutor
 """
 
 import json
@@ -76,15 +42,11 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
                 raise
 
 
-# ─────────────────────────────────────────────────────
-# CONFIGURATION
-# ─────────────────────────────────────────────────────
+# Configuration
 AWS_REGION = "us-east-1"
 NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"   # All workers use Nova Lite (fast execution)
 
-# ─────────────────────────────────────────────────────
-# SAMPLE DELIVERY REQUESTS
-# ─────────────────────────────────────────────────────
+# Sample delivery requests
 DELIVERIES = [
     {
         "id": "PKG-001",

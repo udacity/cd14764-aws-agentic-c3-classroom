@@ -1,52 +1,19 @@
 """
 ecommerce_checkout_saga.py - EXERCISE SOLUTION (Student-Led)
-==============================================================
-Module 7 Exercise: Build a Saga with Compensations for E-Commerce Checkout
+Module 7 Exercise: Saga with Compensations + Barrier for E-Commerce Checkout
 
-Architecture:
-    Customer places checkout order
-         │
-    ┌────┴─────────────────────────────────────────────────┐
-    │  Saga Orchestrator (Python, NOT LLM-driven)           │
-    │  Forward: Inventory → Payment → Shipping (sequential) │
-    │  Compensate: reverse order on failure                  │
-    └────┬─────────────────────────────────────────────────┘
-         │
-    ┌────┴─────────────────────────────────────────────────┐
-    │  Saga State Machine (Simulated DynamoDB)              │
-    │  checkout_id (PK) | steps[] | overall_status | lock   │
-    │  + Barrier counter: compensations_completed           │
-    │  Saga resolves to 'failed' only when barrier reached  │
-    └────┬─────────────────────────────────────────────────┘
-         │
-    Three checkout agents (each has forward + compensating action):
-    ┌────┴─────────────────────────────────────────────────┐
-    │ InventoryAgent:  reserve_items   / release_items      │
-    │ PaymentAgent:    charge_card     / refund_card         │
-    │ ShippingAgent:   schedule_delivery / cancel_delivery   │
-    └──────────────────────────────────────────────────────┘
+Architecture: Saga Orchestrator → Saga State Machine + Barrier → Three Checkout Agents
+  - Orchestrator: Python, forward Inventory→Payment→Shipping, compensate in reverse
+  - State Machine: checkout_id (PK) | steps[] | overall_status | lock | barrier counter
+  - Agents: InventoryAgent (reserve/release), PaymentAgent (charge/refund), ShippingAgent (schedule/cancel)
 
-Same saga pattern as the demo (travel_booking_saga.py),
-with one addition:
-  BARRIER COORDINATION — an atomic counter that each compensation
-  increments. Saga resolves to 'failed' only when the counter
-  equals the number of steps to compensate.
+Key Addition: BARRIER COORDINATION
+  Atomic counter (compensations_completed) increments with each compensation.
+  Saga resolves to 'failed' only when counter == expected compensations_needed.
+  Production: DynamoDB ADD expression for atomic counter
 
-  Production: DynamoDB atomic counter via ADD expression:
-    table.update_item(
-        Key={'checkout_id': id},
-        UpdateExpression='ADD compensations_completed :one',
-        ExpressionAttributeValues={':one': 1},
-    )
-
-Tech Stack:
-  - Python 3.11+
-  - Strands Agents SDK (Agent class, @tool decorator)
-  - Amazon Bedrock (Nova Lite for all agents)
-  - Simulated DynamoDB (in-memory; production uses boto3 DynamoDB)
-
-Note: This lesson uses in-memory simulations to keep the exercise self-contained.
-Production-mapping comments show the exact boto3 API calls used in real systems.
+Tech Stack: Python 3.11+, Strands Agents SDK, Amazon Bedrock (Nova Lite)
+Production-mapping comments show exact boto3 API calls used in real systems.
 """
 
 import json
@@ -139,9 +106,8 @@ CHECKOUTS = [
 # ═══════════════════════════════════════════════════════
 
 class ConditionalCheckFailedException(Exception):
-    """Version mismatch on conditional write."""
+    """Version mismatch on conditional write. Production: botocore.exceptions.ClientError."""
     pass
-
 
 class SimulatedDynamoDB:
     """In-memory DynamoDB simulator for saga state machine + barrier."""
@@ -192,17 +158,7 @@ class SimulatedDynamoDB:
 
     def atomic_increment(self, table_name: str, pk_value: str,
                           counter_field: str, increment: int = 1) -> int:
-        """Atomic counter increment (used for barrier coordination).
-
-        Production equivalent:
-            table.update_item(
-                Key={'checkout_id': pk_value},
-                UpdateExpression='ADD #counter :inc',
-                ExpressionAttributeNames={'#counter': counter_field},
-                ExpressionAttributeValues={':inc': increment},
-                ReturnValues='ALL_NEW',
-            )
-        """
+        """Atomic counter increment for barrier coordination. Production: DynamoDB ADD expression."""
         with self._lock:
             record = self._tables.get(table_name, {}).get(pk_value)
             if not record:
@@ -221,7 +177,7 @@ db.create_table("CheckoutSaga")
 # ═══════════════════════════════════════════════════════
 
 def create_saga(checkout_id: str, steps: list[str]) -> dict:
-    """Initialize saga state machine with barrier counter."""
+    """Initialize saga state machine with steps=pending, barrier counter=0."""
     record = {
         "checkout_id": checkout_id,
         "steps": [
@@ -264,16 +220,8 @@ def release_lock(checkout_id: str):
     """Release lock after compensation completes."""
     db.update_item("CheckoutSaga", checkout_id, {"locked": False})
 
-
 def increment_barrier(checkout_id: str) -> tuple[int, int]:
-    """
-    Increment the barrier counter (NEW pattern — not in demo).
-
-    Returns (completed_count, needed_count).
-    Saga resolves to 'failed' only when completed == needed.
-
-    Production: DynamoDB ADD expression for atomic counter.
-    """
+    """Increment barrier counter. Returns (completed, needed). Saga resolves 'failed' when completed==needed."""
     completed = db.atomic_increment("CheckoutSaga", checkout_id, "compensations_completed")
     saga = db.get_item("CheckoutSaga", checkout_id)
     needed = saga["compensations_needed"]
@@ -283,7 +231,6 @@ def increment_barrier(checkout_id: str) -> tuple[int, int]:
 def get_saga(checkout_id: str) -> dict | None:
     """Read current saga state."""
     return db.get_item("CheckoutSaga", checkout_id)
-
 
 # ═══════════════════════════════════════════════════════
 #  CHECKOUT AGENTS — Each has forward + compensating action
@@ -730,33 +677,28 @@ def main():
 
     for checkout in CHECKOUTS:
         print(f"\n{'━' * 70}")
-        print(f"  CHECKOUT: {checkout['checkout_id']} — {checkout['customer']}")
-        items_str = ", ".join(f"{i['name']} x{i['qty']}" for i in checkout["items"])
-        print(f"  Items: {items_str}")
         subtotal = sum(i["price"] * i["qty"] for i in checkout["items"])
-        print(f"  Subtotal: ${subtotal:.2f}")
-        print(f"  Payment: ****{checkout['payment']['last4']}")
-        print(f"  Shipping: {checkout['shipping']['address']} ({checkout['shipping']['method']})")
+        items_str = ", ".join(f"{i['name']} x{i['qty']}" for i in checkout["items"])
+        print(f"  {checkout['checkout_id']} — {checkout['customer']}")
+        print(f"    Items: {items_str} | Subtotal: ${subtotal:.2f}")
+        print(f"    Payment: ****{checkout['payment']['last4']} | Shipping: {checkout['shipping']['method']}")
         if checkout['simulate_failure']:
-            print(f"  ⚠ Simulated failure: {checkout['simulate_failure']} step will fail")
+            print(f"    ⚠ Failure scenario: {checkout['simulate_failure']} will fail")
         print(f"{'━' * 70}")
 
         result = run_checkout_saga(checkout)
         results.append(result)
 
         # Print state machine
-        print(f"\n  ┌─── Saga State Machine ──────────────────────────┐")
-        print(f"  │ Checkout: {result['checkout_id']}")
-        print(f"  │ Status:   {result['overall_status']}")
+        print(f"\n  {result['checkout_id']} | Status: {result['overall_status']}")
         for step in result["steps"]:
             fwd = step.get("forward_ref") or "—"
             comp = step.get("compensation_ref") or "—"
-            print(f"  │ {step['name']:<12} {step['status']:<14} fwd={fwd:<18} comp={comp}")
+            print(f"    {step['name']:<12} {step['status']:<14} fwd={fwd:<18} comp={comp}")
         barrier_c = result.get("compensations_completed", 0)
         barrier_n = result.get("compensations_needed", 0)
         if barrier_n > 0:
-            print(f"  │ Barrier:  {barrier_c}/{barrier_n} compensations")
-        print(f"  └────────────────────────────────────────────────┘")
+            print(f"    Barrier: {barrier_c}/{barrier_n} compensations")
 
     # ── Summary ──────────────────────────────────────────
     print(f"\n{'═' * 70}")

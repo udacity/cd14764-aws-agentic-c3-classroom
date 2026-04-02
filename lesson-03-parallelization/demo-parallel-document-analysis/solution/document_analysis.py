@@ -1,35 +1,11 @@
 """
 document_analysis.py - DEMO (Instructor-Led)
-==============================================
-Module 3 Demo: Parallel Document Analysis with Specialist Agents
+Module 3: Parallel Document Analysis with Specialist Agents
 
-Architecture:
-    System Design Document
-              │
-    ┌─────────┼─────────────┐
-    │         │             │       ← ThreadPoolExecutor (parallel)
-  Security  Scalability    Cost
-  Reviewer  Reviewer     Reviewer
-(Nova Lite) (Claude)    (Nova Pro)
-    │         │             │
-    └────┬────┴─────────────┘
-         │
-    Synthesizer Agent (Claude)       ← Combines all 3 reviews
-         │
-    Launch-Readiness Assessment
+3 specialist agents (security/scalability/cost) analyze in parallel via ThreadPoolExecutor.
+Synthesizer combines findings into unified launch-readiness assessment (~3x speedup).
 
-Key Concept:
-  The 3 specialist agents analyze the SAME document from different angles.
-  Since they are INDEPENDENT (no specialist needs another's output),
-  we run them in PARALLEL using ThreadPoolExecutor.
-  Then a SynthesizerAgent COMBINES their findings into one report.
-  This gives us ~3x speedup on the specialist phase.
-
-Tech Stack:
-  - Python 3.11+
-  - Strands Agents SDK (Agent class, @tool decorator)
-  - Amazon Bedrock (Nova Lite, Claude 3 Sonnet, Nova Pro)
-  - concurrent.futures.ThreadPoolExecutor (parallel execution)
+Tech: Strands Agents SDK, Amazon Bedrock (Nova Lite/Claude/Nova Pro), ThreadPoolExecutor
 """
 
 import json
@@ -80,17 +56,13 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
                 raise
 
 
-# ─────────────────────────────────────────────────────
-# CONFIGURATION — Models for specialist and synthesizer agents
-# ─────────────────────────────────────────────────────
+# Configuration — Models for specialist and synthesizer agents
 AWS_REGION = "us-east-1"
 NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"                    # Security review (fast)
 CLAUDE_MODEL = "anthropic.claude-3-sonnet-20240229-v1:0"     # Scalability + Synthesis (deep)
 NOVA_PRO_MODEL = "amazon.nova-pro-v1:0"                      # Cost review (balanced)
 
-# ─────────────────────────────────────────────────────
-# SAMPLE SYSTEM DESIGN DOCUMENTS (for launch review)
-# ─────────────────────────────────────────────────────
+# Sample system design documents (for launch review)
 DOCUMENTS = [
     {
         "id": "DOC-001",
@@ -222,15 +194,8 @@ cost_cache = {}
 
 def build_security_agent() -> Agent:
     """Build the Security Reviewer agent using Nova Lite."""
-
-    # STEP 1: Create BedrockModel
-    # - Nova Lite is fast — good for pattern-matching security checklists
-    # - temperature=0.0 for deterministic risk assessment
-    model = BedrockModel(
-        model_id=NOVA_LITE_MODEL,
-        region_name=AWS_REGION,
-        temperature=0.0,
-    )
+    # STEP 1: BedrockModel (Nova Lite for fast security pattern-matching, temperature 0.0)
+    model = BedrockModel(model_id=NOVA_LITE_MODEL, region_name=AWS_REGION, temperature=0.0)
 
     # STEP 2: System prompt — one tool, structured output
     system_prompt = """You are a security reviewer. Your ONLY job:
@@ -243,17 +208,7 @@ Do NOT add any other commentary."""
 
     @tool
     def review_security(document_id: str) -> str:
-        """
-        Review a system design document for security vulnerabilities.
-
-        Checks: authentication, encryption, network exposure, compliance scope.
-
-        Args:
-            document_id: The document ID (e.g., "DOC-001")
-
-        Returns:
-            JSON with security findings and risk assessment
-        """
+        """Review document security (auth, encryption, exposure, compliance)."""
         doc = next((d for d in DOCUMENTS if d["id"] == document_id), None)
         if not doc:
             return json.dumps({"error": f"Document {document_id} not found"})
@@ -270,25 +225,16 @@ Do NOT add any other commentary."""
         security_cache[document_id] = result
         return json.dumps(result, indent=2)
 
-    # STEP 3: Build Agent — bind model + prompt + tool
+    # STEP 3: Build Agent
     return Agent(model=model, system_prompt=system_prompt, tools=[review_security])
 
 
-# ═══════════════════════════════════════════════════════
-#  SPECIALIST 2: SCALABILITY REVIEWER  (Claude — deep)
-# ═══════════════════════════════════════════════════════
+# Specialist 2: Scalability Reviewer (Claude — deep)
 
 def build_scalability_agent() -> Agent:
     """Build the Scalability Reviewer agent using Claude."""
-
-    # STEP 1: Create BedrockModel
-    # - Claude for deep reasoning about performance bottlenecks
-    # - temperature=0.1 for analytical precision
-    model = BedrockModel(
-        model_id=CLAUDE_MODEL,
-        region_name=AWS_REGION,
-        temperature=0.1,
-    )
+    # STEP 1: BedrockModel (Claude for deep performance reasoning, temperature 0.1)
+    model = BedrockModel(model_id=CLAUDE_MODEL, region_name=AWS_REGION, temperature=0.1)
 
     # STEP 2: System prompt — one tool, structured output
     system_prompt = """You are a scalability reviewer. Your ONLY job:
@@ -301,17 +247,7 @@ Do NOT add any other commentary."""
 
     @tool
     def review_scalability(document_id: str) -> str:
-        """
-        Review a system design document for scalability and performance.
-
-        Checks: database capacity, auto-scaling, caching, bottlenecks, SPOFs.
-
-        Args:
-            document_id: The document ID (e.g., "DOC-001")
-
-        Returns:
-            JSON with scalability findings and throughput estimates
-        """
+        """Review document scalability (DB capacity, caching, bottlenecks, SPOFs)."""
         doc = next((d for d in DOCUMENTS if d["id"] == document_id), None)
         if not doc:
             return json.dumps({"error": f"Document {document_id} not found"})
@@ -332,21 +268,12 @@ Do NOT add any other commentary."""
     return Agent(model=model, system_prompt=system_prompt, tools=[review_scalability])
 
 
-# ═══════════════════════════════════════════════════════
-#  SPECIALIST 3: COST REVIEWER  (Nova Pro — balanced)
-# ═══════════════════════════════════════════════════════
+# Specialist 3: Cost Reviewer (Nova Pro — balanced)
 
 def build_cost_agent() -> Agent:
     """Build the Cost Reviewer agent using Nova Pro."""
-
-    # STEP 1: Create BedrockModel
-    # - Nova Pro balances speed and quality — good for cost calculations
-    # - temperature=0.1 for consistent cost estimates
-    model = BedrockModel(
-        model_id=NOVA_PRO_MODEL,
-        region_name=AWS_REGION,
-        temperature=0.1,
-    )
+    # STEP 1: BedrockModel (Nova Pro for balanced cost analysis, temperature 0.1)
+    model = BedrockModel(model_id=NOVA_PRO_MODEL, region_name=AWS_REGION, temperature=0.1)
 
     # STEP 2: System prompt — one tool, structured output
     system_prompt = """You are a cost reviewer. Your ONLY job:
@@ -359,17 +286,7 @@ Do NOT add any other commentary."""
 
     @tool
     def review_cost(document_id: str) -> str:
-        """
-        Review a system design document for infrastructure cost estimates.
-
-        Checks: compute costs, storage costs, data transfer, third-party fees.
-
-        Args:
-            document_id: The document ID (e.g., "DOC-001")
-
-        Returns:
-            JSON with cost breakdown and optimization recommendations
-        """
+        """Review document costs (compute, storage, data transfer, third-party fees)."""
         doc = next((d for d in DOCUMENTS if d["id"] == document_id), None)
         if not doc:
             return json.dumps({"error": f"Document {document_id} not found"})
@@ -391,31 +308,12 @@ Do NOT add any other commentary."""
     return Agent(model=model, system_prompt=system_prompt, tools=[review_cost])
 
 
-# ═══════════════════════════════════════════════════════
-#  SYNTHESIZER AGENT  (Claude — combines all reviews)
-#
-#  This is the NEW pattern in Module 3:
-#  After parallel specialists finish, the Synthesizer
-#  reads ALL their findings and produces a unified
-#  launch-readiness assessment.
-# ═══════════════════════════════════════════════════════
+# Synthesizer Agent (Claude — combines all reviews into unified assessment)
 
 def build_synthesizer_agent() -> Agent:
-    """Build the Synthesizer Agent using Claude.
-
-    The Synthesizer does NOT re-analyze the document.
-    It COMBINES the findings from all 3 specialists
-    into a unified launch-readiness recommendation.
-    """
-
-    # STEP 1: Create BedrockModel
-    # - Claude for reasoning across multiple specialist outputs
-    # - temperature=0.2 for balanced synthesis
-    model = BedrockModel(
-        model_id=CLAUDE_MODEL,
-        region_name=AWS_REGION,
-        temperature=0.2,
-    )
+    """Build Synthesizer Agent — combines specialist findings (not re-analyzing)."""
+    # STEP 1: BedrockModel (Claude for multi-specialist synthesis, temperature 0.2)
+    model = BedrockModel(model_id=CLAUDE_MODEL, region_name=AWS_REGION, temperature=0.2)
 
     # STEP 2: System prompt — synthesize, don't re-analyze
     system_prompt = """You are a launch-readiness synthesizer. Your ONLY job:
@@ -430,18 +328,7 @@ Do NOT re-analyze the document. Base your assessment ONLY on the specialist find
 
     @tool
     def synthesize_reviews(document_id: str) -> str:
-        """
-        Combine findings from all 3 specialist reviewers into a unified assessment.
-
-        Reads from the shared caches (security_cache, scalability_cache, cost_cache)
-        that were populated by the parallel specialist agents.
-
-        Args:
-            document_id: The document ID (e.g., "DOC-001")
-
-        Returns:
-            JSON with unified launch-readiness assessment
-        """
+        """Combine specialist findings into unified launch-readiness assessment."""
         sec = security_cache.get(document_id, {})
         scale = scalability_cache.get(document_id, {})
         cost = cost_cache.get(document_id, {})
@@ -480,33 +367,14 @@ Do NOT re-analyze the document. Base your assessment ONLY on the specialist find
         }
         return json.dumps(result, indent=2)
 
-    # STEP 3: Build Agent — bind model + prompt + tool
+    # STEP 3: Build Agent
     return Agent(model=model, system_prompt=system_prompt, tools=[synthesize_reviews])
 
 
-# ═══════════════════════════════════════════════════════
-#  PARALLEL EXECUTION ENGINE
-#
-#  ThreadPoolExecutor runs all 3 specialists at the
-#  same time. Since each reviews a DIFFERENT dimension
-#  of the same document, they are fully independent.
-#
-#  After all 3 finish, the Synthesizer runs (sequential)
-#  because it DEPENDS on the specialists' output.
-# ═══════════════════════════════════════════════════════
+# Parallel execution engine (ThreadPoolExecutor runs specialists independently)
 
 def run_specialists_parallel(doc_id: str) -> dict:
-    """
-    Run all 3 specialist agents in PARALLEL using ThreadPoolExecutor.
-
-    Why parallel?
-    - Security, Scalability, and Cost reviews are INDEPENDENT
-    - No specialist needs another specialist's output
-    - 3 agents × ~2s each: sequential = ~6s, parallel = ~2s
-
-    Returns:
-        Dict with per-agent timing info
-    """
+    """Run all 3 specialist agents in PARALLEL (independent reviews)."""
     timings = {}
 
     def run_security():
@@ -535,9 +403,7 @@ def run_specialists_parallel(doc_id: str) -> dict:
             executor.submit(run_cost): "cost",
         }
         for future in as_completed(futures):
-            name = futures[future]
-            timings[name] = future.result()
-
+            timings[futures[future]] = future.result()
     return timings
 
 
@@ -560,9 +426,7 @@ def run_specialists_sequential(doc_id: str) -> dict:
     return timings
 
 
-# ═══════════════════════════════════════════════════════
-#  MAIN — Analyze documents and compare parallel vs sequential
-# ═══════════════════════════════════════════════════════
+# Main — Analyze documents and compare parallel vs sequential
 
 def main():
     print("=" * 65)
@@ -581,27 +445,20 @@ def main():
         print(f"  Expected Load: {doc['expected_load']}")
         print(f"{'━' * 65}")
 
-        # ── Clear caches ──
         security_cache.clear()
         scalability_cache.clear()
         cost_cache.clear()
 
-        # ── PARALLEL SPECIALIST RUN ───────────────────────
         print(f"\n  >>> Running 3 specialists in PARALLEL...")
         t_parallel_start = time.time()
         parallel_timings = run_specialists_parallel(doc_id)
         t_specialists = time.time() - t_parallel_start
         print(f"  Specialists complete: {t_specialists:.1f}s (parallel)")
 
-        # ── SYNTHESIZER RUN (sequential — depends on specialists) ──
         print(f"\n  >>> Synthesizer combining findings...")
-        t_synth = run_agent_with_retry(
-            build_synthesizer_agent,
-            f"Synthesize reviews for document {doc_id}",
-        )
+        t_synth = run_agent_with_retry(build_synthesizer_agent, f"Synthesize reviews for document {doc_id}")
         t_parallel_total = t_specialists + t_synth
 
-        # Read results from caches
         sec = security_cache.get(doc_id, {})
         scale = scalability_cache.get(doc_id, {})
         cost_data = cost_cache.get(doc_id, {})

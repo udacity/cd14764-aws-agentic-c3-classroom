@@ -1,48 +1,14 @@
 """
 clinical_literature_rag.py - EXERCISE SOLUTION (Student-Led)
-==============================================================
-Module 8 Exercise: Build a Multi-Agent RAG System for Clinical Literature Review
+Module 8 Exercise: Multi-Agent RAG for Clinical Literature Review
 
 Architecture:
-    Doctor asks clinical question
-         │
-    ┌────┴─────────────────────────────────────────────────┐
-    │  Parallel Retrieval (ThreadPoolExecutor)               │
-    │  Two specialized retrievers query clinical KBs         │
-    └────┬──────────────────┬──────────────────────────────┘
-         │                  │
-    ┌────┴──────────┐  ┌───┴───────────────┐
-    │ DrugInteraction│  │ClinicalGuidelines │
-    │ Retriever      │  │Retriever          │
-    └────┬──────────┘  └───┬───────────────┘
-         │                  │
-    ┌────┴──────────────────┴──────────────────────────────┐
-    │  Result Aggregation + Deduplication                    │
-    │  - Combine passages from both KBs                      │
-    │  - Deduplicate near-identical passages (NEW)           │
-    │  - Rank by relevance score, select top-10              │
-    └────┬─────────────────────────────────────────────────┘
-         │
-    ┌────┴─────────────────────────────────────────────────┐
-    │  SynthesisAgent (structured clinical output)           │
-    │  - Drug Interactions section + Guidelines section       │
-    │  - Integrated Recommendation                           │
-    │  - Mandatory citations + confidence disclaimer          │
-    │  - Handles partial results with degradation notice      │
-    └──────────────────────────────────────────────────────┘
+  Query → Parallel Retrieval (Drug & Guidelines KBs) → Aggregation + Dedup →
+  SynthesisAgent (structured clinical output)
 
-Same RAG pattern as the demo (research_assistant_rag.py),
-with additions:
-  1. DEDUPLICATION: Remove near-identical passages before ranking
-  2. STRUCTURED OUTPUT: Drug Interactions + Guidelines + Recommendation
-  3. GRACEFUL DEGRADATION: Explicit test of one retriever failing
-  4. CONFIDENCE DISCLAIMER: For partial results
+Exercise adds to demo: DEDUPLICATION | STRUCTURED OUTPUT | GRACEFUL DEGRADATION
 
-Tech Stack:
-  - Python 3.11+
-  - Strands Agents SDK (Agent class, @tool decorator)
-  - Amazon Bedrock (Nova Lite for retrievers, Nova Pro for synthesis)
-  - Simulated Knowledge Bases (in-memory; production uses Bedrock KB + S3 Vectors)
+Tech: Python 3.11+ | Strands SDK | Bedrock (Nova Lite/Pro) | Simulated KBs
 """
 
 import json
@@ -88,19 +54,8 @@ NOVA_PRO_MODEL = "amazon.nova-pro-v1:0"
 TOP_K = 10  # More passages for clinical context
 
 
-# ═══════════════════════════════════════════════════════
-#  SIMULATED KNOWLEDGE BASES — Clinical Domain
-#
-#  Production equivalent:
-#    bedrock_agent = boto3.client('bedrock-agent-runtime')
-#    response = bedrock_agent.retrieve(
-#        knowledgeBaseId='KB_DRUG_INTERACTIONS_ID',
-#        retrievalQuery={'text': query},
-#        retrievalConfiguration={
-#            'vectorSearchConfiguration': {'numberOfResults': 10}
-#        }
-#    )
-# ═══════════════════════════════════════════════════════
+# SIMULATED KNOWLEDGE BASES — Clinical Domain
+# Production: bedrock_agent.retrieve(knowledgeBaseId, retrievalQuery, vectorSearchConfiguration)
 
 DRUG_INTERACTIONS_KB = [
     {
@@ -241,13 +196,10 @@ CLINICAL_QUERIES = [
 ]
 
 
-# ═══════════════════════════════════════════════════════
-#  SIMULATED RETRIEVAL ENGINE
-# ═══════════════════════════════════════════════════════
-
+# SIMULATED RETRIEVAL ENGINE
 def retrieve_from_kb(documents: list[dict], query: str, kb_name: str,
                      top_k: int = 10) -> list[dict]:
-    """Simulated retrieval from a Knowledge Base (keyword-based scoring)."""
+    """Simulated KB retrieval with keyword-based scoring."""
     query_terms = set(query.lower().split())
     results = []
 
@@ -276,10 +228,7 @@ def retrieve_from_kb(documents: list[dict], query: str, kb_name: str,
     return results[:top_k]
 
 
-# ═══════════════════════════════════════════════════════
-#  RETRIEVER AGENTS
-# ═══════════════════════════════════════════════════════
-
+# RETRIEVER AGENTS
 retrieval_results = {"drug": [], "guidelines": []}
 
 
@@ -377,17 +326,9 @@ Do NOT add any other commentary."""
     return Agent(model=model, system_prompt=system_prompt, tools=[retrieve_guidelines])
 
 
-# ═══════════════════════════════════════════════════════
-#  RESULT AGGREGATION + DEDUPLICATION (NEW pattern)
-# ═══════════════════════════════════════════════════════
-
+# RESULT AGGREGATION + DEDUPLICATION
 def deduplicate_passages(passages: list[dict], similarity_threshold: float = 0.8) -> list[dict]:
-    """
-    Remove near-identical passages (NEW — not in demo).
-
-    Simple deduplication based on doc_id overlap.
-    Production: Use embedding cosine similarity between passage vectors.
-    """
+    """Remove near-identical passages by doc_id. Production: embedding cosine similarity."""
     seen_ids = set()
     unique = []
     for p in passages:
@@ -406,13 +347,10 @@ def aggregate_results(drug_passages: list, guideline_passages: list,
     return all_passages[:top_k]
 
 
-# ═══════════════════════════════════════════════════════
-#  SYNTHESIS AGENT — Structured clinical output
-# ═══════════════════════════════════════════════════════
-
+# SYNTHESIS AGENT — Structured clinical output
 def build_synthesis_agent(passages: list[dict], query: str,
                           partial: bool = False) -> Agent:
-    """Synthesis agent — structured clinical summary with citations."""
+    """Structured clinical summary with citations."""
 
     model = BedrockModel(model_id=NOVA_PRO_MODEL, region_name=AWS_REGION, temperature=0.1)
 
@@ -453,10 +391,7 @@ Provide a structured clinical summary."""
     return Agent(model=model, system_prompt=system_prompt, tools=[])
 
 
-# ═══════════════════════════════════════════════════════
-#  RAG ORCHESTRATOR
-# ═══════════════════════════════════════════════════════
-
+# RAG ORCHESTRATOR
 def run_clinical_rag(query_data: dict):
     """Execute a full RAG pipeline for a clinical query."""
     query = query_data["query"]
@@ -464,8 +399,6 @@ def run_clinical_rag(query_data: dict):
 
     retrieval_results["drug"] = []
     retrieval_results["guidelines"] = []
-
-    # ── Parallel Retrieval ───────────────────────────
     print(f"\n  Dispatching 2 retrievers in parallel...")
     t_start = time.time()
 
@@ -500,14 +433,10 @@ def run_clinical_rag(query_data: dict):
 
     drug_count = len(retrieval_results["drug"])
     guide_count = len(retrieval_results["guidelines"])
-    print(f"    Drug Interactions: {drug_count} passage(s)")
-    print(f"    Clinical Guidelines: {guide_count} passage(s)")
+    print(f"    Drug: {drug_count} | Guidelines: {guide_count} | Time: {t_retrieval:.1f}s")
     if fail_at:
-        print(f"    ⚠ {fail_at} KB was unavailable — using partial results")
-    print(f"    Parallel retrieval time: {t_retrieval:.1f}s")
-
-    # ── Aggregation + Deduplication ──────────────────
-    print(f"\n  Aggregating + deduplicating results (top-{TOP_K})...")
+        print(f"    ⚠ {fail_at} KB unavailable — partial results")
+    print(f"\n  Aggregating + deduplicating (top-{TOP_K})...")
     top_passages = aggregate_results(retrieval_results["drug"], retrieval_results["guidelines"])
 
     if not top_passages:
@@ -519,21 +448,17 @@ def run_clinical_rag(query_data: dict):
             "partial": False,
         }
 
-    print(f"    Selected {len(top_passages)} passages after deduplication:")
     for p in top_passages:
-        print(f"      [{p['doc_id']}] {p['title'][:50]}... (score: {p['score']}, kb: {p['kb']})")
-
+        print(f"      [{p['doc_id']}] {p['title'][:50]}... (score: {p['score']})")
     avg_score = round(sum(p["score"] for p in top_passages) / len(top_passages), 3)
-    print(f"    Average relevance score: {avg_score}")
-
-    # ── Synthesis ────────────────────────────────────
+    print(f"    Avg score: {avg_score}")
     partial = (fail_at is not None)
-    print(f"\n  SynthesisAgent (structured clinical summary{' — PARTIAL' if partial else ''})...")
+    print(f"\n  SynthesisAgent{' (PARTIAL)' if partial else ''}...")
     t_synth = run_agent_with_retry(
         lambda: build_synthesis_agent(top_passages, query, partial=partial),
         f"Answer the clinical question: {query}"
     )
-    print(f"    Synthesis time: {t_synth:.1f}s")
+    print(f"    Time: {t_synth:.1f}s")
 
     return {
         "query": query,
@@ -572,18 +497,10 @@ def main():
         result = run_clinical_rag(query_data)
         results.append(result)
 
-        print(f"\n  ┌─── RAG Quality Metrics ─────────────────────────┐")
-        print(f"  │ Query:        \"{result['query'][:40]}...\"")
-        print(f"  │ Drug passages:     {result['drug_passages']}")
-        print(f"  │ Guideline passages:{result['guideline_passages']}")
-        print(f"  │ Top-K used:        {result['top_passages']}")
-        print(f"  │ Avg score:         {result['avg_score']}")
-        print(f"  │ Partial results:   {'YES ⚠' if result['partial'] else 'No'}")
-        print(f"  └────────────────────────────────────────────────┘")
+        print(f"\n  Results: Drug={result['drug_passages']} Guide={result['guideline_passages']} Top-K={result['top_passages']} Score={result['avg_score']} Partial={'YES ⚠' if result['partial'] else 'No'}")
 
-    # ── Summary ──────────────────────────────────────────
     print(f"\n{'═' * 70}")
-    print("  CLINICAL RAG SUMMARY")
+    print("SUMMARY")
     print(f"{'═' * 70}")
 
     for r in results:

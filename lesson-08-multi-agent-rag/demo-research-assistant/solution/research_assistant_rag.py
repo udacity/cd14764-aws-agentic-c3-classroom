@@ -1,57 +1,16 @@
 """
 research_assistant_rag.py - DEMO (Instructor-Led)
-===================================================
-Module 8 Demo: Building a Multi-Agent RAG Research Assistant
+Module 8: Multi-Agent RAG Research Assistant
 
 Architecture:
-    Student asks research question
-         │
-    ┌────┴─────────────────────────────────────────────────┐
-    │  Parallel Retrieval (ThreadPoolExecutor)               │
-    │  Two specialized retrievers query domain-specific KBs  │
-    └────┬──────────────────┬──────────────────────────────┘
-         │                  │
-    ┌────┴──────┐    ┌─────┴──────┐
-    │ CSRetriever│    │BioRetriever│
-    │ (CS papers)│    │(Bio papers)│
-    └────┬──────┘    └─────┬──────┘
-         │                  │
-    ┌────┴──────────────────┴──────────────────────────────┐
-    │  Result Aggregation                                    │
-    │  - Combine passages from both KBs                      │
-    │  - Rank by relevance score                             │
-    │  - Select top-K most relevant                          │
-    └────┬─────────────────────────────────────────────────┘
-         │
-    ┌────┴─────────────────────────────────────────────────┐
-    │  SynthesisAgent                                        │
-    │  - Produces grounded answer with citations              │
-    │  - Every claim must reference a specific passage        │
-    │  - Handles partial results gracefully                   │
-    └──────────────────────────────────────────────────────┘
+  Query → Parallel Retrieval (CS & Bio KBs) → Aggregation → SynthesisAgent
+  Key: 2 specialized retrievers run simultaneously, results ranked by score, top-K passed to synthesis
 
-Key Concepts (Module 8):
-  1. SPECIALIZED RETRIEVERS: Each retriever owns one KB, one tool
-  2. PARALLEL RETRIEVAL: Both retrievers run simultaneously
-  3. RELEVANCE SCORING: Passages ranked by confidence score
-  4. TOP-K SELECTION: Only highest-scoring passages go to synthesis
-  5. GROUNDED SYNTHESIS: Every claim cites a specific passage
-  6. GRACEFUL DEGRADATION: If one retriever fails, use the other
+Concepts: SPECIALIZED RETRIEVERS | PARALLEL RETRIEVAL | RELEVANCE SCORING |
+          TOP-K SELECTION | GROUNDED SYNTHESIS | GRACEFUL DEGRADATION
 
-RAG Quality Metrics:
-  - Groundedness: every claim has a supporting passage
-  - Relevance: passages match the query
-  - Completeness: key aspects of the question are covered
-
-Tech Stack:
-  - Python 3.11+
-  - Strands Agents SDK (Agent class, @tool decorator)
-  - Amazon Bedrock (Nova Lite for retrievers, Nova Pro for synthesis)
-  - Simulated Knowledge Bases (in-memory; production uses Bedrock KB + S3 Vectors)
-
-Note: This lesson uses simulated Knowledge Bases with pre-defined documents.
-Production uses Amazon Bedrock Knowledge Bases with S3 Vectors for semantic search.
-Production-mapping comments show the exact boto3 API calls.
+Tech: Python 3.11+ | Strands SDK | Amazon Bedrock (Nova Lite/Pro) | Simulated KBs
+Production: Bedrock KB + S3 Vectors. See comments below for boto3 equivalents.
 """
 
 import json
@@ -97,25 +56,10 @@ NOVA_PRO_MODEL = "amazon.nova-pro-v1:0"
 TOP_K = 5  # Number of top passages to pass to synthesis
 
 
-# ═══════════════════════════════════════════════════════
-#  SIMULATED KNOWLEDGE BASES
-#
-#  In production, Knowledge Bases are managed by Amazon Bedrock:
-#    bedrock_agent = boto3.client('bedrock-agent-runtime')
-#    response = bedrock_agent.retrieve(
-#        knowledgeBaseId='KB_CS_PAPERS_ID',
-#        retrievalQuery={'text': query},
-#        retrievalConfiguration={
-#            'vectorSearchConfiguration': {'numberOfResults': 10}
-#        }
-#    )
-#    # Returns: retrievalResults[].content.text, .score, .location
-#
-#  S3 Vectors: Documents are chunked, embedded (Titan Embeddings),
-#  and stored in S3-managed vector indices for semantic search.
-#
-#  Here we simulate with in-memory documents + keyword matching.
-# ═══════════════════════════════════════════════════════
+# SIMULATED KNOWLEDGE BASES
+# Production: bedrock_agent.retrieve(knowledgeBaseId, retrievalQuery, vectorSearchConfiguration)
+# Returns: retrievalResults[].content.text, .score, .location
+# Here: In-memory docs + keyword matching
 
 CS_PAPERS = [
     {
@@ -252,37 +196,13 @@ QUERIES = [
 ]
 
 
-# ═══════════════════════════════════════════════════════
-#  SIMULATED RETRIEVAL ENGINE
-#
-#  STEP 1: Keyword-based relevance scoring (simulates vector similarity)
-#  STEP 2: Returns passages with scores, sorted by relevance
-#
-#  Production equivalent:
-#    bedrock_agent = boto3.client('bedrock-agent-runtime')
-#    response = bedrock_agent.retrieve(
-#        knowledgeBaseId=kb_id,
-#        retrievalQuery={'text': query},
-#        retrievalConfiguration={
-#            'vectorSearchConfiguration': {'numberOfResults': top_k}
-#        }
-#    )
-#    passages = [{
-#        'content': r['content']['text'],
-#        'score': r['score'],
-#        'source': r['location']['s3Location']['uri'],
-#    } for r in response['retrievalResults']]
-# ═══════════════════════════════════════════════════════
+# SIMULATED RETRIEVAL ENGINE
+# Production: bedrock_agent.retrieve(knowledgeBaseId, retrievalQuery, vectorSearchConfiguration)
+# Returns passages with score, source from retrievalResults
 
 def retrieve_from_kb(documents: list[dict], query: str, kb_name: str,
                      top_k: int = 5, simulate_failure: bool = False) -> list[dict]:
-    """
-    Simulated retrieval from a Knowledge Base.
-
-    Scores documents based on keyword overlap with the query.
-    Production: Bedrock KB uses vector embeddings (Titan Embeddings)
-    for semantic similarity search over S3-stored document chunks.
-    """
+    """Simulated KB retrieval: keyword overlap scoring. Production: Bedrock KB with Titan embeddings."""
     if simulate_failure:
         raise ConnectionError(f"Simulated: {kb_name} Knowledge Base temporarily unavailable")
 
@@ -318,11 +238,7 @@ def retrieve_from_kb(documents: list[dict], query: str, kb_name: str,
     return results[:top_k]
 
 
-# ═══════════════════════════════════════════════════════
-#  RETRIEVER AGENTS — Each owns one Knowledge Base
-# ═══════════════════════════════════════════════════════
-
-# Global storage for retrieval results (shared between agents and orchestrator)
+# RETRIEVER AGENTS — Each owns one Knowledge Base
 retrieval_results = {"cs": [], "bio": []}
 
 
@@ -409,27 +325,17 @@ Do NOT add any other commentary."""
     return Agent(model=model, system_prompt=system_prompt, tools=[retrieve_bio_papers])
 
 
-# ═══════════════════════════════════════════════════════
-#  RESULT AGGREGATION — Combine, rank, select top-K
-# ═══════════════════════════════════════════════════════
-
+# RESULT AGGREGATION — Combine, rank, select top-K
 def aggregate_results(cs_passages: list, bio_passages: list, top_k: int = TOP_K) -> list[dict]:
-    """
-    Combine passages from both KBs, rank by relevance, select top-K.
-
-    This is the aggregation layer between retrieval and synthesis.
-    """
+    """Combine passages from both KBs, rank by relevance score, select top-K."""
     all_passages = cs_passages + bio_passages
     all_passages.sort(key=lambda x: x["score"], reverse=True)
     return all_passages[:top_k]
 
 
-# ═══════════════════════════════════════════════════════
-#  SYNTHESIS AGENT — Grounded answer with citations
-# ═══════════════════════════════════════════════════════
-
+# SYNTHESIS AGENT — Grounded answer with citations
 def build_synthesis_agent(passages: list[dict], query: str) -> Agent:
-    """Synthesis agent — produces a grounded research summary with citations."""
+    """Produces grounded research summary with citations from top passages."""
 
     model = BedrockModel(model_id=NOVA_PRO_MODEL, region_name=AWS_REGION, temperature=0.2)
 
@@ -459,19 +365,13 @@ Provide a grounded research summary with citations."""
     return Agent(model=model, system_prompt=system_prompt, tools=[])
 
 
-# ═══════════════════════════════════════════════════════
-#  RAG ORCHESTRATOR — Parallel retrieval → aggregation → synthesis
-# ═══════════════════════════════════════════════════════
-
+# RAG ORCHESTRATOR — Parallel retrieval → aggregation → synthesis
 def run_rag_query(query_data: dict):
     """Execute a full RAG pipeline for a research query."""
     query = query_data["query"]
 
-    # Reset retrieval results
     retrieval_results["cs"] = []
     retrieval_results["bio"] = []
-
-    # ── Parallel Retrieval ───────────────────────────
     print(f"\n  Dispatching 2 retrievers in parallel...")
     t_start = time.time()
 
@@ -499,15 +399,10 @@ def run_rag_query(query_data: dict):
                 timings[name] = -1
 
     t_retrieval = time.time() - t_start
-
     cs_count = len(retrieval_results["cs"])
     bio_count = len(retrieval_results["bio"])
-    print(f"    CS Retriever: {cs_count} passage(s)")
-    print(f"    Bio Retriever: {bio_count} passage(s)")
-    print(f"    Parallel retrieval time: {t_retrieval:.1f}s")
-
-    # ── Result Aggregation ───────────────────────────
-    print(f"\n  Aggregating results (top-{TOP_K} by relevance)...")
+    print(f"    CS: {cs_count} | Bio: {bio_count} | Time: {t_retrieval:.1f}s")
+    print(f"\n  Aggregating results (top-{TOP_K})...")
     top_passages = aggregate_results(retrieval_results["cs"], retrieval_results["bio"])
 
     if not top_passages:
@@ -521,20 +416,16 @@ def run_rag_query(query_data: dict):
             "avg_score": 0,
         }
 
-    print(f"    Selected {len(top_passages)} passages:")
     for p in top_passages:
-        print(f"      [{p['doc_id']}] {p['title'][:50]}... (score: {p['score']}, kb: {p['kb']})")
-
+        print(f"      [{p['doc_id']}] {p['title'][:50]}... (score: {p['score']})")
     avg_score = round(sum(p["score"] for p in top_passages) / len(top_passages), 3)
-    print(f"    Average relevance score: {avg_score}")
-
-    # ── Synthesis ────────────────────────────────────
-    print(f"\n  SynthesisAgent (grounded answer with citations)...")
+    print(f"    Avg score: {avg_score}")
+    print(f"\n  SynthesisAgent...")
     t_synth = run_agent_with_retry(
         lambda: build_synthesis_agent(top_passages, query),
         f"Answer the research question: {query}"
     )
-    print(f"    Synthesis time: {t_synth:.1f}s")
+    print(f"    Time: {t_synth:.1f}s")
 
     return {
         "query": query,
@@ -570,18 +461,10 @@ def main():
         result = run_rag_query(query_data)
         results.append(result)
 
-        # RAG quality metrics
-        print(f"\n  ┌─── RAG Quality Metrics ─────────────────────────┐")
-        print(f"  │ Query:      \"{result['query'][:45]}...\"")
-        print(f"  │ CS passages:  {result['cs_passages']}")
-        print(f"  │ Bio passages: {result['bio_passages']}")
-        print(f"  │ Top-K used:   {result['top_passages']}")
-        print(f"  │ Avg score:    {result['avg_score']}")
-        print(f"  └────────────────────────────────────────────────┘")
+        print(f"\n  Results: CS={result['cs_passages']} Bio={result['bio_passages']} Top-K={result['top_passages']} Score={result['avg_score']}")
 
-    # ── Summary ──────────────────────────────────────────
     print(f"\n{'═' * 70}")
-    print("  MULTI-AGENT RAG SUMMARY")
+    print("SUMMARY")
     print(f"{'═' * 70}")
 
     for r in results:

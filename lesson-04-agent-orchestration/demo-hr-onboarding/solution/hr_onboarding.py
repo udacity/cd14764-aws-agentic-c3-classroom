@@ -1,45 +1,11 @@
 """
 hr_onboarding.py - DEMO (Instructor-Led)
-==========================================
-Module 4 Demo: Orchestrating an HR Employee Onboarding Workflow
+Module 4: Orchestrating an HR Employee Onboarding Workflow
 
-Architecture:
-    New Employee
-         │
-    ┌────┴────┐
-    │ SEQUENTIAL │  (must happen in order)
-    │  Phase 1   │
-    │ AccountCreator → ManagerAssigner
-    └────┬────┘
-         │
-    ┌────┴────────────────────────┐
-    │ PARALLEL                    │  (independent, run simultaneously)
-    │  Phase 2                    │
-    │ LaptopProvisioner           │
-    │ EmailSetup                  │
-    │ BuildingAccess              │
-    └────┬────────────────────────┘
-         │
-    ┌────┴────┐
-    │ CONDITIONAL │  (route based on department)
-    │  Phase 3    │
-    │ if Engineering → EngineeringOnboarding
-    │ if Sales      → SalesOnboarding
-    └────┬────┘
-         │
-    Onboarding Complete
+6 worker agents in 3 phases: SEQUENTIAL (account→manager) → PARALLEL (laptop+email+building)
+→ CONDITIONAL (engineering vs sales). Orchestrator is Python code (deterministic, testable).
 
-Key Concepts (NEW in Module 4):
-  1. SEQUENTIAL: Steps that depend on each other (account must exist before manager assignment)
-  2. PARALLEL: Independent steps run simultaneously (laptop, email, building access)
-  3. CONDITIONAL: Different paths based on data (department → engineering or sales)
-  4. FAILURE HANDLING: Retry with backoff, timeouts, escalation
-
-Tech Stack:
-  - Python 3.11+
-  - Strands Agents SDK (Agent class, @tool decorator)
-  - Amazon Bedrock (Claude 3 Sonnet for orchestrator, Nova Lite for workers)
-  - concurrent.futures.ThreadPoolExecutor (parallel branches)
+Tech: Strands Agents SDK, Amazon Bedrock (Claude/Nova Lite), ThreadPoolExecutor
 """
 
 import json
@@ -76,16 +42,12 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
                 raise
 
 
-# ─────────────────────────────────────────────────────
-# CONFIGURATION
-# ─────────────────────────────────────────────────────
+# Configuration
 AWS_REGION = "us-east-1"
 CLAUDE_MODEL = "anthropic.claude-3-sonnet-20240229-v1:0"     # Orchestrator (reasoning)
 NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"                    # Workers (fast execution)
 
-# ─────────────────────────────────────────────────────
-# SAMPLE EMPLOYEES
-# ─────────────────────────────────────────────────────
+# Sample employees
 EMPLOYEES = [
     {
         "id": "EMP-001",
@@ -139,18 +101,13 @@ SALES_ONBOARDING = {
 workflow_state = {}
 
 
-# ═══════════════════════════════════════════════════════
-#  WORKER AGENTS — Simple, single-responsibility agents
-#  Each worker does ONE thing and doesn't know about
-#  the larger workflow. The orchestrator manages them.
-# ═══════════════════════════════════════════════════════
+# Worker agents — Simple, single-responsibility (orchestrator manages them)
 
-# ── Phase 1: Sequential Workers ─────────────────────
+# Phase 1: Sequential Workers
 
 def build_account_creator() -> Agent:
     """Worker: Creates the employee account (must run FIRST)."""
-
-    # STEP 1: BedrockModel — Nova Lite for fast execution
+    # STEP 1: BedrockModel (Nova Lite, temperature 0.0)
     model = BedrockModel(model_id=NOVA_LITE_MODEL, region_name=AWS_REGION, temperature=0.0)
 
     # STEP 2: System prompt
@@ -161,15 +118,7 @@ Do NOT add any other commentary."""
 
     @tool
     def create_account(employee_id: str) -> str:
-        """
-        Create a new employee account in the HR system.
-
-        Args:
-            employee_id: The employee ID (e.g., "EMP-001")
-
-        Returns:
-            JSON with account details
-        """
+        """Create a new employee account in the HR system."""
         emp = next((e for e in EMPLOYEES if e["id"] == employee_id), None)
         if not emp:
             return json.dumps({"error": f"Employee {employee_id} not found"})
@@ -428,20 +377,7 @@ Do NOT add any other commentary."""
     return Agent(model=model, system_prompt=system_prompt, tools=[onboard_sales])
 
 
-# ═══════════════════════════════════════════════════════
-#  ORCHESTRATOR — Manages the entire onboarding workflow
-#
-#  The orchestrator is NOT an LLM agent — it's Python code
-#  that calls worker agents in the right order. This is
-#  the key Module 4 pattern: orchestration logic lives in
-#  code, not in prompts.
-#
-#  Why code, not LLM?
-#  - Deterministic: same input → same execution order
-#  - Debuggable: you can trace exactly which step failed
-#  - Testable: unit test each phase independently
-#  - Reliable: no risk of LLM "forgetting" a step
-# ═══════════════════════════════════════════════════════
+# Orchestrator — Manages entire workflow with Python code (deterministic, testable, debuggable)
 
 def orchestrate_onboarding(employee_id: str) -> dict:
     """
@@ -569,9 +505,7 @@ def orchestrate_onboarding(employee_id: str) -> dict:
     }
 
 
-# ═══════════════════════════════════════════════════════
-#  MAIN
-# ═══════════════════════════════════════════════════════
+# Main
 
 def main():
     print("=" * 65)

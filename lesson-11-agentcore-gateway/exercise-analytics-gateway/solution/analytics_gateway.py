@@ -1,32 +1,13 @@
 """
 analytics_gateway.py - EXERCISE SOLUTION (Student-Led)
-==============================================================
 Module 11 Exercise: Register and Invoke Tools through AgentCore Gateway
 
-Architecture:
-    AnalyticsAgent
-         │
-    ┌────┴─────────────────────────────────────────────────┐
-    │  AgentCore Gateway (Simulated MCP Endpoint)            │
-    │  3 registered targets: 2 Lambda + 1 REST API           │
-    └────┬──────────────┬──────────────┬──────────────────┘
-         │              │              │
-    ┌────┴────┐   ┌────┴────┐   ┌────┴──────────┐
-    │Weather  │   │Currency │   │  News         │
-    │ Lambda  │   │ Lambda  │   │  REST API     │
-    └─────────┘   └─────────┘   └───────────────┘
+Same Gateway pattern as demo, with additions:
+  1. MIXED TARGET TYPES: 2 Lambda + 1 REST API
+  2. DIFFERENT DOMAIN: Analytics instead of supply chain
+  3. SEMANTIC ROUTING: Agent selects tool by query
 
-Same Gateway pattern as the demo (supply_chain_gateway.py),
-with additions:
-  1. MIXED TARGET TYPES: 2 Lambda functions + 1 REST API (vs all REST in demo)
-  2. DIFFERENT DOMAIN: Analytics utilities instead of supply chain
-  3. SEMANTIC ROUTING FOCUS: Agent must select correct tool by query semantics
-
-Tech Stack:
-  - Python 3.11+
-  - Strands Agents SDK (Agent class, @tool decorator)
-  - Amazon Bedrock (Nova Lite for the agent)
-  - Simulated AgentCore Gateway
+Tech: Python 3.11+ | Strands SDK | Bedrock Nova | Simulated Gateway
 """
 
 import json
@@ -69,10 +50,7 @@ AWS_REGION = "us-east-1"
 NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"
 
 
-# ═══════════════════════════════════════════════════════
-#  SIMULATED AgentCore GATEWAY (same engine as demo)
-# ═══════════════════════════════════════════════════════
-
+# SIMULATED AgentCore GATEWAY
 class SimulatedGateway:
     """Simulates AgentCore Gateway with tool registration and discovery."""
 
@@ -103,11 +81,7 @@ class SimulatedGateway:
         return result
 
 
-# ═══════════════════════════════════════════════════════
-#  SIMULATED APIs (Gateway targets)
-# ═══════════════════════════════════════════════════════
-
-# ── Weather Lambda ──
+# SIMULATED APIs (Gateway targets)
 def weather_lambda_handler(params: dict) -> dict:
     """Simulated Lambda: weather lookup by city."""
     weather_data = {
@@ -123,10 +97,8 @@ def weather_lambda_handler(params: dict) -> dict:
     city = params.get("city", "").lower()
     if city in weather_data:
         return {"status": "ok", "weather": weather_data[city]}
-    return {"status": "error", "message": f"City '{city}' not found. Available: {list(weather_data.keys())}"}
+    return {"status": "error", "message": f"City '{city}' not found"}
 
-
-# ── Currency Converter Lambda ──
 def currency_lambda_handler(params: dict) -> dict:
     """Simulated Lambda: currency conversion."""
     rates = {
@@ -138,8 +110,7 @@ def currency_lambda_handler(params: dict) -> dict:
     to_currency = params.get("to", "EUR").upper()
 
     if from_currency not in rates or to_currency not in rates:
-        return {"status": "error", "message": f"Unsupported currency. Available: {list(rates.keys())}"}
-
+        return {"status": "error", "message": "Unsupported currency"}
     usd_amount = amount / rates[from_currency]
     converted = round(usd_amount * rates[to_currency], 2)
 
@@ -152,8 +123,6 @@ def currency_lambda_handler(params: dict) -> dict:
         },
     }
 
-
-# ── News Headlines REST API ──
 def news_api_handler(params: dict) -> dict:
     """Simulated REST API: news headlines by topic."""
     headlines = {
@@ -179,11 +148,6 @@ def news_api_handler(params: dict) -> dict:
     return {"status": "ok", "topic": "general", "headlines": [
         item for sublist in headlines.values() for item in sublist[:1]
     ]}
-
-
-# ═══════════════════════════════════════════════════════
-#  ANALYTICS AGENT
-# ═══════════════════════════════════════════════════════
 
 def build_analytics_agent(gateway: SimulatedGateway) -> Agent:
     """Build an analytics agent connected to the Gateway."""
@@ -250,10 +214,6 @@ Use the appropriate tool for each query. Report results concisely."""
                  tools=[get_weather, convert_currency, get_news])
 
 
-# ═══════════════════════════════════════════════════════
-#  TEST QUERIES
-# ═══════════════════════════════════════════════════════
-
 TEST_QUERIES = [
     {
         "query": "What is the weather in Tokyo right now?",
@@ -273,10 +233,6 @@ TEST_QUERIES = [
 ]
 
 
-# ═══════════════════════════════════════════════════════
-#  MAIN
-# ═══════════════════════════════════════════════════════
-
 def main():
     print("=" * 70)
     print("  Analytics Gateway — Module 11 Exercise")
@@ -288,9 +244,7 @@ def main():
         name="analytics-gateway",
         description="MCP endpoint for analytics utility services"
     )
-    print(f"\n  Created Gateway: {gateway.gateway_id}")
-
-    # ── Register targets ──
+    print(f"\n  Gateway: {gateway.gateway_id}")
     gateway.register_target(
         name="weather_lambda",
         description="Look up current weather conditions for a given city including temperature, humidity, and wind",
@@ -313,9 +267,7 @@ def main():
 
     print(f"  Registered {len(gateway.targets)} targets:")
     for t in gateway.discover_tools():
-        print(f"    [{t['type']:8s}] {t['name']}: {t['description'][:60]}...")
-
-    # ── Run test queries ──
+        print(f"    [{t['type']:8s}] {t['name']}")
     for i, test in enumerate(TEST_QUERIES):
         print(f"\n{'━' * 70}")
         print(f"  QUERY {i + 1}: \"{test['query']}\"")
@@ -327,21 +279,15 @@ def main():
             lambda: build_analytics_agent(gateway),
             test["query"]
         )
-        print(f"    Response time: {elapsed:.1f}s")
-
-    # ── Gateway Log ──
+        print(f"    Time: {elapsed:.1f}s")
     print(f"\n{'═' * 70}")
-    print("  GATEWAY INVOCATION LOG")
+    print("INVOCATION LOG")
     print(f"{'═' * 70}")
     for entry in gateway.invocation_log:
         print(f"  Tool: {entry['tool']:20s} Params: {json.dumps(entry['params'])}")
 
-    print(f"\n  Key Insights:")
-    print(f"  1. MIXED TARGETS — 2 Lambda + 1 REST API, all via same Gateway endpoint")
-    print(f"  2. SEMANTIC ROUTING — agent picks correct tool based on query meaning")
-    print(f"  3. ZERO CODE CHANGES — adding a new API = Gateway config only")
-    print(f"  4. USE @tool FOR CAPSTONE — tight integration, no network overhead")
-    print(f"  5. USE GATEWAY FOR ENTERPRISE — multi-team APIs, centralized auth\n")
+    print(f"\n  Key: 1) MIXED TARGETS — 2 Lambda + 1 REST API 2) SEMANTIC ROUTING")
+    print(f"       3) ZERO CODE CHANGES — new API = config only\n")
 
 
 if __name__ == "__main__":
