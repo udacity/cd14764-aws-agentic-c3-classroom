@@ -1,4 +1,4 @@
-<svg viewBox="0 0 720 850" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 720 900" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <filter id="shadow6" x="-50%" y="-50%" width="200%" height="200%">
       <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.15"/>
@@ -98,21 +98,21 @@
 
   <!-- Legend -->
   <g>
-    <text x="40" y="730" class="subtitle" text-anchor="start" font-weight="bold">Legend:</text>
+    <text x="40" y="780" class="subtitle" text-anchor="start" font-weight="bold">Legend:</text>
 
-    <rect x="40" y="745" width="12" height="12" rx="2" fill="#f1f5f9" stroke="#94a3b8"/>
-    <text x="58" y="753" class="label" text-anchor="start" font-size="11px">Infrastructure/State</text>
+    <rect x="40" y="795" width="12" height="12" rx="2" fill="#f1f5f9" stroke="#94a3b8"/>
+    <text x="58" y="803" class="label" text-anchor="start" font-size="11px">Infrastructure/State</text>
 
-    <rect x="280" y="745" width="12" height="12" rx="2" fill="#f0fdf4" stroke="#22c55e"/>
-    <text x="298" y="753" class="label" text-anchor="start" font-size="11px">Agents</text>
+    <rect x="280" y="795" width="12" height="12" rx="2" fill="#f0fdf4" stroke="#22c55e"/>
+    <text x="298" y="803" class="label" text-anchor="start" font-size="11px">Agents</text>
 
-    <rect x="460" y="745" width="12" height="12" rx="2" fill="#fef3c7" stroke="#f59e0b"/>
-    <text x="478" y="753" class="label" text-anchor="start" font-size="11px">Data/Operations</text>
+    <rect x="460" y="795" width="12" height="12" rx="2" fill="#fef3c7" stroke="#f59e0b"/>
+    <text x="478" y="803" class="label" text-anchor="start" font-size="11px">Data/Operations</text>
 
-    <path d="M 40 775 L 60 775" stroke="#475569" stroke-width="2" marker-end="url(#arrow6)"/>
-    <text x="75" y="782" class="label" text-anchor="start" font-size="11px">Read Operation</text>
+    <path d="M 40 825 L 60 825" stroke="#475569" stroke-width="2" marker-end="url(#arrow6)"/>
+    <text x="75" y="832" class="label" text-anchor="start" font-size="11px">Read Operation</text>
 
-    <path d="M 280 775 L 300 775" stroke="#475569" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow6)"/>
-    <text x="315" y="782" class="label" text-anchor="start" font-size="11px">Write Operation</text>
+    <path d="M 280 825 L 300 825" stroke="#475569" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow6)"/>
+    <text x="315" y="832" class="label" text-anchor="start" font-size="11px">Write Operation</text>
   </g>
 </svg>

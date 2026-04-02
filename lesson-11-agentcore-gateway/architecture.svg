@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 720 800" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 720 880" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <filter id="shadow11" x="-50%" y="-50%" width="200%" height="200%">
       <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/>
@@ -172,23 +172,23 @@
 
   <!-- Legend -->
   <g>
-    <text x="20" y="795" font-size="11" font-weight="600" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
+    <text x="20" y="835" font-size="11" font-weight="600" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
       Legend:
     </text>
-    <rect x="20" y="805" width="12" height="12" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
-    <text x="38" y="814" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
+    <rect x="20" y="845" width="12" height="12" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+    <text x="38" y="854" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
       Agents
     </text>
-    <rect x="130" y="805" width="12" height="12" rx="2" fill="#f0fdf4" stroke="#22c55e" stroke-width="1"/>
-    <text x="148" y="814" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
+    <rect x="130" y="845" width="12" height="12" rx="2" fill="#f0fdf4" stroke="#22c55e" stroke-width="1"/>
+    <text x="148" y="854" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
       Tools
     </text>
-    <rect x="240" y="805" width="12" height="12" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
-    <text x="258" y="814" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
+    <rect x="240" y="845" width="12" height="12" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+    <text x="258" y="854" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
       Input/Data
     </text>
-    <rect x="390" y="805" width="12" height="12" rx="2" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/>
-    <text x="408" y="814" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
+    <rect x="390" y="845" width="12" height="12" rx="2" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/>
+    <text x="408" y="854" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
       Infrastructure
     </text>
   </g>

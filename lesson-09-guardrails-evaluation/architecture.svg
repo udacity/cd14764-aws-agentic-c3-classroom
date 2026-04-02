@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 720 920" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 720 980" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <filter id="shadow9" x="-50%" y="-50%" width="200%" height="200%">
       <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/>
@@ -178,23 +178,23 @@
 
   <!-- Legend -->
   <g>
-    <text x="20" y="865" font-size="11" font-weight="600" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
+    <text x="20" y="925" font-size="11" font-weight="600" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
       Legend:
     </text>
-    <rect x="20" y="875" width="12" height="12" rx="2" fill="#fee2e2" stroke="#ef4444" stroke-width="1"/>
-    <text x="38" y="884" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
+    <rect x="20" y="935" width="12" height="12" rx="2" fill="#fee2e2" stroke="#ef4444" stroke-width="1"/>
+    <text x="38" y="944" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
       Guardrail/Block
     </text>
-    <rect x="180" y="875" width="12" height="12" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
-    <text x="198" y="884" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
+    <rect x="180" y="935" width="12" height="12" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+    <text x="198" y="944" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
       Agent
     </text>
-    <rect x="280" y="875" width="12" height="12" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
-    <text x="298" y="884" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
+    <rect x="280" y="935" width="12" height="12" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+    <text x="298" y="944" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
       Input/Data
     </text>
-    <rect x="420" y="875" width="12" height="12" rx="2" fill="#fae8ff" stroke="#a855f7" stroke-width="1"/>
-    <text x="438" y="884" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
+    <rect x="420" y="935" width="12" height="12" rx="2" fill="#fae8ff" stroke="#a855f7" stroke-width="1"/>
+    <text x="438" y="944" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
       Output
     </text>
   </g>

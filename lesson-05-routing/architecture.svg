@@ -1,4 +1,4 @@
-<svg viewBox="0 0 720 800" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 720 840" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <filter id="shadow5" x="-50%" y="-50%" width="200%" height="200%">
       <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.15"/>
@@ -87,18 +87,18 @@
 
   <!-- Legend -->
   <g>
-    <text x="40" y="720" class="subtitle" text-anchor="start" font-weight="bold">Legend:</text>
+    <text x="40" y="760" class="subtitle" text-anchor="start" font-weight="bold">Legend:</text>
 
-    <rect x="40" y="735" width="12" height="12" rx="2" fill="#dbeafe" stroke="#3b82f6"/>
-    <text x="58" y="743" class="label" text-anchor="start" font-size="11px">Routing Agents</text>
+    <rect x="40" y="775" width="12" height="12" rx="2" fill="#dbeafe" stroke="#3b82f6"/>
+    <text x="58" y="783" class="label" text-anchor="start" font-size="11px">Routing Agents</text>
 
-    <rect x="220" y="735" width="12" height="12" rx="2" fill="#f0fdf4" stroke="#22c55e"/>
-    <text x="238" y="743" class="label" text-anchor="start" font-size="11px">Specialist Agents</text>
+    <rect x="220" y="775" width="12" height="12" rx="2" fill="#f0fdf4" stroke="#22c55e"/>
+    <text x="238" y="783" class="label" text-anchor="start" font-size="11px">Specialist Agents</text>
 
-    <rect x="420" y="735" width="12" height="12" rx="2" fill="#fef3c7" stroke="#f59e0b"/>
-    <text x="438" y="743" class="label" text-anchor="start" font-size="11px">Input Data</text>
+    <rect x="420" y="775" width="12" height="12" rx="2" fill="#fef3c7" stroke="#f59e0b"/>
+    <text x="438" y="783" class="label" text-anchor="start" font-size="11px">Input Data</text>
 
-    <path d="M 600 741 L 610 741" stroke="#475569" stroke-width="2" marker-end="url(#arrow5)"/>
-    <text x="620" y="743" class="label" text-anchor="start" font-size="11px">Control Flow</text>
+    <path d="M 600 781 L 610 781" stroke="#475569" stroke-width="2" marker-end="url(#arrow5)"/>
+    <text x="620" y="783" class="label" text-anchor="start" font-size="11px">Control Flow</text>
   </g>
 </svg>
