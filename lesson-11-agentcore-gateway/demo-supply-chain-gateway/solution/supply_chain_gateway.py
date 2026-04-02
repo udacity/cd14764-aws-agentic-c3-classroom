@@ -1,14 +1,37 @@
 """
 supply_chain_gateway.py - DEMO (Instructor-Led)
-Module 11: Connecting Agents to Tools via AgentCore Gateway
+==============================================================
+Module 11 Demo: Connecting Agents to Tools via AgentCore Gateway
 
 Architecture:
-  Agent → Gateway (semantic tool discovery) → 3 REST APIs
-  Key: Gateway = plugin architecture for dynamic tool registration
+    SupplyChainAgent
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  AgentCore Gateway (Simulated MCP Endpoint)            │
+    │  Converts REST APIs into MCP-compatible tools           │
+    │  Agent discovers tools via semantic search at runtime   │
+    └────┬──────────────┬──────────────┬──────────────────┘
+         │              │              │
+    ┌────┴────┐   ┌────┴────┐   ┌────┴──────────┐
+    │Inventory│   │Shipping │   │  Supplier     │
+    │  API    │   │  API    │   │    API        │
+    └─────────┘   └─────────┘   └───────────────┘
 
-Gateway vs @tool: Gateway for multi-team/independent APIs, @tool for tight integration
+Gateway vs @tool:
+  @tool: In-process Python functions, fast, tightly coupled
+  Gateway: Runtime discovery, loose coupling, network latency
 
-Tech: Python 3.11+ | Strands SDK | Bedrock Nova | Simulated Gateway
+When to use Gateway:
+  - Tools are independently deployed services
+  - You need centralized auth and observability
+  - Agents need to discover tools dynamically
+  - Different teams manage different tools
+
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Nova Lite for the agent)
+  - Simulated AgentCore Gateway (in-memory tool registry)
 """
 
 import json

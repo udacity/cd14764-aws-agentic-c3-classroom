@@ -1,14 +1,48 @@
 """
 clinical_literature_rag.py - EXERCISE SOLUTION (Student-Led)
-Module 8 Exercise: Multi-Agent RAG for Clinical Literature Review
+==============================================================
+Module 8 Exercise: Build a Multi-Agent RAG System for Clinical Literature Review
 
 Architecture:
-  Query → Parallel Retrieval (Drug & Guidelines KBs) → Aggregation + Dedup →
-  SynthesisAgent (structured clinical output)
+    Doctor asks clinical question
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  Parallel Retrieval (ThreadPoolExecutor)               │
+    │  Two specialized retrievers query clinical KBs         │
+    └────┬──────────────────┬──────────────────────────────┘
+         │                  │
+    ┌────┴──────────┐  ┌───┴───────────────┐
+    │ DrugInteraction│  │ClinicalGuidelines │
+    │ Retriever      │  │Retriever          │
+    └────┬──────────┘  └───┬───────────────┘
+         │                  │
+    ┌────┴──────────────────┴──────────────────────────────┐
+    │  Result Aggregation + Deduplication                    │
+    │  - Combine passages from both KBs                      │
+    │  - Deduplicate near-identical passages (NEW)           │
+    │  - Rank by relevance score, select top-10              │
+    └────┬─────────────────────────────────────────────────┘
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  SynthesisAgent (structured clinical output)           │
+    │  - Drug Interactions section + Guidelines section       │
+    │  - Integrated Recommendation                           │
+    │  - Mandatory citations + confidence disclaimer          │
+    │  - Handles partial results with degradation notice      │
+    └──────────────────────────────────────────────────────┘
 
-Exercise adds to demo: DEDUPLICATION | STRUCTURED OUTPUT | GRACEFUL DEGRADATION
+Same RAG pattern as the demo (research_assistant_rag.py),
+with additions:
+  1. DEDUPLICATION: Remove near-identical passages before ranking
+  2. STRUCTURED OUTPUT: Drug Interactions + Guidelines + Recommendation
+  3. GRACEFUL DEGRADATION: Explicit test of one retriever failing
+  4. CONFIDENCE DISCLAIMER: For partial results
 
-Tech: Python 3.11+ | Strands SDK | Bedrock (Nova Lite/Pro) | Simulated KBs
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Nova Lite for retrievers, Nova Pro for synthesis)
+  - Simulated Knowledge Bases (in-memory; production uses Bedrock KB + S3 Vectors)
 """
 
 import json

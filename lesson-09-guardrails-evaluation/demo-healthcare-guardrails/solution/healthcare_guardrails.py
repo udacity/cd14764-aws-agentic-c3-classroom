@@ -1,10 +1,47 @@
 """
 healthcare_guardrails.py - DEMO (Instructor-Led)
-Module 9: Healthcare Agent with Guardrails, Kill Switch, and Monitoring
+==============================================================
+Module 9 Demo: Securing a Healthcare Agent with Guardrails, Kill Switch, and Monitoring
 
-Architecture: Patient input → Rate Limit → Input Guardrail → Agent → Output Guardrail → Metrics
-Five governance layers: (1) Content filtering (2) PII protection (3) Topic denial (4) Word filtering (5) Kill switch
-Tech: Python 3.11+, Strands Agents SDK, Bedrock Nova Lite, Simulated Guardrails/CloudWatch/API Gateway
+Architecture:
+    Patient input arrives
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  Rate Limiter (Simulated API Gateway)                  │
+    │  Token bucket: 100 req/sec sustained, 200 burst        │
+    └────┬─────────────────────────────────────────────────┘
+         │ (if allowed)
+    ┌────┴─────────────────────────────────────────────────┐
+    │  INPUT Guardrail (Simulated Bedrock Guardrails)        │
+    │  4 policies: Content, PII, Topic, Word                 │
+    └────┬─────────────────────────────────────────────────┘
+         │ (if passed)
+    ┌────┴─────────────────────────────────────────────────┐
+    │  Healthcare Agent (Strands + Nova Lite)                 │
+    │  Answers patient intake questions                       │
+    └────┬─────────────────────────────────────────────────┘
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  OUTPUT Guardrail (same policies, scans response)       │
+    └────┬─────────────────────────────────────────────────┘
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  Metrics + Audit Log + Kill Switch Check               │
+    │  If violations > 5% in 5 min → agent disabled          │
+    └──────────────────────────────────────────────────────┘
+
+Five governance layers:
+  1. CONTENT FILTERING: Block harmful categories (violence, self-harm)
+  2. PII PROTECTION: Block SSN/insurance, anonymize email/phone
+  3. TOPIC DENIAL: Refuse legal advice, prescriptions, competitor recs
+  4. WORD FILTERING: Profanity filter
+  5. KILL SWITCH: Disable agent if error rate exceeds threshold
+
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Nova Lite for the healthcare agent)
+  - Simulated Bedrock Guardrails, CloudWatch, API Gateway
 """
 
 import json

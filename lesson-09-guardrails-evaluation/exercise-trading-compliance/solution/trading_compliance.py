@@ -1,10 +1,48 @@
 """
 trading_compliance.py - EXERCISE SOLUTION (Student-Led)
-Module 9 Exercise: Governance Controls for a Financial Trading Compliance Agent
+==============================================================
+Module 9 Exercise: Implement Governance Controls for a Financial Trading Compliance Agent
 
-Architecture: Analyst query → Rate Limit → Input Guardrail → Agent → Output Guardrail → Metrics
-Additions vs demo: (1) Guardrail versioning DRAFT→1 (2) Stricter kill switch 3 violations/60s (3) 10 adversarial inputs (4) Output guardrail
-Tech: Python 3.11+, Strands Agents SDK, Bedrock Nova Lite, Simulated Guardrails/CloudWatch/API Gateway
+Architecture:
+    Analyst query arrives
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  Rate Limiter (Simulated API Gateway)                  │
+    │  Token bucket: 50 req/sec during market hours          │
+    └────┬─────────────────────────────────────────────────┘
+         │ (if allowed)
+    ┌────┴─────────────────────────────────────────────────┐
+    │  INPUT Guardrail (Simulated Bedrock Guardrails)        │
+    │  4 policies: Content, PII, Topic, Word                 │
+    │  Versioned: DRAFT → Version 1 (NEW)                    │
+    └────┬─────────────────────────────────────────────────┘
+         │ (if passed)
+    ┌────┴─────────────────────────────────────────────────┐
+    │  Compliance Agent (Strands + Nova Lite)                 │
+    │  Answers regulatory questions about trading activity    │
+    └────┬─────────────────────────────────────────────────┘
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  OUTPUT Guardrail (scans response for PII leaks)       │
+    └────┬─────────────────────────────────────────────────┘
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  Metrics + Audit Log + Kill Switch Check               │
+    │  Kill switch: 3 violations in 1 minute → disabled      │
+    └──────────────────────────────────────────────────────┘
+
+Same guardrail pattern as the demo (healthcare_guardrails.py),
+with additions:
+  1. GUARDRAIL VERSIONING: DRAFT → create_version() → "1" (NEW)
+  2. STRICTER KILL SWITCH: 3 violations in 60 seconds (vs 5min window)
+  3. MORE ADVERSARIAL INPUTS: 10 adversarial vs 5 in demo
+  4. OUTPUT GUARDRAIL: Scans agent responses (not just inputs)
+
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Nova Lite for the compliance agent)
+  - Simulated Bedrock Guardrails, CloudWatch, API Gateway
 """
 
 import json

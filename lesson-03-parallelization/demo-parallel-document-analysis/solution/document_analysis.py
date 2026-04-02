@@ -1,11 +1,35 @@
 """
 document_analysis.py - DEMO (Instructor-Led)
-Module 3: Parallel Document Analysis with Specialist Agents
+==============================================
+Module 3 Demo: Parallel Document Analysis with Specialist Agents
 
-3 specialist agents (security/scalability/cost) analyze in parallel via ThreadPoolExecutor.
-Synthesizer combines findings into unified launch-readiness assessment (~3x speedup).
+Architecture:
+    System Design Document
+              │
+    ┌─────────┼─────────────┐
+    │         │             │       ← ThreadPoolExecutor (parallel)
+  Security  Scalability    Cost
+  Reviewer  Reviewer     Reviewer
+(Nova Lite) (Claude)    (Nova Pro)
+    │         │             │
+    └────┬────┴─────────────┘
+         │
+    Synthesizer Agent (Claude)       ← Combines all 3 reviews
+         │
+    Launch-Readiness Assessment
 
-Tech: Strands Agents SDK, Amazon Bedrock (Nova Lite/Claude/Nova Pro), ThreadPoolExecutor
+Key Concept:
+  The 3 specialist agents analyze the SAME document from different angles.
+  Since they are INDEPENDENT (no specialist needs another's output),
+  we run them in PARALLEL using ThreadPoolExecutor.
+  Then a SynthesizerAgent COMBINES their findings into one report.
+  This gives us ~3x speedup on the specialist phase.
+
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Nova Lite, Claude 3 Sonnet, Nova Pro)
+  - concurrent.futures.ThreadPoolExecutor (parallel execution)
 """
 
 import json

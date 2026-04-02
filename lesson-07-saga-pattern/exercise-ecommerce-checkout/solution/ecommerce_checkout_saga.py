@@ -1,19 +1,52 @@
 """
 ecommerce_checkout_saga.py - EXERCISE SOLUTION (Student-Led)
-Module 7 Exercise: Saga with Compensations + Barrier for E-Commerce Checkout
+==============================================================
+Module 7 Exercise: Build a Saga with Compensations for E-Commerce Checkout
 
-Architecture: Saga Orchestrator → Saga State Machine + Barrier → Three Checkout Agents
-  - Orchestrator: Python, forward Inventory→Payment→Shipping, compensate in reverse
-  - State Machine: checkout_id (PK) | steps[] | overall_status | lock | barrier counter
-  - Agents: InventoryAgent (reserve/release), PaymentAgent (charge/refund), ShippingAgent (schedule/cancel)
+Architecture:
+    Customer places checkout order
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  Saga Orchestrator (Python, NOT LLM-driven)           │
+    │  Forward: Inventory → Payment → Shipping (sequential) │
+    │  Compensate: reverse order on failure                  │
+    └────┬─────────────────────────────────────────────────┘
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  Saga State Machine (Simulated DynamoDB)              │
+    │  checkout_id (PK) | steps[] | overall_status | lock   │
+    │  + Barrier counter: compensations_completed           │
+    │  Saga resolves to 'failed' only when barrier reached  │
+    └────┬─────────────────────────────────────────────────┘
+         │
+    Three checkout agents (each has forward + compensating action):
+    ┌────┴─────────────────────────────────────────────────┐
+    │ InventoryAgent:  reserve_items   / release_items      │
+    │ PaymentAgent:    charge_card     / refund_card         │
+    │ ShippingAgent:   schedule_delivery / cancel_delivery   │
+    └──────────────────────────────────────────────────────┘
 
-Key Addition: BARRIER COORDINATION
-  Atomic counter (compensations_completed) increments with each compensation.
-  Saga resolves to 'failed' only when counter == expected compensations_needed.
-  Production: DynamoDB ADD expression for atomic counter
+Same saga pattern as the demo (travel_booking_saga.py),
+with one addition:
+  BARRIER COORDINATION — an atomic counter that each compensation
+  increments. Saga resolves to 'failed' only when the counter
+  equals the number of steps to compensate.
 
-Tech Stack: Python 3.11+, Strands Agents SDK, Amazon Bedrock (Nova Lite)
-Production-mapping comments show exact boto3 API calls used in real systems.
+  Production: DynamoDB atomic counter via ADD expression:
+    table.update_item(
+        Key={'checkout_id': id},
+        UpdateExpression='ADD compensations_completed :one',
+        ExpressionAttributeValues={':one': 1},
+    )
+
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Nova Lite for all agents)
+  - Simulated DynamoDB (in-memory; production uses boto3 DynamoDB)
+
+Note: This lesson uses in-memory simulations to keep the exercise self-contained.
+Production-mapping comments show the exact boto3 API calls used in real systems.
 """
 
 import json

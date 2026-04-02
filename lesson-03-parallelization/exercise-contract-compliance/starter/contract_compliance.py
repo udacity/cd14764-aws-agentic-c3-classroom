@@ -1,14 +1,43 @@
 """
 contract_compliance.py - STARTER
+===================================
 Module 3 Exercise: Parallel Contract Compliance Analysis
 
-YOUR TASK: Complete 4 build functions (3 TODOs each = 12 TODOs total).
-Follow STEP 1/2/3 pattern from demo (document_analysis.py).
+YOUR TASK: Complete 4 build functions (3 TODOs each = 12 TODOs total)
 
-Architecture: 3 specialist agents (regulatory/financial/IP) analyze in parallel,
-Synthesizer combines into APPROVE/APPROVE-WITH-CONDITIONS/REJECT recommendation.
+Architecture:
+    Legal Contract
+         │
+    ┌────┴────────────────────────┐
+    │           │                 │       ← ThreadPoolExecutor (parallel)
+  Regulatory  Financial        IP
+  Compliance  Risk           Protection
+  Agent       Agent          Agent
+(Nova Lite)  (Claude)       (Nova Pro)
+    │           │                 │
+    └────┬──────┴────────────────┘
+         │
+    Synthesizer Agent (Claude)       ← Produces compliance report
+         │
+    Recommendation: APPROVE / APPROVE-WITH-CONDITIONS / REJECT
 
-Tech: Strands Agents SDK, Amazon Bedrock (Nova Lite/Claude/Nova Pro), ThreadPoolExecutor
+PATTERN: Follow the same steps shown in the demo (document_analysis.py)
+  STEP 1: Create BedrockModel (choose model + temperature)
+  STEP 2: Write system prompt (tell agent which tool to call)
+  STEP 3: Build Agent (bind model + prompt + tools)
+  Then: ThreadPoolExecutor for parallel specialists, Synthesizer after.
+
+What's pre-written for you:
+  - All 4 tools (check_regulatory, assess_financial_risk, review_ip_clauses, synthesize_compliance)
+  - Sample contract data and pre-analyzed findings
+  - Parallel execution engine (ThreadPoolExecutor)
+  - Main function with reporting
+
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Nova Lite, Claude 3 Sonnet, Nova Pro)
+  - concurrent.futures.ThreadPoolExecutor (parallel execution)
 """
 
 import json

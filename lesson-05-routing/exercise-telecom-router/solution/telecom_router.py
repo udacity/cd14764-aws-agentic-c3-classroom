@@ -1,11 +1,43 @@
 """
 telecom_router.py - EXERCISE SOLUTION (Student-Led)
+====================================================
 Module 5 Exercise: Build a Multi-Strategy Router for Telecom Customer Tickets
 
-Same hybrid routing pattern as demo: Priority (cancellation) → Rules (billing/technical)
-→ LLM (ambiguous) → Fallback. Applied to telecom domain vs financial domain.
+Architecture:
+    Incoming Ticket
+         │
+    ┌────┴────┐
+    │ PRIORITY │  Cancellation intent detected?
+    │  Check   │  YES → RetentionAgent (bypass all other routing)
+    └────┬────┘
+         │ NO
+    ┌────┴────┐
+    │ RULE-   │  Keyword matching
+    │ BASED   │  bill/charge/payment/invoice → BillingAgent
+    │ ROUTER  │  outage/no signal/slow/drop  → TechnicalAgent
+    └────┬────┘
+         │ NO MATCH
+    ┌────┴────┐
+    │  LLM    │  Bedrock classification (Nova Lite)
+    │ CLASSIFY│  Returns {intent, confidence}
+    │         │  confidence ≥ 0.6 → route to classified agent
+    └────┬────┘
+         │ LOW CONFIDENCE
+    ┌────┴────┐
+    │FALLBACK │  GeneralSupportAgent
+    │         │  (flag for human review)
+    └─────────┘
 
-Tech: Strands Agents SDK, Amazon Bedrock (Nova Lite), simulated DynamoDB
+Same hybrid routing pattern as the demo (financial_router.py),
+applied to a different domain:
+  - Demo: Financial transactions (payments/fraud/account)
+  - Exercise: Telecom support tickets (billing/technical/cancellation)
+
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Nova Lite for all agents)
+  - Simulated DynamoDB audit log
 """
 
 import json

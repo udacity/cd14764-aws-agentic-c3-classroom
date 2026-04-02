@@ -1,18 +1,43 @@
 """
 ecommerce_checkout_saga.py - EXERCISE STARTER (Student-Led)
-Module 7 Exercise: Build Saga with Compensations + Barrier for E-Commerce Checkout
+==============================================================
+Module 7 Exercise: Build a Saga with Compensations for E-Commerce Checkout
 
-Architecture: Saga Orchestrator → Saga State Machine + Barrier → Three Checkout Agents
-  - Orchestrator: Python, forward Inventory→Payment→Shipping, compensate in reverse
-  - State Machine: checkout_id (PK) | steps[] | overall_status | lock | barrier counter
-  - Agents: InventoryAgent (reserve/release), PaymentAgent (charge/refund), ShippingAgent (schedule/cancel)
+Architecture:
+    Customer places checkout order
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  Saga Orchestrator (Python, NOT LLM-driven)           │
+    │  Forward: Inventory → Payment → Shipping (sequential) │
+    │  Compensate: reverse order on failure                  │
+    └────┬─────────────────────────────────────────────────┘
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  Saga State Machine (Simulated DynamoDB)              │
+    │  checkout_id (PK) | steps[] | overall_status | lock   │
+    │  + Barrier counter: compensations_completed           │
+    │  Saga resolves to 'failed' only when barrier reached  │
+    └────┬─────────────────────────────────────────────────┘
+         │
+    Three checkout agents (each has forward + compensating action):
+    ┌────┴─────────────────────────────────────────────────┐
+    │ InventoryAgent:  reserve_items   / release_items      │
+    │ PaymentAgent:    charge_card     / refund_card         │
+    │ ShippingAgent:   schedule_delivery / cancel_delivery   │
+    └──────────────────────────────────────────────────────┘
 
-Key Addition: BARRIER COORDINATION — atomic counter ensures saga doesn't resolve prematurely
+Same saga pattern as the demo (travel_booking_saga.py),
+with one addition:
+  BARRIER COORDINATION — an atomic counter that each compensation
+  increments. Saga resolves to 'failed' only when the counter
+  equals the number of steps to compensate.
 
-Instructions: Follow demo pattern (travel_booking_saga.py), look for TODO 1-18
-  - State machine: create/update/lock/barrier functions
-  - Agents: forward action + compensating action each
-  - Orchestrator: forward → detect failure → compensate in reverse → barrier check
+Instructions:
+  - Follow the demo pattern (travel_booking_saga.py)
+  - Look for TODO 1-18 below
+  - Saga state machine functions: create/update/lock/barrier
+  - Each agent has a forward action and a compensating action
+  - The orchestrator runs forward, detects failure, compensates in reverse
 """
 
 import json

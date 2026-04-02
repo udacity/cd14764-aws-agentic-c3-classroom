@@ -1,13 +1,32 @@
 """
 analytics_gateway.py - EXERCISE SOLUTION (Student-Led)
+==============================================================
 Module 11 Exercise: Register and Invoke Tools through AgentCore Gateway
 
-Same Gateway pattern as demo, with additions:
-  1. MIXED TARGET TYPES: 2 Lambda + 1 REST API
-  2. DIFFERENT DOMAIN: Analytics instead of supply chain
-  3. SEMANTIC ROUTING: Agent selects tool by query
+Architecture:
+    AnalyticsAgent
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  AgentCore Gateway (Simulated MCP Endpoint)            │
+    │  3 registered targets: 2 Lambda + 1 REST API           │
+    └────┬──────────────┬──────────────┬──────────────────┘
+         │              │              │
+    ┌────┴────┐   ┌────┴────┐   ┌────┴──────────┐
+    │Weather  │   │Currency │   │  News         │
+    │ Lambda  │   │ Lambda  │   │  REST API     │
+    └─────────┘   └─────────┘   └───────────────┘
 
-Tech: Python 3.11+ | Strands SDK | Bedrock Nova | Simulated Gateway
+Same Gateway pattern as the demo (supply_chain_gateway.py),
+with additions:
+  1. MIXED TARGET TYPES: 2 Lambda functions + 1 REST API (vs all REST in demo)
+  2. DIFFERENT DOMAIN: Analytics utilities instead of supply chain
+  3. SEMANTIC ROUTING FOCUS: Agent must select correct tool by query semantics
+
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Nova Lite for the agent)
+  - Simulated AgentCore Gateway
 """
 
 import json

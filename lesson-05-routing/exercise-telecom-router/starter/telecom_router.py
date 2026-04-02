@@ -1,11 +1,41 @@
 """
 telecom_router.py - EXERCISE STARTER (Student-Led)
+====================================================
 Module 5 Exercise: Build a Multi-Strategy Router for Telecom Customer Tickets
 
-YOUR TASK: Complete 18 TODOs — follow same pattern from demo (financial_router.py).
-Routing: Priority (cancellation) → Rules (bill/tech) → LLM → Fallback.
+Architecture:
+    Incoming Ticket
+         │
+    ┌────┴────┐
+    │ PRIORITY │  Cancellation intent detected?
+    │  Check   │  YES → RetentionAgent
+    └────┬────┘
+         │ NO
+    ┌────┴────┐
+    │ RULE-   │  Keyword matching
+    │ BASED   │  bill/charge/payment/invoice → BillingAgent
+    │ ROUTER  │  outage/no signal/slow/drop  → TechnicalAgent
+    └────┬────┘
+         │ NO MATCH
+    ┌────┴────┐
+    │  LLM    │  Bedrock classification (Nova Lite)
+    │ CLASSIFY│  confidence ≥ 0.6 → route to classified agent
+    └────┬────┘
+         │ LOW CONFIDENCE
+    ┌────┴────┐
+    │FALLBACK │  GeneralSupportAgent
+    └─────────┘
 
-Tech: Strands Agents SDK, Amazon Bedrock (Nova Lite), simulated DynamoDB
+Your Task:
+  Follow the SAME pattern from the demo (financial_router.py):
+  - Routing strategies: Priority → Rules → LLM → Fallback
+  - Worker agents: STEP 1 (model) → STEP 2 (prompt) → STEP 3 (agent)
+  - Classifier agent: same STEP 1/2/3 pattern
+
+  Complete ALL 18 TODOs:
+    - 3 routing strategy TODOs (priority, rules, LLM classifier)
+    - 3 TODOs per worker agent × 4 agents = 12 TODOs
+    - 3 TODOs for the classifier agent
 """
 
 import json

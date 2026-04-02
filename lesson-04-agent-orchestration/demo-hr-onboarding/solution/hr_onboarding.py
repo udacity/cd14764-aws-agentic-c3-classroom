@@ -1,11 +1,45 @@
 """
 hr_onboarding.py - DEMO (Instructor-Led)
-Module 4: Orchestrating an HR Employee Onboarding Workflow
+==========================================
+Module 4 Demo: Orchestrating an HR Employee Onboarding Workflow
 
-6 worker agents in 3 phases: SEQUENTIAL (account→manager) → PARALLEL (laptop+email+building)
-→ CONDITIONAL (engineering vs sales). Orchestrator is Python code (deterministic, testable).
+Architecture:
+    New Employee
+         │
+    ┌────┴────┐
+    │ SEQUENTIAL │  (must happen in order)
+    │  Phase 1   │
+    │ AccountCreator → ManagerAssigner
+    └────┬────┘
+         │
+    ┌────┴────────────────────────┐
+    │ PARALLEL                    │  (independent, run simultaneously)
+    │  Phase 2                    │
+    │ LaptopProvisioner           │
+    │ EmailSetup                  │
+    │ BuildingAccess              │
+    └────┬────────────────────────┘
+         │
+    ┌────┴────┐
+    │ CONDITIONAL │  (route based on department)
+    │  Phase 3    │
+    │ if Engineering → EngineeringOnboarding
+    │ if Sales      → SalesOnboarding
+    └────┬────┘
+         │
+    Onboarding Complete
 
-Tech: Strands Agents SDK, Amazon Bedrock (Claude/Nova Lite), ThreadPoolExecutor
+Key Concepts (NEW in Module 4):
+  1. SEQUENTIAL: Steps that depend on each other (account must exist before manager assignment)
+  2. PARALLEL: Independent steps run simultaneously (laptop, email, building access)
+  3. CONDITIONAL: Different paths based on data (department → engineering or sales)
+  4. FAILURE HANDLING: Retry with backoff, timeouts, escalation
+
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Claude 3 Sonnet for orchestrator, Nova Lite for workers)
+  - concurrent.futures.ThreadPoolExecutor (parallel branches)
 """
 
 import json

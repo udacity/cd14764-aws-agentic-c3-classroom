@@ -1,11 +1,35 @@
 """
 contract_compliance.py - SOLUTION
+===================================
 Module 3 Exercise: Parallel Contract Compliance Analysis
 
-3 specialist agents (regulatory/financial/IP) analyze contracts in parallel.
-Synthesizer produces unified compliance recommendation. Same STEP 1/2/3 pattern as demo.
+Architecture:
+    Legal Contract
+         │
+    ┌────┴────────────────────────┐
+    │           │                 │       ← ThreadPoolExecutor (parallel)
+  Regulatory  Financial        IP
+  Compliance  Risk           Protection
+  Agent       Agent          Agent
+(Nova Lite)  (Claude)       (Nova Pro)
+    │           │                 │
+    └────┬──────┴────────────────┘
+         │
+    Synthesizer Agent (Claude)       ← Produces compliance report
+         │
+    Recommendation: APPROVE / APPROVE-WITH-CONDITIONS / REJECT
 
-Tech: Strands Agents SDK, Amazon Bedrock (Nova Lite/Claude/Nova Pro), ThreadPoolExecutor
+PATTERN: Follow the same steps shown in the demo (document_analysis.py)
+  STEP 1: Create BedrockModel (choose model + temperature)
+  STEP 2: Write system prompt (tell agent which tool to call)
+  STEP 3: Build Agent (bind model + prompt + tools)
+  Then: ThreadPoolExecutor for parallel specialists, Synthesizer after.
+
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Nova Lite, Claude 3 Sonnet, Nova Pro)
+  - concurrent.futures.ThreadPoolExecutor (parallel execution)
 """
 
 import json

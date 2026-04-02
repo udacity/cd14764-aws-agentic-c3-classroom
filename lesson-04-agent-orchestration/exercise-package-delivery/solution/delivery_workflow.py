@@ -1,11 +1,45 @@
 """
 delivery_workflow.py - EXERCISE SOLUTION (Student-Led)
+======================================================
 Module 4 Exercise: Build an Orchestrated Package Delivery Workflow
 
-3 phases: SEQUENTIAL GATE (address validation) → PARALLEL (label+insurance+carrier)
-→ CONDITIONAL (domestic vs international). Gate pattern halts workflow on failure.
+Architecture:
+    New Delivery Request
+         │
+    ┌────┴────┐
+    │ SEQUENTIAL │  (gate — must pass before continuing)
+    │  Phase 1   │
+    │ AddressValidator → valid? If NO → halt workflow
+    └────┬────┘
+         │ (only if valid)
+    ┌────┴────────────────────────┐
+    │ PARALLEL                    │  (independent, run simultaneously)
+    │  Phase 2                    │
+    │ LabelGenerator              │
+    │ InsuranceCalculator         │
+    │ CarrierSelector             │
+    └────┬────────────────────────┘
+         │
+    ┌────┴────┐
+    │ CONDITIONAL │  (route based on destination country)
+    │  Phase 3    │
+    │ if same country  → DomesticShipping
+    │ if diff country  → InternationalShipping
+    └────┬────┘
+         │
+    Delivery Processed
 
-Tech: Strands Agents SDK, Amazon Bedrock (Nova Lite), ThreadPoolExecutor
+Key Concepts (same as demo):
+  1. SEQUENTIAL GATE: AddressValidator must pass before continuing (vs demo's sequential chain)
+  2. PARALLEL: Independent prep steps run simultaneously (label, insurance, carrier)
+  3. CONDITIONAL: Route based on destination country (domestic vs international)
+  4. FAILURE HANDLING: Retry with backoff, workflow halt on validation failure
+
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Nova Lite for all workers)
+  - concurrent.futures.ThreadPoolExecutor (parallel branches)
 """
 
 import json

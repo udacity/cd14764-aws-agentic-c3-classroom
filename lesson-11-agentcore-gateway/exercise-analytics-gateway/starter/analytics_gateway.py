@@ -1,11 +1,25 @@
 """
 analytics_gateway.py - EXERCISE STARTER (Student-Led)
+==============================================================
 Module 11 Exercise: Register and Invoke Tools through AgentCore Gateway
 
-Follow demo pattern. Look for TODO 1-8.
-Key additions: MIXED TARGET TYPES | SEMANTIC ROUTING
+Same Gateway pattern as the demo (supply_chain_gateway.py),
+with additions:
+  1. MIXED TARGET TYPES: 2 Lambda + 1 REST API
+  2. DIFFERENT DOMAIN: Analytics utilities
+  3. SEMANTIC ROUTING: Agent selects tool by query meaning
 
-Tech: Python 3.11+ | Strands SDK | Bedrock Nova | Simulated Gateway
+Instructions:
+  - Follow the demo pattern (supply_chain_gateway.py)
+  - Look for TODO 1-8 below
+  - Register 3 targets on the Gateway
+  - Build an agent that discovers and uses Gateway tools
+
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Nova Lite for the agent)
+  - Simulated AgentCore Gateway
 """
 
 import json

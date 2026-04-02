@@ -1,18 +1,53 @@
 """
 food_delivery_state.py - EXERCISE SOLUTION (Student-Led)
+=========================================================
 Module 6 Exercise: Build Shared State for a Food Delivery Order System
 
-ARCHITECTURE: Customer → Shared State (DynamoDB) ← 4 Agents (RestaurantConfirm, DriverAssign, PriceCalculator, StatusTracker)
-Key Concepts: SHARED STATE, OPTIMISTIC LOCKING, CONFLICT DETECTION, RETRY, STATE RECOVERY, TTL, AGENTCORE MEMORY
-Same pattern as demo with STATE RECOVERY (reject → cleanup partial updates) and 4 agents instead of 3
+Architecture:
+    Customer places order
+         │
+    ┌────┴──────────────────────────────────────────────┐
+    │  Shared State (DynamoDB)                           │
+    │  order_id (PK) | version | restaurant | driver |   │
+    │  total_price | status | ttl                        │
+    │  Optimistic locking: version-based conditional     │
+    │  writes (ConditionExpression) prevent lost updates  │
+    │  TTL: auto-expire completed orders after 2 hours   │
+    └────┬──────────────────────────────────────────────┘
+         │
+    Four agents update the SAME record:
+    ┌────┴──────────────────────────────────────────┐
+    │ RestaurantConfirmAgent → writes status (accept/reject) │
+    │ DriverAssignAgent     → writes driver field    │
+    │ PriceCalculatorAgent  → writes total_price     │
+    │ StatusTrackerAgent    → writes progress updates│
+    └───────────────────────────────────────────────┘
+         │
+    Cross-Session Memory (AgentCore Memory):
+    ┌────┴──────────────────────────────────────────┐
+    │ SESSION_SUMMARY strategy → customer preferences │
+    │ Remembers preferred driver across orders        │
+    └─────────────────────────────────────────────────┘
 
-DynamoDB (within-session transactional state) + AgentCore Memory (cross-session customer preferences)
+Same shared state pattern as the demo (ride_sharing_state.py),
+with two additions:
+  1. STATE RECOVERY: If restaurant rejects, cleanup partial updates
+  2. FOUR agents instead of three (more concurrent conflicts)
 
-Production DynamoDB: table.update_item(Key={'order_id': pk_value}, UpdateExpression='SET #f0 = :v0, #v = :new_ver',
-  ConditionExpression='#v = :expected_ver', ExpressionAttributeNames={'#v': 'version', '#f0': 'driver'},
-  ExpressionAttributeValues={':v0': driver_info, ':expected_ver': N, ':new_ver': N + 1}, ReturnValues='ALL_NEW')
+DynamoDB vs AgentCore Memory:
+  - DynamoDB = within-session transactional state (order records, optimistic locking)
+  - AgentCore Memory = cross-session conversational context (customer preferences)
 
-Tech Stack: Python 3.11+, Strands Agents SDK, Amazon Bedrock Nova Lite, SimulatedDynamoDB
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Nova Lite for all agents)
+  - Simulated DynamoDB (in-memory; production uses boto3 DynamoDB resource API)
+  - Simulated AgentCore Memory (in-memory; production uses bedrock-agentcore-control)
+
+Note: This lesson uses in-memory simulations to keep the exercise self-contained.
+The simulations preserve the exact same API patterns and behaviors you'll use
+with real DynamoDB and AgentCore Memory in the capstone project.
 """
 
 import json

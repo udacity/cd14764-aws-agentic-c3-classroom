@@ -1,11 +1,46 @@
 """
 financial_router.py - DEMO (Instructor-Led)
-Module 5: Building a Hybrid Router for Financial Transaction Processing
+=============================================
+Module 5 Demo: Building a Hybrid Router for Financial Transaction Processing
 
-Hybrid routing: Priority (amount > $10K) → Rules (keywords) → LLM (ambiguous) → Fallback.
-Rules handle 70%, LLM handles 30%, audit logged (simulated DynamoDB).
+Architecture:
+    Incoming Request
+         │
+    ┌────┴────┐
+    │ PRIORITY │  Check first: amount > $10,000?
+    │  Check   │  YES → SeniorReviewAgent (bypass all other routing)
+    └────┬────┘
+         │ NO
+    ┌────┴────┐
+    │ RULE-   │  Keyword/regex matching
+    │ BASED   │  wire/transfer → PaymentsAgent
+    │ ROUTER  │  fraud/stolen  → FraudAgent
+    │         │  balance/stmt  → AccountAgent
+    └────┬────┘
+         │ NO MATCH
+    ┌────┴────┐
+    │  LLM    │  Bedrock classification (Nova Lite)
+    │ CLASSIFY│  Returns {intent, confidence}
+    │         │  confidence ≥ 0.6 → route to classified agent
+    └────┬────┘
+         │ LOW CONFIDENCE
+    ┌────┴────┐
+    │FALLBACK │  GeneralSupportAgent
+    │         │  (flag for human review)
+    └─────────┘
 
-Tech: Strands Agents SDK, Amazon Bedrock (Nova Lite), simulated DynamoDB
+Key Concepts (NEW in Module 5):
+  1. RULE-BASED ROUTING: Fast, free, deterministic — handles 70% of requests
+  2. LLM CLASSIFICATION: Flexible, handles ambiguity — handles remaining 30%
+  3. PRIORITY ROUTING: Business-critical override (high-value transactions)
+  4. FALLBACK: Safety net when both rules and LLM are uncertain
+  5. AUDIT LOGGING: Every routing decision logged (simulated DynamoDB)
+
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Nova Lite for all agents — routing needs speed, not depth)
+  - Simulated DynamoDB audit log (in-memory, production would use real DynamoDB)
 """
 
 import json

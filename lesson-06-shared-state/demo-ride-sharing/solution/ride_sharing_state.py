@@ -1,21 +1,70 @@
 """
 ride_sharing_state.py - DEMO (Instructor-Led)
-Module 6: Shared State Store for Ride-Sharing Trip Management
+===============================================
+Module 6 Demo: Building a Shared State Store for Ride-Sharing Trip Management
 
-ARCHITECTURE: Rider → Shared State (DynamoDB) ← 3 Agents (DriverMatch, Pricing, ETA)
-Key Concepts: SHARED STATE, OPTIMISTIC LOCKING, CONFLICT DETECTION, RETRY, TTL, AGENTCORE MEMORY
-DynamoDB (within-session transactional state) + AgentCore Memory (cross-session context)
+Architecture:
+    Rider requests trip
+         │
+    ┌────┴────────────────────────────────────────────┐
+    │  Shared State (DynamoDB)                         │
+    │  trip_id (PK) | version | driver | fare | eta    │
+    │  Optimistic locking: version-based conditional   │
+    │  writes (ConditionExpression) prevent lost updates│
+    │  TTL: auto-expire completed trips after 1 hour   │
+    └────┬────────────────────────────────────────────┘
+         │
+    Three agents update the SAME record:
+    ┌────┴────────────────────────────────────┐
+    │ DriverMatchAgent  → writes driver field  │
+    │ PricingAgent      → writes fare field    │
+    │ ETAAgent          → writes eta field     │
+    └─────────────────────────────────────────┘
+         │
+    Cross-Session Memory (AgentCore Memory):
+    ┌────┴────────────────────────────────────────────┐
+    │ SESSION_SUMMARY strategy → rider preferences     │
+    │ Remembers preferred driver across sessions       │
+    └─────────────────────────────────────────────────┘
 
 Optimistic Locking Pattern:
-  1. Agent reads record → gets version N
-  2. Agent does its work (match driver, calculate fare, etc.)
-  3. Agent writes with condition: version == N
-  4. If conflict (version > N) → ConditionalCheckFailedException → re-read, retry
+    1. Agent reads record → gets version N
+    2. Agent does its work (match driver, calculate fare, etc.)
+    3. Agent writes with condition: version == N
+    4. If another agent wrote first (version > N):
+       → ConditionalCheckFailedException
+       → Re-read, get new version, retry
 
-Production DynamoDB: table.update_item(Key={'trip_id': trip_id}, UpdateExpression='SET driver = :d, version = version + :one',
-  ConditionExpression='version = :expected', ExpressionAttributeValues={':d': driver_info, ':expected': N, ':one': 1})
+    Production DynamoDB API:
+        table.update_item(
+            Key={'trip_id': trip_id},
+            UpdateExpression='SET driver = :d, version = version + :one',
+            ConditionExpression='version = :expected',
+            ExpressionAttributeValues={':d': driver_info, ':expected': N, ':one': 1}
+        )
 
-Tech Stack: Python 3.11+, Strands Agents SDK, Amazon Bedrock Nova Lite, SimulatedDynamoDB
+Key Concepts (Module 6):
+  1. SHARED STATE: Multiple agents read/write the same record
+  2. OPTIMISTIC LOCKING: version field + conditional writes
+  3. CONFLICT DETECTION: ConditionalCheckFailedException on version mismatch
+  4. RETRY ON CONFLICT: re-read → get new version → retry write
+  5. TTL: Auto-expire completed trips (DynamoDB TimeToLive)
+  6. AGENTCORE MEMORY: Cross-session rider preferences (SESSION_SUMMARY)
+
+DynamoDB vs AgentCore Memory:
+  - DynamoDB = within-session transactional state (trip records, optimistic locking)
+  - AgentCore Memory = cross-session conversational context (rider preferences)
+
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Nova Lite for all agents)
+  - Simulated DynamoDB (in-memory; production uses boto3 DynamoDB resource API)
+  - Simulated AgentCore Memory (in-memory; production uses bedrock-agentcore-control)
+
+Note: This lesson uses in-memory simulations to keep the exercise self-contained.
+The simulations preserve the exact same API patterns and behaviors you'll use
+with real DynamoDB and AgentCore Memory in the capstone project.
 """
 
 import json

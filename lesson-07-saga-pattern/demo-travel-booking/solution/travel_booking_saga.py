@@ -1,21 +1,63 @@
 """
 travel_booking_saga.py - DEMO (Instructor-Led)
-Module 7 Demo: Saga Pattern with Compensating Transactions for Travel Booking
+================================================
+Module 7 Demo: Implementing the Saga Pattern for Travel Booking
 
-Architecture: Saga Orchestrator → Saga State Machine → Three Booking Agents
-  - Orchestrator: Python (NOT LLM-driven), forward Flight→Hotel→Car, compensate in reverse
-  - State Machine: saga_id (PK) | steps[] | overall_status | lock (Simulated DynamoDB)
-  - Agents: FlightAgent (book/cancel), HotelAgent (book/cancel), CarAgent (book/cancel)
+Architecture:
+    Customer books vacation package
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  Saga Orchestrator (Python, NOT LLM-driven)           │
+    │  Forward: Flight → Hotel → Car (sequential)           │
+    │  Compensate: reverse order on failure                  │
+    └────┬─────────────────────────────────────────────────┘
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  Saga State Machine (Simulated DynamoDB)              │
+    │  saga_id (PK) | current_phase | steps[] | lock       │
+    │  Each step: {name, status, booking_ref, comp_ref}     │
+    │  Statuses: pending → executing → completed            │
+    │            → compensating → compensated                │
+    └────┬─────────────────────────────────────────────────┘
+         │
+    Three booking agents (each has forward + compensating action):
+    ┌────┴─────────────────────────────────────────────────┐
+    │ FlightAgent:  book_flight / cancel_flight             │
+    │ HotelAgent:   book_hotel  / cancel_hotel              │
+    │ CarAgent:     book_car    / cancel_car                │
+    └──────────────────────────────────────────────────────┘
 
-Key Concepts:
-  1. SAGA: sequence of local transactions, each reversible
-  2. COMPENSATING TRANSACTION: undoes completed step on failure
-  3. REVERSE ORDER: compensate last-completed first
-  4. DISTRIBUTED LOCK: prevents concurrent compensations
-  5. CRASH RECOVERY: read state, resume from last recorded phase
+Saga Pattern:
+    1. Forward execution: call each agent sequentially
+       - On success: update state machine, move to next step
+       - On failure: transition to "compensating" mode
+    2. Compensation: iterate completed steps in REVERSE order
+       - Each agent has a cancel_X tool (the compensating action)
+       - Update step status: completed → compensating → compensated
+    3. Distributed lock: conditional write on lock field before compensating
+       - Prevents concurrent compensation attempts
+    4. State persistence: crash recovery reads state and resumes
 
-Tech Stack: Python 3.11+, Strands Agents SDK, Amazon Bedrock (Nova Lite)
-Production-mapping comments show exact boto3 API calls used in real systems.
+    Why sagas? Distributed systems can't use traditional ACID transactions
+    across services. Sagas provide eventual consistency via compensating
+    transactions.
+
+Key Concepts (Module 7):
+  1. SAGA: sequence of local transactions, each with a compensating action
+  2. COMPENSATING TRANSACTION: undoes a completed step on failure
+  3. REVERSE ORDER: compensate step 2 before step 1
+  4. STATE MACHINE: tracks saga progress (pending → completed → compensated)
+  5. DISTRIBUTED LOCK: prevents concurrent compensations
+  6. CRASH RECOVERY: read state machine, resume from last recorded phase
+
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Nova Lite for all agents)
+  - Simulated DynamoDB (in-memory; production uses boto3 DynamoDB)
+
+Note: This lesson uses in-memory simulations to keep the exercise self-contained.
+Production-mapping comments show the exact boto3 API calls used in real systems.
 """
 
 import json

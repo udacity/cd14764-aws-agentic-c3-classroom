@@ -1,16 +1,57 @@
 """
 research_assistant_rag.py - DEMO (Instructor-Led)
-Module 8: Multi-Agent RAG Research Assistant
+===================================================
+Module 8 Demo: Building a Multi-Agent RAG Research Assistant
 
 Architecture:
-  Query → Parallel Retrieval (CS & Bio KBs) → Aggregation → SynthesisAgent
-  Key: 2 specialized retrievers run simultaneously, results ranked by score, top-K passed to synthesis
+    Student asks research question
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  Parallel Retrieval (ThreadPoolExecutor)               │
+    │  Two specialized retrievers query domain-specific KBs  │
+    └────┬──────────────────┬──────────────────────────────┘
+         │                  │
+    ┌────┴──────┐    ┌─────┴──────┐
+    │ CSRetriever│    │BioRetriever│
+    │ (CS papers)│    │(Bio papers)│
+    └────┬──────┘    └─────┬──────┘
+         │                  │
+    ┌────┴──────────────────┴──────────────────────────────┐
+    │  Result Aggregation                                    │
+    │  - Combine passages from both KBs                      │
+    │  - Rank by relevance score                             │
+    │  - Select top-K most relevant                          │
+    └────┬─────────────────────────────────────────────────┘
+         │
+    ┌────┴─────────────────────────────────────────────────┐
+    │  SynthesisAgent                                        │
+    │  - Produces grounded answer with citations              │
+    │  - Every claim must reference a specific passage        │
+    │  - Handles partial results gracefully                   │
+    └──────────────────────────────────────────────────────┘
 
-Concepts: SPECIALIZED RETRIEVERS | PARALLEL RETRIEVAL | RELEVANCE SCORING |
-          TOP-K SELECTION | GROUNDED SYNTHESIS | GRACEFUL DEGRADATION
+Key Concepts (Module 8):
+  1. SPECIALIZED RETRIEVERS: Each retriever owns one KB, one tool
+  2. PARALLEL RETRIEVAL: Both retrievers run simultaneously
+  3. RELEVANCE SCORING: Passages ranked by confidence score
+  4. TOP-K SELECTION: Only highest-scoring passages go to synthesis
+  5. GROUNDED SYNTHESIS: Every claim cites a specific passage
+  6. GRACEFUL DEGRADATION: If one retriever fails, use the other
 
-Tech: Python 3.11+ | Strands SDK | Amazon Bedrock (Nova Lite/Pro) | Simulated KBs
-Production: Bedrock KB + S3 Vectors. See comments below for boto3 equivalents.
+RAG Quality Metrics:
+  - Groundedness: every claim has a supporting passage
+  - Relevance: passages match the query
+  - Completeness: key aspects of the question are covered
+
+Tech Stack:
+  - Python 3.11+
+  - Strands Agents SDK (Agent class, @tool decorator)
+  - Amazon Bedrock (Nova Lite for retrievers, Nova Pro for synthesis)
+  - Simulated Knowledge Bases (in-memory; production uses Bedrock KB + S3 Vectors)
+
+Note: This lesson uses simulated Knowledge Bases with pre-defined documents.
+Production uses Amazon Bedrock Knowledge Bases with S3 Vectors for semantic search.
+Production-mapping comments show the exact boto3 API calls.
 """
 
 import json
