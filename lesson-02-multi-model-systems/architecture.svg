@@ -8,6 +8,9 @@
     </filter>
   </defs>
 
+  <!-- White background for dark mode compatibility -->
+  <rect width="100%" height="100%" fill="white" rx="8"/>
+
   <!-- Title -->
   <text x="360" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">Lesson 2: Multi-Model Systems</text>
   <text x="360" y="52" text-anchor="middle" font-size="12" fill="#64748b">Match model complexity to task — route alerts to specialized agents</text>
