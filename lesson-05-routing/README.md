@@ -2,19 +2,14 @@
 
 This lesson teaches how to build a hybrid routing system that combines rule-based routing (fast, free, deterministic) with LLM-powered classification (flexible, handles ambiguity), plus priority routing for business-critical requests and a fallback safety net.
 
-## Architecture
-
-![Architecture Diagram](architecture.svg)
-
 ## Folder Structure
 
 ```
 lesson-05-routing/
 ├── README.md
 ├── demo-financial-router/
-│   └── solution/
-│       ├── README.md
-│       └── financial_router.py
+│   ├── README.md
+│   └── financial_router.py
 └── exercise-telecom-router/
     ├── solution/
     │   ├── README.md

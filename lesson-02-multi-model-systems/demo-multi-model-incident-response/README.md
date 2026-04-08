@@ -1,5 +1,9 @@
 # Demo Solution: Multi-Model Incident Response
 
+## Architecture
+
+![Architecture Diagram](architecture.svg)
+
 This folder contains the working solution for the Module 2 demo.
 
 ## File

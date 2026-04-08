@@ -4,19 +4,14 @@ This lesson teaches how to share mutable state across multiple agents using opti
 
 The lesson uses in-memory simulations of DynamoDB and AgentCore Memory so students can focus on the patterns without infrastructure setup. Production-mapping comments throughout the code show the exact boto3 API calls used in the capstone project.
 
-## Architecture
-
-![Architecture Diagram](architecture.svg)
-
 ## Folder Structure
 
 ```
 lesson-06-shared-state/
 ├── README.md
 ├── demo-ride-sharing/
-│   └── solution/
-│       ├── README.md
-│       └── ride_sharing_state.py
+│   ├── README.md
+│   └── ride_sharing_state.py
 └── exercise-food-delivery/
     ├── solution/
     │   ├── README.md

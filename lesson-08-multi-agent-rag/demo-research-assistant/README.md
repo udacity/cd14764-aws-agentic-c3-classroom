@@ -1,5 +1,9 @@
 # Demo: Multi-Agent RAG for Research Assistant
 
+## Architecture
+
+![Architecture Diagram](architecture.svg)
+
 ## Overview
 This demo implements a Multi-Agent RAG system where two specialized retriever agents each query a distinct simulated Knowledge Base (Computer Science papers and Biology papers). Both retrievers run in parallel using ThreadPoolExecutor. Their results are aggregated, ranked by relevance score, and passed to a synthesis agent that produces a grounded answer with citations.
 

@@ -1,5 +1,9 @@
 # Demo: Saga Pattern for Travel Booking
 
+## Architecture
+
+![Architecture Diagram](architecture.svg)
+
 ## Overview
 This demo implements the Saga pattern for a travel booking system where a trip reservation spans three independent services: flight, hotel, and car rental. If any booking fails, the saga orchestrator runs compensating transactions to undo previous successful bookings in reverse order. A SimulatedDynamoDB state machine tracks the saga's progress through each phase.
 

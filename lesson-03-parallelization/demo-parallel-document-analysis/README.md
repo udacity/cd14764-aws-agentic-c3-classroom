@@ -1,5 +1,9 @@
 # Demo: Parallel Document Analysis — Solution
 
+## Architecture
+
+![Architecture Diagram](architecture.svg)
+
 ## File
 - `document_analysis.py` — Complete parallel document analysis system
 

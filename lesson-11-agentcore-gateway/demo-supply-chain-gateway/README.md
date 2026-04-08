@@ -1,5 +1,9 @@
 # Demo: Supply Chain Gateway
 
+## Architecture
+
+![Architecture Diagram](architecture.svg)
+
 ## Overview
 This demo implements a supply chain agent connected to APIs through AgentCore Gateway. Three REST APIs are registered as Gateway targets, then a fourth (Quality Inspection) is added dynamically — without changing any agent code. The agent discovers all tools at runtime via the Gateway's MCP endpoint.
 

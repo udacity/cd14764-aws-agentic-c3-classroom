@@ -1,5 +1,9 @@
 # Demo: Healthcare Agent Guardrails
 
+## Architecture
+
+![Architecture Diagram](architecture.svg)
+
 ## Overview
 This demo implements production-grade governance for a healthcare patient intake agent. A SimulatedGuardrail applies 4 policy types to every input and output. A kill switch monitors violation rates and disables the agent if thresholds are exceeded. A rate limiter prevents request floods. A metrics dashboard provides real-time visibility.
 

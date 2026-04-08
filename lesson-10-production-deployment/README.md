@@ -2,19 +2,14 @@
 
 This lesson covers the development-to-production transition for multi-agent systems. We walk through AgentCore Runtime configuration (network mode, protocol, guardrails, environment variables), deployment pipelines, monitoring strategy (CloudWatch dashboards, alarms, X-Ray tracing), and cost estimation. This is a planning and configuration lesson — no agents call Bedrock.
 
-## Architecture
-
-![Architecture Diagram](architecture.svg)
-
 ## Folder Structure
 
 ```
 lesson-10-production-deployment/
 ├── README.md
 ├── demo-deployment-walkthrough/
-│   └── solution/
-│       ├── README.md
-│       └── deployment_walkthrough.py
+│   ├── README.md
+│   └── deployment_walkthrough.py
 └── exercise-vectrabank-architecture/
     ├── solution/
     │   ├── README.md

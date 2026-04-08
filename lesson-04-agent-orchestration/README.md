@@ -2,19 +2,14 @@
 
 This lesson teaches how to combine sequential, parallel, and conditional execution patterns into a single orchestrated workflow using a Python code orchestrator (not an LLM).
 
-## Architecture
-
-![Architecture Diagram](architecture.svg)
-
 ## Folder Structure
 
 ```
 lesson-04-agent-orchestration/
 ├── README.md
 ├── demo-hr-onboarding/
-│   └── solution/
-│       ├── README.md
-│       └── hr_onboarding.py
+│   ├── README.md
+│   └── hr_onboarding.py
 └── exercise-package-delivery/
     ├── solution/
     │   ├── README.md

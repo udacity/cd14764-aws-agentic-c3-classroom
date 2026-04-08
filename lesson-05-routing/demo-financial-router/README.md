@@ -1,5 +1,9 @@
 # Demo: Hybrid Router for Financial Transaction Processing
 
+## Architecture
+
+![Architecture Diagram](architecture.svg)
+
 ## Overview
 This demo builds a hybrid routing system that combines four routing strategies: priority routing for high-value transactions, rule-based routing for known patterns, LLM-powered classification for ambiguous requests, and fallback routing when confidence is low.
 

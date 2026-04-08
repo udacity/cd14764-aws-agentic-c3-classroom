@@ -2,19 +2,14 @@
 
 This lesson teaches how to run multiple independent specialist agents in parallel using Python's `ThreadPoolExecutor`, then combine their findings with a SynthesizerAgent.
 
-## Architecture
-
-![Architecture Diagram](architecture.svg)
-
 ## Folder Structure
 
 ```
 lesson-03-parallelization/
 ├── README.md
 ├── demo-parallel-document-analysis/
-│   └── solution/
-│       ├── README.md
-│       └── document_analysis.py
+│   ├── README.md
+│   └── document_analysis.py
 └── exercise-contract-compliance/
     ├── solution/
     │   ├── README.md

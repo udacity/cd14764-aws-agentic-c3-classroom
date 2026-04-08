@@ -2,19 +2,14 @@
 
 This lesson covers assigning different Bedrock foundation models to different agents based on task requirements (fast vs. deep vs. balanced).
 
-## Architecture
-
-![Architecture Diagram](architecture.svg)
-
 ## Folder Structure
 
 ```
 lesson-02-multi-model-systems/
 ├── README.md
 ├── demo-multi-model-incident-response/
-│   └── solution/
-│       ├── README.md
-│       └── incident_response.py
+│   ├── README.md
+│   └── incident_response.py
 └── exercise-content-moderation-pipeline/
     ├── solution/
     │   ├── README.md

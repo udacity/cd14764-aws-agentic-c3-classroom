@@ -1,5 +1,9 @@
 # Demo: Shared State for Ride-Sharing Trip Management
 
+## Architecture
+
+![Architecture Diagram](architecture.svg)
+
 ## Overview
 This demo builds a shared state system where 3 worker agents update the same record for a ride-sharing trip. Optimistic locking (version-based conditional writes) prevents lost updates when agents run concurrently, and ConditionalCheckFailedException triggers automatic retry with exponential backoff. A simulated AgentCore Memory provides cross-session rider preference tracking.
 

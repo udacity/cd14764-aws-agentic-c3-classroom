@@ -1,5 +1,9 @@
 # Demo: HR Employee Onboarding Orchestration
 
+## Architecture
+
+![Architecture Diagram](architecture.svg)
+
 ## Overview
 This demo builds an orchestrated employee onboarding workflow that demonstrates three core orchestration patterns in a single workflow: sequential execution, parallel branches, and conditional routing — all managed by a Python code orchestrator.
 

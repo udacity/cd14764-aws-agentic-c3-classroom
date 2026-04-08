@@ -4,19 +4,14 @@ This lesson teaches production-grade governance for multi-agent systems. We impl
 
 The lesson uses simulated Bedrock Guardrails, CloudWatch, and API Gateway so students can focus on the governance patterns without infrastructure setup. Production-mapping comments throughout the code show the exact boto3 API calls.
 
-## Architecture
-
-![Architecture Diagram](architecture.svg)
-
 ## Folder Structure
 
 ```
 lesson-09-guardrails-evaluation/
 ├── README.md
 ├── demo-healthcare-guardrails/
-│   └── solution/
-│       ├── README.md
-│       └── healthcare_guardrails.py
+│   ├── README.md
+│   └── healthcare_guardrails.py
 └── exercise-trading-compliance/
     ├── solution/
     │   ├── README.md

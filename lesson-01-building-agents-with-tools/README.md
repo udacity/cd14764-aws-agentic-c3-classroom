@@ -2,19 +2,14 @@
 
 This lesson covers the fundamentals of the Strands Agents SDK: Agent class, @tool decorator, BedrockModel, and system prompts.
 
-## Architecture
-
-![Architecture Diagram](architecture.svg)
-
 ## Folder Structure
 
 ```
 lesson-01-building-agents-with-tools/
 ├── README.md
 ├── demo-healthcare-triage/
-│   └── solution/
-│       ├── README.md
-│       └── healthcare_triage.py
+│   ├── README.md
+│   └── healthcare_triage.py
 └── exercise-smart-home-device-mgmt/
     ├── solution/
     │   ├── README.md

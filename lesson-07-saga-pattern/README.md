@@ -4,19 +4,14 @@ This lesson teaches the Saga pattern for multi-agent workflows that span multipl
 
 The lesson uses in-memory simulations of DynamoDB so students can focus on the saga pattern without infrastructure setup. Production-mapping comments throughout the code show the exact boto3 API calls.
 
-## Architecture
-
-![Architecture Diagram](architecture.svg)
-
 ## Folder Structure
 
 ```
 lesson-07-saga-pattern/
 ├── README.md
 ├── demo-travel-booking/
-│   └── solution/
-│       ├── README.md
-│       └── travel_booking_saga.py
+│   ├── README.md
+│   └── travel_booking_saga.py
 └── exercise-ecommerce-checkout/
     ├── solution/
     │   ├── README.md

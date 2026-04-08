@@ -1,5 +1,9 @@
 # Demo: Production Deployment Walkthrough
 
+## Architecture
+
+![Architecture Diagram](architecture.svg)
+
 ## Overview
 This demo walks through the complete development-to-production transition for a multi-agent insurance claims processing system. It defines AgentCore Runtime configuration, a 6-step deployment pipeline, monitoring strategy, and cost estimates. No Bedrock calls are made — this is a planning and configuration exercise.
 
