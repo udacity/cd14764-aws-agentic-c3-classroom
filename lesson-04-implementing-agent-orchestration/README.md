@@ -5,7 +5,7 @@ This lesson teaches how to combine sequential, parallel, and conditional executi
 ## Folder Structure
 
 ```
-lesson-04-agent-orchestration/
+lesson-04-implementing-agent-orchestration/
 ├── README.md
 ├── demo-hr-onboarding/
 │   ├── README.md

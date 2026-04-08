@@ -7,7 +7,7 @@ The lesson uses in-memory simulations of DynamoDB and AgentCore Memory so studen
 ## Folder Structure
 
 ```
-lesson-06-shared-state/
+lesson-06-implementing-shared-state-with-dynamodb/
 ├── README.md
 ├── demo-ride-sharing/
 │   ├── README.md

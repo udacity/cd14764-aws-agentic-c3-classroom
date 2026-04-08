@@ -5,7 +5,7 @@ This lesson covers the development-to-production transition for multi-agent syst
 ## Folder Structure
 
 ```
-lesson-10-production-deployment/
+lesson-10-production-deployment-and-monitoring/
 ├── README.md
 ├── demo-deployment-walkthrough/
 │   ├── README.md

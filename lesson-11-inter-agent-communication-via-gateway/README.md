@@ -7,7 +7,7 @@ The lesson uses a simulated Gateway so students can focus on the architectural p
 ## Folder Structure
 
 ```
-lesson-11-agentcore-gateway/
+lesson-11-inter-agent-communication-via-gateway/
 ├── README.md
 ├── demo-supply-chain-gateway/
 │   ├── README.md

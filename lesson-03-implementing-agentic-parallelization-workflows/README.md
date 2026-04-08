@@ -5,7 +5,7 @@ This lesson teaches how to run multiple independent specialist agents in paralle
 ## Folder Structure
 
 ```
-lesson-03-parallelization/
+lesson-03-implementing-agentic-parallelization-workflows/
 ├── README.md
 ├── demo-parallel-document-analysis/
 │   ├── README.md

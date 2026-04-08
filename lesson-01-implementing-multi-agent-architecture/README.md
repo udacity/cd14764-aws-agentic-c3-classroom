@@ -5,7 +5,7 @@ This lesson covers the fundamentals of the Strands Agents SDK: Agent class, @too
 ## Folder Structure
 
 ```
-lesson-01-building-agents-with-tools/
+lesson-01-implementing-multi-agent-architecture/
 ├── README.md
 ├── demo-healthcare-triage/
 │   ├── README.md

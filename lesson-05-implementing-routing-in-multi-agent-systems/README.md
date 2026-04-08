@@ -5,7 +5,7 @@ This lesson teaches how to build a hybrid routing system that combines rule-base
 ## Folder Structure
 
 ```
-lesson-05-routing/
+lesson-05-implementing-routing-in-multi-agent-systems/
 ├── README.md
 ├── demo-financial-router/
 │   ├── README.md

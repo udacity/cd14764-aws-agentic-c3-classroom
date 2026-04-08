@@ -7,7 +7,7 @@ The lesson uses in-memory simulated Knowledge Bases with keyword-based relevance
 ## Folder Structure
 
 ```
-lesson-08-multi-agent-rag/
+lesson-08-implementing-multi-agent-rag/
 ├── README.md
 ├── demo-research-assistant/
 │   ├── README.md
