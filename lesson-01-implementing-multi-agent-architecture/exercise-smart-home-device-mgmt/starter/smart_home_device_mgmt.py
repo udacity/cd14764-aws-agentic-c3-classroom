@@ -92,6 +92,8 @@ def clean_response(text: str) -> str:
     return cleaned.strip()
 
 
+# NOTE: In production, extract shared helpers like run_agent_with_retry() and
+# clean_response() to a common utils.py module to avoid code duplication.
 def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> str:
     """Run an agent with retry logic for transient Bedrock errors.
     Uses exponential backoff (1s, 2s, 4s) to handle throttling."""
@@ -225,11 +227,8 @@ def _make_send_device_command_tool():
 
 # ═══════════════════════════════════════════════════════
 #  TODO 1: BUILD THE DEVICE MONITOR AGENT
-#  Reference: demo's build_symptom_analyzer()
-#  - Create a BedrockModel with MODEL_ID, AWS_REGION, temperature=0.0
-#  - Get the tool using _make_read_sensor_data_tool()
-#  - Write a system prompt telling the agent to ONLY read sensor data
-#  - Return Agent(model=..., system_prompt=..., tools=[...])
+#  Follow the 3-step pattern from the demo's build_symptom_analyzer():
+#  model → system_prompt → Agent
 # ═══════════════════════════════════════════════════════
 
 def build_device_monitor() -> Agent:
@@ -240,11 +239,8 @@ def build_device_monitor() -> Agent:
 
 # ═══════════════════════════════════════════════════════
 #  TODO 2: BUILD THE DIAGNOSTICS AGENT
-#  Reference: demo's build_urgency_classifier()
-#  - Create a BedrockModel
-#  - Get the tool using _make_diagnose_issue_tool()
-#  - Write a system prompt telling the agent to ONLY diagnose issues
-#  - Return Agent(model=..., system_prompt=..., tools=[...])
+#  Follow the 3-step pattern from the demo's build_urgency_classifier():
+#  model → system_prompt → Agent
 # ═══════════════════════════════════════════════════════
 
 def build_diagnostics_agent() -> Agent:
@@ -255,11 +251,7 @@ def build_diagnostics_agent() -> Agent:
 
 # ═══════════════════════════════════════════════════════
 #  TODO 3: BUILD THE COMMAND AGENT
-#  Reference: demo's build_appointment_scheduler()
-#  - Create a BedrockModel
-#  - Get the tool using _make_send_device_command_tool()
-#  - Write a system prompt telling the agent to ONLY send commands
-#  - Return Agent(model=..., system_prompt=..., tools=[...])
+#  Build the Command Agent following the same pattern as TODOs 1-2.
 # ═══════════════════════════════════════════════════════
 
 def build_command_agent() -> Agent:

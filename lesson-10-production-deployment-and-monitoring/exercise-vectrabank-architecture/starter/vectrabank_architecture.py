@@ -115,6 +115,34 @@ def estimate_monthly_costs(agents: list, days: int = 30) -> dict:
     # TODO 6: Add infrastructure costs
     # Hint: DynamoDB (2 tables), Knowledge Bases (3 KBs), CloudWatch + X-Ray, VPC
     # Add each as costs["name"] = {"monthly_cost": estimated_cost}
+    infrastructure_costs = {
+        "dynamodb": {
+            "table_state": 0.0,  # TODO 6a: State table (transactions, reads/writes)
+            "table_audit": 0.0,  # TODO 6b: Audit log table (compliance requirement)
+        },
+        "knowledge_bases": {
+            "market_data_kb": 0.0,  # TODO 6c: Market data retrieval KB
+            "compliance_kb": 0.0,   # TODO 6d: Compliance & regulatory KB
+            "risk_assessment_kb": 0.0,  # TODO 6e: Risk assessment KB
+        },
+        "cloudwatch": {
+            "logs": 0.0,  # TODO 6f: CloudWatch Logs ingestion/storage
+            "metrics": 0.0,  # TODO 6g: Custom metrics
+            "dashboard": 0.0,  # TODO 6h: Dashboard
+        },
+        "xray": {
+            "sampling_and_analysis": 0.0,  # TODO 6i: 10% sampling rate
+        },
+        "vpc": {
+            "nat_gateway": 0.0,  # TODO 6j: VPC NAT gateway (outbound traffic)
+            "vpc_endpoints": 0.0,  # TODO 6k: VPC endpoints for Bedrock, S3
+        },
+    }
+
+    # TODO 6l: Calculate total infrastructure costs and add to costs dict
+    # Example: costs["DynamoDB"] = {"monthly_cost": sum of dynamodb costs}
+    #         costs["Knowledge Bases"] = {"monthly_cost": sum of KB costs}
+    #         etc.
 
     costs["TOTAL"] = {"monthly_cost": round(total, 2)}
     return costs
@@ -125,13 +153,62 @@ def estimate_monthly_costs(agents: list, days: int = 30) -> dict:
 # ═══════════════════════════════════════════════════════
 
 # TODO 7: Define 4 operational runbook procedures
-# Hint: Each is a dict with "title" and "steps" (list of strings)
+# Hint: Each is a dict with "name", "steps" (list of strings), and procedure-specific fields
 #   1. Deploy a New Version — test, update guardrail, deploy runtime, smoke test, monitor
 #   2. Rollback — identify previous version, update runtime, verify, post-mortem
 #   3. Kill Switch Triggered — acknowledge, check audit log, investigate, fix, re-enable
 #   4. Latency Investigation — X-Ray map, per-agent latency, identify bottleneck, scale
 OPERATIONAL_RUNBOOK = {
-    # Replace with 4 runbook procedures...
+    "deploy": {
+        "name": "Production Deployment",
+        "steps": [
+            # TODO 7a: Add step 1 (run test suite)
+            # TODO 7b: Add step 2 (validate guardrail configuration)
+            # TODO 7c: Add step 3 (deploy new runtime version)
+            # TODO 7d: Add step 4 (run smoke tests on 10 test transactions)
+            # TODO 7e: Add step 5 (monitor error rate and latency for 5 minutes)
+        ],
+        "rollback_trigger": "",  # TODO 7f: Under what condition do we rollback? (e.g., "Error rate > 2%")
+        "estimated_duration_minutes": 15,  # Estimate time to complete
+    },
+
+    "rollback": {
+        "name": "Emergency Rollback",
+        "steps": [
+            # TODO 7g: Add step 1 (identify previous stable runtime version)
+            # TODO 7h: Add step 2 (revert runtime to previous version)
+            # TODO 7i: Add step 3 (verify agents are responding to transactions)
+            # TODO 7j: Add step 4 (post-incident review - what went wrong?)
+        ],
+        "estimated_duration_minutes": 10,
+    },
+
+    "kill_switch": {
+        "name": "Kill Switch Activation",
+        "steps": [
+            # TODO 7k: Add step 1 (acknowledge alert in PagerDuty)
+            # TODO 7l: Add step 2 (check AWS X-Ray for error patterns)
+            # TODO 7m: Add step 3 (check CloudWatch audit logs for anomalies)
+            # TODO 7n: Add step 4 (disable runtime if attack/fraud detected)
+            # TODO 7o: Add step 5 (notify compliance team)
+        ],
+        "threshold": "",  # TODO 7p: What metric threshold triggers this? (e.g., "Guardrail blocks > 50/5min")
+        "requires_approval": True,  # Financial system requires human approval
+        "estimated_duration_minutes": 5,
+    },
+
+    "latency_investigation": {
+        "name": "High Latency Investigation",
+        "steps": [
+            # TODO 7q: Add step 1 (pull X-Ray service map to identify slow service)
+            # TODO 7r: Add step 2 (check per-agent latency in CloudWatch)
+            # TODO 7s: Add step 3 (identify bottleneck - agent, KB, or knowledge base retrieval?)
+            # TODO 7t: Add step 4 (check DynamoDB throttling or KB latency)
+            # TODO 7u: Add step 5 (scale the bottleneck component - more provisioned capacity?)
+        ],
+        "trigger_threshold": "P99 latency > 8 seconds",
+        "estimated_duration_minutes": 20,
+    },
 }
 
 

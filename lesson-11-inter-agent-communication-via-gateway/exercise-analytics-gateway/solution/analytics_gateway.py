@@ -292,6 +292,43 @@ def main():
     print(f"\n  Key: 1) MIXED TARGETS — 2 Lambda + 1 REST API 2) SEMANTIC ROUTING")
     print(f"       3) ZERO CODE CHANGES — new API = config only\n")
 
+    # ═══════════════════════════════════════════════════════
+    #  EXTENSION: DYNAMIC TOOL REGISTRATION
+    #  The gateway pattern's key advantage: add tools WITHOUT changing agent code.
+    # ═══════════════════════════════════════════════════════
+
+    print(f"{'═' * 70}")
+    print("  EXTENSION: Adding 4th tool dynamically (no code changes)")
+    print(f"{'═' * 70}")
+    gateway.register_target(
+        name="stock_price",
+        description="Get current stock price for any ticker symbol",
+        function_name=os.environ.get("STOCK_PRICE_FUNCTION", "analytics-stock-price"),
+    )
+    print(f"\n  {len(gateway.targets)} tools available:")
+    for t in gateway.discover_tools():
+        print(f"    [{t['type']:8s}] {t['name']}")
+
+    # Rebuild agent to discover new tool
+    test_query = "What is the current stock price of AMZN?"
+    print(f"\n{'━' * 70}")
+    print(f"  DYNAMIC QUERY: \"{test_query}\"")
+    print(f"{'━' * 70}")
+    elapsed = run_agent_with_retry(
+        lambda: build_analytics_agent(gateway),
+        test_query
+    )
+    print(f"    Time: {elapsed:.1f}s")
+
+    print(f"\n{'═' * 70}")
+    print("FINAL INVOCATION LOG")
+    print(f"{'═' * 70}")
+    for entry in gateway.invocation_log:
+        print(f"  Tool: {entry['tool']:20s} Lambda: {entry['function']:30s} Status: {entry['result_status']}")
+
+    print(f"\n  Gateway Pattern Advantage: register a 4th tool (stock_price) with NO changes to:")
+    print(f"    - @tool function definitions\n")
+
 
 if __name__ == "__main__":
     main()

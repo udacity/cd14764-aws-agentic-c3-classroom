@@ -67,6 +67,8 @@ def clean_response(text: str) -> str:
     return re.sub(r"<thinking>.*?</thinking>\s*", "", str(text), flags=re.DOTALL).strip()
 
 
+# NOTE: In production, extract shared helpers like run_agent_with_retry() and
+# clean_response() to a common utils.py module to avoid code duplication.
 def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> float:
     """Run an agent with retry logic for transient Bedrock errors.
     Uses exponential backoff (1s, 2s, 4s) to handle throttling."""
@@ -205,7 +207,9 @@ def increment_barrier(checkout_id: str) -> tuple[int, int]:
 
 def get_saga(checkout_id: str) -> dict | None:
     """Read current saga state (provided)."""
-    return db.get_item("CheckoutSaga", checkout_id)
+    response = checkout_table.get_item(Key={"checkout_id": checkout_id})
+    item = response.get("Item")
+    return from_dynamo(item) if item else None
 
 
 # ═══════════════════════════════════════════════════════

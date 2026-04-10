@@ -44,6 +44,8 @@ def clean_response(text: str) -> str:
     return re.sub(r"<thinking>.*?</thinking>\s*", "", str(text), flags=re.DOTALL).strip()
 
 
+# NOTE: In production, extract shared helpers like run_agent_with_retry() and
+# clean_response() to a common utils.py module to avoid code duplication.
 def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> float:
     """Run an agent with retry logic for transient Bedrock errors.
     Uses exponential backoff (1s, 2s, 4s) to handle throttling."""
@@ -190,17 +192,11 @@ def build_analytics_agent(gateway: LambdaGateway) -> Agent:
         """
         pass  # Replace with gateway.invoke_tool call
 
-    # TODO 5: Create @tool function for news headlines
-    # Hint: Call gateway.invoke_tool("news_api", {"topic": topic})
-    @tool
-    def get_news(topic: str) -> str:
-        """Get latest news headlines by topic.
-        Args:
-            topic: News topic (e.g., "ai", "finance", "technology")
-        Returns:
-            JSON with headlines
-        """
-        pass  # Replace with gateway.invoke_tool call
+    # TODO 5: Create the get_news @tool function
+    #   - Define a function get_news(topic: str) -> str with a docstring
+    #   - Call gateway.invoke_tool("news_api", {"topic": topic})
+    #   - Return formatted string with the result
+    #   Hint: Follow the same pattern as get_weather and get_currency above.
 
     # TODO 6: Return Agent with model, system_prompt, and all 3 tools
     pass  # Replace with return Agent(...)
@@ -227,6 +223,9 @@ def main():
         description="Lambda-backed tool gateway for analytics utilities"
     )
     print(f"\n  Gateway: {gateway.gateway_id}")
+    # NOTE: news uses "news_api" (REST API backend) while weather/currency use
+    # "_lambda" suffix (Lambda backend). The gateway abstracts this — the agent
+    # doesn't need to know the backend type, only the tool name.
     # TODO 7: Register 3 targets on the Gateway
     # Hint: Same as demo — register_target() for each tool
     #   weather_lambda, currency_lambda, news_api
@@ -254,6 +253,19 @@ def main():
 
     print(f"\n  Key: 1) MIXED TARGETS — 2 Lambda + 1 REST API 2) SEMANTIC ROUTING")
     print(f"       3) ZERO CODE CHANGES — new API = config only\n")
+
+    # ═══════════════════════════════════════════════════════
+    #  EXTENSION: DYNAMIC TOOL REGISTRATION
+    #  The gateway pattern's key advantage: add tools WITHOUT changing agent code.
+    # ═══════════════════════════════════════════════════════
+
+    # TODO 9: Register a 4th tool dynamically and test it
+    #   - Register a "stock_price" tool on the gateway:
+    #     gateway.register_target(name="stock_price", function_name=os.environ.get("STOCK_PRICE_FUNCTION", "analytics-stock-price"))
+    #   - Rebuild the agent (call build_analytics_agent again) so it discovers the new tool
+    #   - Run a test query: "What is the current stock price of AMZN?"
+    #   Hint: This is the gateway pattern's superpower — no @tool code changes needed.
+    #         The agent's system prompt includes discovered tools, so rebuilding picks up the new one.
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@
 Build an analytics agent connected to utility services through AgentCore Gateway following the demo pattern (supply_chain_gateway.py). Register 3 targets (2 Lambda + 1 REST API) and build an agent that discovers tools at runtime.
 
 ## Your Task
-Complete **8 TODOs** in `analytics_gateway.py`:
+Complete **9 TODOs** in `analytics_gateway.py`:
 
 ### Agent TODOs (6)
 | TODO | What to implement | Hint |
@@ -13,14 +13,15 @@ Complete **8 TODOs** in `analytics_gateway.py`:
 | TODO 2 | System prompt with Gateway tools | Use gateway.discover_tools() |
 | TODO 3 | Weather @tool function | gateway.invoke_tool("weather_lambda", ...) |
 | TODO 4 | Currency @tool function | gateway.invoke_tool("currency_lambda", ...) |
-| TODO 5 | News @tool function | gateway.invoke_tool("news_api", ...) |
+| TODO 5 | News @tool function (write from scratch) | Full @tool definition + gateway call |
 | TODO 6 | Return Agent | Agent(model, system_prompt, tools=[...]) |
 
-### Gateway TODOs (2)
+### Gateway TODOs (3)
 | TODO | What to implement | Hint |
 |------|-------------------|------|
 | TODO 7 | Register 3 targets on Gateway | register_target() for each API |
 | TODO 8 | Run test queries through agent | run_agent_with_retry loop |
+| TODO 9 | Dynamic 4th tool registration | Register stock_price, rebuild agent, test |
 
 ## What's Already Done
 - SimulatedGateway class (fully implemented)

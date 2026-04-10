@@ -115,6 +115,8 @@ def clean_response(text: str) -> str:
     return cleaned.strip()
 
 
+# NOTE: In production, extract shared helpers like run_agent_with_retry() and
+# clean_response() to a common utils.py module to avoid code duplication.
 def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> str:
     """Run an agent with retry logic for transient Bedrock errors.
     Uses exponential backoff (1s, 2s, 4s) to handle throttling."""
