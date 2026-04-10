@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 680" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="a8" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+  </defs>
+
+  <rect width="720" height="680" fill="white" rx="8"/>
+
+  <!-- Title -->
+  <text x="360" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">Exercise 8: Clinical Literature RAG</text>
+  <text x="360" y="52" text-anchor="middle" font-size="12" fill="#64748b">Multi-agent retrieval with synthesis and deduplication</text>
+
+  <!-- Input -->
+  <rect x="260" y="75" width="200" height="44" rx="22" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="360" y="102" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">Clinical Query</text>
+
+  <!-- Arrow down from input -->
+  <line x1="360" y1="119" x2="360" y2="150" stroke="#475569" stroke-width="1.5"/>
+
+  <!-- Split to two retrievers -->
+  <line x1="360" y1="150" x2="200" y2="150" stroke="#475569" stroke-width="1.5"/>
+  <line x1="360" y1="150" x2="520" y2="150" stroke="#475569" stroke-width="1.5"/>
+  <line x1="200" y1="150" x2="200" y2="178" stroke="#475569" stroke-width="1.5" marker-end="url(#a8)"/>
+  <line x1="520" y1="150" x2="520" y2="178" stroke="#475569" stroke-width="1.5" marker-end="url(#a8)"/>
+
+  <!-- Drug Interactions Retriever -->
+  <rect x="80" y="180" width="240" height="100" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="200" y="208" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">Drug Interactions Retriever</text>
+  <text x="200" y="228" text-anchor="middle" font-size="9" fill="#3b82f6">Model: Nova Lite</text>
+  <text x="200" y="245" text-anchor="middle" font-size="9" fill="#64748b">Tool: search_drug()</text>
+  <text x="200" y="262" text-anchor="middle" font-size="9" fill="#64748b">Bedrock KB Retrieve API</text>
+
+  <!-- Clinical Guidelines Retriever -->
+  <rect x="400" y="180" width="240" height="100" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="520" y="208" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">Clinical Guidelines Retriever</text>
+  <text x="520" y="228" text-anchor="middle" font-size="9" fill="#3b82f6">Model: Nova Lite</text>
+  <text x="520" y="245" text-anchor="middle" font-size="9" fill="#64748b">Tool: search_clin()</text>
+  <text x="520" y="262" text-anchor="middle" font-size="9" fill="#64748b">Bedrock KB Retrieve API</text>
+
+  <!-- Bedrock KB boxes underneath -->
+  <rect x="100" y="300" width="200" height="36" rx="6" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="200" y="323" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">Bedrock Knowledge Base</text>
+
+  <rect x="420" y="300" width="200" height="36" rx="6" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="520" y="323" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">Bedrock Knowledge Base</text>
+
+  <!-- Arrows from retrievers to KB -->
+  <line x1="200" y1="280" x2="200" y2="298" stroke="#22c55e" stroke-width="1.5" marker-end="url(#a8)"/>
+  <line x1="520" y1="280" x2="520" y2="298" stroke="#22c55e" stroke-width="1.5" marker-end="url(#a8)"/>
+
+  <!-- Converge to synthesis -->
+  <line x1="200" y1="336" x2="200" y2="370" stroke="#475569" stroke-width="1.5"/>
+  <line x1="520" y1="336" x2="520" y2="370" stroke="#475569" stroke-width="1.5"/>
+  <line x1="200" y1="370" x2="360" y2="370" stroke="#475569" stroke-width="1.5"/>
+  <line x1="520" y1="370" x2="360" y2="370" stroke="#475569" stroke-width="1.5"/>
+  <line x1="360" y1="370" x2="360" y2="398" stroke="#475569" stroke-width="1.5" marker-end="url(#a8)"/>
+
+  <!-- Synthesis Agent -->
+  <rect x="200" y="400" width="320" height="100" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+  <text x="360" y="425" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">Synthesis Agent</text>
+  <text x="360" y="442" text-anchor="middle" font-size="9" fill="#3b82f6">Model: Nova Pro</text>
+  <text x="360" y="462" text-anchor="middle" font-size="10" fill="#64748b">Deduplication: merge overlapping sources</text>
+  <text x="360" y="478" text-anchor="middle" font-size="10" fill="#64748b">Structured output: JSON format</text>
+  <text x="360" y="494" text-anchor="middle" font-size="10" fill="#64748b">Synthesize findings into coherent report</text>
+
+  <!-- Arrow down to output -->
+  <line x1="360" y1="500" x2="360" y2="533" stroke="#475569" stroke-width="1.5" marker-end="url(#a8)"/>
+
+  <!-- Output -->
+  <rect x="220" y="535" width="280" height="60" rx="22" fill="#fae8ff" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="360" y="560" text-anchor="middle" font-size="13" font-weight="600" fill="#7e22ce">Clinical Literature Report</text>
+  <text x="360" y="578" text-anchor="middle" font-size="10" fill="#64748b">Deduplicated and synthesized findings</text>
+
+  <!-- Legend -->
+  <rect x="15" y="645" width="10" height="10" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="30" y="654" font-size="10" fill="#64748b">Agent</text>
+  <rect x="110" y="645" width="10" height="10" rx="2" fill="#f0fdf4" stroke="#22c55e" stroke-width="1"/>
+  <text x="125" y="654" font-size="10" fill="#64748b">Bedrock KB</text>
+  <rect x="250" y="645" width="10" height="10" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+  <text x="265" y="654" font-size="10" fill="#64748b">Input</text>
+  <rect x="340" y="645" width="10" height="10" rx="2" fill="#fae8ff" stroke="#a855f7" stroke-width="1"/>
+  <text x="355" y="654" font-size="10" fill="#64748b">Output</text>
+</svg>

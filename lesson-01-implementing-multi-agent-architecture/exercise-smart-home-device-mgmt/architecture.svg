@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 700" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrow1" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <filter id="shadow1">
+      <feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- White background for dark mode compatibility -->
+  <rect width="100%" height="100%" fill="white" rx="8"/>
+
+  <!-- Title -->
+  <text x="360" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">Exercise 1: Smart Home Device Management</text>
+  <text x="360" y="52" text-anchor="middle" font-size="12" fill="#64748b">3-agent coordinator pattern for IoT device monitoring</text>
+
+  <!-- Input -->
+  <rect x="260" y="70" width="200" height="44" rx="22" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" filter="url(#shadow1)"/>
+  <text x="360" y="97" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">Sensor Data Stream</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="114" x2="360" y2="150" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+
+  <!-- Coordinator -->
+  <rect x="230" y="152" width="260" height="50" rx="8" fill="#e0e7ff" stroke="#6366f1" stroke-width="2" filter="url(#shadow1)"/>
+  <text x="360" y="175" text-anchor="middle" font-size="14" font-weight="700" fill="#4338ca">Coordinator</text>
+  <text x="360" y="192" text-anchor="middle" font-size="10" fill="#6366f1">Orchestrates 3 worker agents in sequence</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="202" x2="360" y2="240" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+
+  <!-- Agent 1: Device Monitor -->
+  <rect x="210" y="242" width="300" height="70" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow1)"/>
+  <text x="360" y="267" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">Agent 1: Device Monitor</text>
+  <text x="360" y="287" text-anchor="middle" font-size="11" fill="#3b82f6">Tool: read_sensor_data()</text>
+  <text x="360" y="302" text-anchor="middle" font-size="10" fill="#64748b">device_id → readings, status, timestamp</text>
+
+  <!-- Arrow down with label -->
+  <line x1="360" y1="312" x2="360" y2="355" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+  <text x="380" y="338" font-size="10" fill="#64748b">sensor readings</text>
+
+  <!-- Agent 2: Diagnostics Agent -->
+  <rect x="210" y="357" width="300" height="70" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow1)"/>
+  <text x="360" y="382" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">Agent 2: Diagnostics Agent</text>
+  <text x="360" y="402" text-anchor="middle" font-size="11" fill="#3b82f6">Tool: diagnose_issue()</text>
+  <text x="360" y="417" text-anchor="middle" font-size="10" fill="#64748b">readings → issues[], severity level</text>
+
+  <!-- Arrow down with label -->
+  <line x1="360" y1="427" x2="360" y2="470" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+  <text x="380" y="453" font-size="10" fill="#64748b">issues detected</text>
+
+  <!-- Agent 3: Command Agent -->
+  <rect x="210" y="472" width="300" height="70" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow1)"/>
+  <text x="360" y="497" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">Agent 3: Command Agent</text>
+  <text x="360" y="517" text-anchor="middle" font-size="11" fill="#3b82f6">Tool: send_device_command()</text>
+  <text x="360" y="532" text-anchor="middle" font-size="10" fill="#64748b">issues → commands_sent[], results[]</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="542" x2="360" y2="585" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+
+  <!-- Output -->
+  <rect x="240" y="587" width="240" height="44" rx="22" fill="#fae8ff" stroke="#a855f7" stroke-width="1.5" filter="url(#shadow1)"/>
+  <text x="360" y="614" text-anchor="middle" font-size="13" font-weight="600" fill="#7e22ce">Action Report</text>
+
+  <!-- Legend -->
+  <rect x="15" y="665" width="10" height="10" rx="2" fill="#e0e7ff" stroke="#6366f1" stroke-width="1"/>
+  <text x="30" y="674" font-size="10" fill="#64748b">Coordinator</text>
+  <rect x="125" y="665" width="10" height="10" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="140" y="674" font-size="10" fill="#64748b">Worker Agent</text>
+  <rect x="240" y="665" width="10" height="10" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+  <text x="255" y="674" font-size="10" fill="#64748b">Input</text>
+  <rect x="310" y="665" width="10" height="10" rx="2" fill="#fae8ff" stroke="#a855f7" stroke-width="1"/>
+  <text x="325" y="674" font-size="10" fill="#64748b">Output</text>
+</svg>

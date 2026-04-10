@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 600" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrow3" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <filter id="shadow3">
+      <feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- White background for dark mode compatibility -->
+  <rect width="100%" height="100%" fill="white" rx="8"/>
+
+  <!-- Title -->
+  <text x="360" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">Exercise 3: Contract Compliance</text>
+  <text x="360" y="52" text-anchor="middle" font-size="12" fill="#64748b">Parallel specialists execute simultaneously, then synthesize results</text>
+
+  <!-- Input: Contract Document -->
+  <rect x="260" y="70" width="200" height="44" rx="22" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" filter="url(#shadow3)"/>
+  <text x="360" y="97" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">Contract Document</text>
+
+  <!-- Arrow down to ThreadPoolExecutor -->
+  <line x1="360" y1="114" x2="360" y2="148" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
+
+  <!-- ThreadPoolExecutor (Infrastructure) -->
+  <rect x="220" y="150" width="280" height="54" rx="10" fill="#f0fdf4" stroke="#22c55e" stroke-width="2" filter="url(#shadow3)"/>
+  <text x="360" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="#166534">ThreadPoolExecutor</text>
+  <text x="360" y="194" text-anchor="middle" font-size="11" fill="#64748b">Parallel execution (run simultaneously)</text>
+
+  <!-- Arrow down to three agents -->
+  <line x1="300" y1="204" x2="160" y2="242" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
+  <line x1="360" y1="204" x2="360" y2="242" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
+  <line x1="420" y1="204" x2="560" y2="242" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
+
+  <!-- Left Agent: Regulatory Compliance -->
+  <rect x="40" y="244" width="240" height="74" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow3)"/>
+  <text x="160" y="270" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">Regulatory Compliance</text>
+  <text x="160" y="288" text-anchor="middle" font-size="11" fill="#3b82f6">AWS Nova Lite</text>
+  <text x="160" y="302" text-anchor="middle" font-size="11" fill="#3b82f6">Tool: check_reg()</text>
+  <text x="160" y="316" text-anchor="middle" font-size="9" fill="#1e40af" font-style="italic">Regulations analysis</text>
+
+  <!-- Middle Agent: Financial Risk -->
+  <rect x="240" y="244" width="240" height="74" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow3)"/>
+  <text x="360" y="270" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">Financial Risk Agent</text>
+  <text x="360" y="288" text-anchor="middle" font-size="11" fill="#3b82f6">Claude</text>
+  <text x="360" y="302" text-anchor="middle" font-size="11" fill="#3b82f6">Tool: assess_risk()</text>
+  <text x="360" y="316" text-anchor="middle" font-size="9" fill="#1e40af" font-style="italic">Financial risk review</text>
+
+  <!-- Right Agent: IP Protection -->
+  <rect x="440" y="244" width="240" height="74" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow3)"/>
+  <text x="560" y="270" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">IP Protection Agent</text>
+  <text x="560" y="288" text-anchor="middle" font-size="11" fill="#3b82f6">AWS Nova Pro</text>
+  <text x="560" y="302" text-anchor="middle" font-size="11" fill="#3b82f6">Tool: check_ip()</text>
+  <text x="560" y="316" text-anchor="middle" font-size="9" fill="#1e40af" font-style="italic">IP protection check</text>
+
+  <!-- Arrows converging down (fan-in) -->
+  <line x1="160" y1="318" x2="160" y2="355" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
+  <line x1="360" y1="318" x2="360" y2="355" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
+  <line x1="560" y1="318" x2="560" y2="355" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
+
+  <!-- Merge point with label -->
+  <line x1="160" y1="355" x2="360" y2="355" stroke="#475569" stroke-width="1.5"/>
+  <line x1="360" y1="355" x2="560" y2="355" stroke="#475569" stroke-width="1.5"/>
+  <circle cx="360" cy="355" r="5" fill="#475569"/>
+  <text x="360" y="375" text-anchor="middle" font-size="10" fill="#94a3b8" font-weight="600">Wait for all</text>
+
+  <!-- Arrow to Synthesis Agent -->
+  <line x1="360" y1="375" x2="360" y2="410" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
+
+  <!-- Synthesis Agent -->
+  <rect x="230" y="412" width="260" height="62" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow3)"/>
+  <text x="360" y="438" text-anchor="middle" font-size="14" font-weight="700" fill="#1e40af">Synthesis Agent</text>
+  <text x="360" y="456" text-anchor="middle" font-size="11" fill="#3b82f6">Claude · Tool: synthesize()</text>
+  <text x="360" y="470" text-anchor="middle" font-size="10" fill="#3b82f6">Combines all findings</text>
+
+  <!-- Arrow to output -->
+  <line x1="360" y1="474" x2="360" y2="505" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
+
+  <!-- Output -->
+  <rect x="245" y="507" width="230" height="36" rx="18" fill="#fae8ff" stroke="#a855f7" stroke-width="1.5" filter="url(#shadow3)"/>
+  <text x="360" y="530" text-anchor="middle" font-size="12" font-weight="600" fill="#7e22ce">Compliance Report</text>
+
+  <!-- Legend -->
+  <rect x="15" y="565" width="10" height="10" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="30" y="574" font-size="10" fill="#64748b">Agent</text>
+  <rect x="85" y="565" width="10" height="10" rx="2" fill="#f0fdf4" stroke="#22c55e" stroke-width="1"/>
+  <text x="100" y="574" font-size="10" fill="#64748b">Infrastructure</text>
+  <rect x="205" y="565" width="10" height="10" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+  <text x="220" y="574" font-size="10" fill="#64748b">Input</text>
+  <rect x="260" y="565" width="10" height="10" rx="2" fill="#fae8ff" stroke="#a855f7" stroke-width="1"/>
+  <text x="275" y="574" font-size="10" fill="#64748b">Output</text>
+</svg>

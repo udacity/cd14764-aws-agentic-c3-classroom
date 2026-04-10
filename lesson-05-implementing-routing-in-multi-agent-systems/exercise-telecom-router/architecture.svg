@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 720" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrow5" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <filter id="shadow5">
+      <feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- White background for dark mode compatibility -->
+  <rect width="100%" height="100%" fill="white" rx="8"/>
+
+  <!-- Title -->
+  <text x="360" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">Exercise 5: Telecom Router</text>
+  <text x="360" y="52" text-anchor="middle" font-size="12" fill="#64748b">Multi-stage routing with intent classification</text>
+
+  <!-- Input -->
+  <rect x="260" y="75" width="200" height="44" rx="22" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" filter="url(#shadow5)"/>
+  <text x="360" y="102" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">Incoming Ticket</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="119" x2="360" y2="155" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow5)"/>
+
+  <!-- Priority Check -->
+  <rect x="235" y="157" width="250" height="50" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow5)"/>
+  <text x="360" y="180" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">Priority Check</text>
+  <text x="360" y="197" text-anchor="middle" font-size="10" fill="#64748b">Cancellation intent → RetentionAgent</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="207" x2="360" y2="245" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow5)"/>
+
+  <!-- Rule-Based Router -->
+  <rect x="210" y="247" width="300" height="70" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow5)"/>
+  <text x="360" y="272" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">Rule-Based Router</text>
+  <text x="360" y="292" text-anchor="middle" font-size="10" fill="#3b82f6">bill/charge → BillingAgent</text>
+  <text x="360" y="307" text-anchor="middle" font-size="10" fill="#3b82f6">outage/slow → TechnicalAgent</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="317" x2="360" y2="360" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow5)"/>
+
+  <!-- LLM Classifier -->
+  <rect x="220" y="362" width="280" height="70" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow5)"/>
+  <text x="360" y="387" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">LLM Classifier (Nova Lite)</text>
+  <text x="360" y="407" text-anchor="middle" font-size="10" fill="#3b82f6">Extract intent + confidence score</text>
+  <text x="360" y="422" text-anchor="middle" font-size="10" fill="#64748b">confidence ≥ 0.6 → route</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="432" x2="360" y2="475" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow5)"/>
+  <text x="385" y="458" font-size="10" fill="#64748b">low confidence</text>
+
+  <!-- Fallback -->
+  <rect x="245" y="477" width="230" height="50" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow5)"/>
+  <text x="360" y="500" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">Fallback Router</text>
+  <text x="360" y="517" text-anchor="middle" font-size="10" fill="#64748b">GeneralSupportAgent (human review)</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="527" x2="360" y2="565" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow5)"/>
+
+  <!-- Worker Agents -->
+  <rect x="140" y="567" width="440" height="80" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="2" filter="url(#shadow5)"/>
+  <text x="360" y="595" text-anchor="middle" font-size="14" font-weight="700" fill="#1e40af">Worker Agents (4 Parallel)</text>
+  <text x="360" y="620" text-anchor="middle" font-size="11" fill="#3b82f6">BillingAgent | TechnicalAgent | RetentionAgent | GeneralSupportAgent</text>
+  <text x="360" y="638" text-anchor="middle" font-size="10" fill="#64748b">Process ticket by assigned agent</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="647" x2="360" y2="680" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow5)"/>
+
+  <!-- Legend -->
+  <rect x="15" y="695" width="10" height="10" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="30" y="704" font-size="10" fill="#64748b">Worker Agent</text>
+  <rect x="195" y="695" width="10" height="10" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+  <text x="210" y="704" font-size="10" fill="#64748b">Input</text>
+</svg>

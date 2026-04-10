@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 740" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="a4" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+  </defs>
+
+  <rect width="720" height="740" fill="white" rx="8"/>
+
+  <!-- Title -->
+  <text x="360" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">Exercise 4: Package Delivery Workflow</text>
+  <text x="360" y="52" text-anchor="middle" font-size="12" fill="#64748b">Orchestrator coordinates 7 parallel worker agents</text>
+
+  <!-- Input -->
+  <rect x="260" y="70" width="200" height="44" rx="22" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="360" y="97" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">Delivery Request</text>
+
+  <!-- Arrow: Input to Orchestrator -->
+  <line x1="360" y1="114" x2="360" y2="148" stroke="#475569" stroke-width="1.5" marker-end="url(#a4)"/>
+
+  <!-- Orchestrator -->
+  <rect x="200" y="150" width="320" height="54" rx="10" fill="#e0e7ff" stroke="#6366f1" stroke-width="2"/>
+  <text x="360" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="#4338ca">Orchestrator (Claude)</text>
+  <text x="360" y="193" text-anchor="middle" font-size="10" fill="#6366f1">Plans delivery steps, dispatches 7 worker agents</text>
+
+  <!-- Vertical trunk from orchestrator -->
+  <line x1="360" y1="204" x2="360" y2="230" stroke="#475569" stroke-width="1.5"/>
+
+  <!-- Horizontal bus bar -->
+  <line x1="120" y1="230" x2="600" y2="230" stroke="#475569" stroke-width="1.5"/>
+
+  <!-- Vertical drops to row 1 agents -->
+  <line x1="120" y1="230" x2="120" y2="258" stroke="#475569" stroke-width="1.5" marker-end="url(#a4)"/>
+  <line x1="360" y1="230" x2="360" y2="258" stroke="#475569" stroke-width="1.5" marker-end="url(#a4)"/>
+  <line x1="600" y1="230" x2="600" y2="258" stroke="#475569" stroke-width="1.5" marker-end="url(#a4)"/>
+
+  <!-- Row 1 label -->
+  <text x="20" y="250" font-size="10" font-weight="600" fill="#64748b">ROW 1</text>
+
+  <!-- Agent 1: Address Validator -->
+  <rect x="20" y="260" width="200" height="62" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="120" y="284" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">Address Validator</text>
+  <text x="120" y="300" text-anchor="middle" font-size="10" fill="#3b82f6">validate_addr()</text>
+  <text x="120" y="314" text-anchor="middle" font-size="9" fill="#64748b">Validate address</text>
+
+  <!-- Agent 2: Route Optimizer -->
+  <rect x="260" y="260" width="200" height="62" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="360" y="284" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">Route Optimizer</text>
+  <text x="360" y="300" text-anchor="middle" font-size="10" fill="#3b82f6">optimize()</text>
+  <text x="360" y="314" text-anchor="middle" font-size="9" fill="#64748b">Optimize route</text>
+
+  <!-- Agent 3: Weather Checker -->
+  <rect x="500" y="260" width="200" height="62" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="600" y="284" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">Weather Checker</text>
+  <text x="600" y="300" text-anchor="middle" font-size="10" fill="#3b82f6">check_weather()</text>
+  <text x="600" y="314" text-anchor="middle" font-size="9" fill="#64748b">Check conditions</text>
+
+  <!-- Vertical drops to row 2 agents -->
+  <line x1="120" y1="230" x2="120" y2="322" stroke="none"/>
+  <line x1="120" y1="322" x2="120" y2="370" stroke="#475569" stroke-width="1.5" marker-end="url(#a4)"/>
+  <line x1="360" y1="322" x2="360" y2="370" stroke="#475569" stroke-width="1.5" marker-end="url(#a4)"/>
+  <line x1="600" y1="322" x2="600" y2="370" stroke="#475569" stroke-width="1.5" marker-end="url(#a4)"/>
+
+  <!-- Row 2 label -->
+  <text x="20" y="362" font-size="10" font-weight="600" fill="#64748b">ROW 2</text>
+
+  <!-- Agent 4: Inventory Check -->
+  <rect x="20" y="372" width="200" height="62" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="120" y="396" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">Inventory Check</text>
+  <text x="120" y="412" text-anchor="middle" font-size="10" fill="#3b82f6">check_stock()</text>
+  <text x="120" y="426" text-anchor="middle" font-size="9" fill="#64748b">Verify stock</text>
+
+  <!-- Agent 5: Cost Estimator -->
+  <rect x="260" y="372" width="200" height="62" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="360" y="396" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">Cost Estimator</text>
+  <text x="360" y="412" text-anchor="middle" font-size="10" fill="#3b82f6">estimate()</text>
+  <text x="360" y="426" text-anchor="middle" font-size="9" fill="#64748b">Estimate cost</text>
+
+  <!-- Agent 6: Notification Service -->
+  <rect x="500" y="372" width="200" height="62" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="600" y="396" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">Notification Svc</text>
+  <text x="600" y="412" text-anchor="middle" font-size="10" fill="#3b82f6">send_notify()</text>
+  <text x="600" y="426" text-anchor="middle" font-size="9" fill="#64748b">Send notifications</text>
+
+  <!-- Agent 7: Status Tracker (centered below) -->
+  <line x1="360" y1="434" x2="360" y2="468" stroke="#475569" stroke-width="1.5" marker-end="url(#a4)"/>
+  <rect x="260" y="470" width="200" height="62" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="360" y="494" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">Status Tracker</text>
+  <text x="360" y="510" text-anchor="middle" font-size="10" fill="#3b82f6">update_status()</text>
+  <text x="360" y="524" text-anchor="middle" font-size="9" fill="#64748b">Track status</text>
+
+  <!-- Converge: all agents to merge bar -->
+  <!-- Row 1 agents down -->
+  <line x1="120" y1="322" x2="120" y2="560" stroke="#475569" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>
+  <line x1="600" y1="322" x2="600" y2="560" stroke="#475569" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>
+  <!-- Row 2 agents down -->
+  <line x1="120" y1="434" x2="120" y2="560" stroke="#475569" stroke-width="1.5"/>
+  <line x1="600" y1="434" x2="600" y2="560" stroke="#475569" stroke-width="1.5"/>
+  <line x1="360" y1="532" x2="360" y2="560" stroke="#475569" stroke-width="1.5"/>
+
+  <!-- Horizontal merge bar -->
+  <line x1="120" y1="560" x2="600" y2="560" stroke="#475569" stroke-width="2"/>
+  <circle cx="360" cy="560" r="5" fill="#475569"/>
+  <text x="360" y="580" text-anchor="middle" font-size="10" font-weight="600" fill="#94a3b8">Wait for all workers</text>
+
+  <!-- Arrow to output -->
+  <line x1="360" y1="585" x2="360" y2="618" stroke="#475569" stroke-width="1.5" marker-end="url(#a4)"/>
+
+  <!-- Output -->
+  <rect x="260" y="620" width="200" height="44" rx="22" fill="#fae8ff" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="360" y="647" text-anchor="middle" font-size="13" font-weight="600" fill="#7e22ce">Delivery Plan</text>
+
+  <!-- Legend -->
+  <rect x="15" y="705" width="10" height="10" rx="2" fill="#e0e7ff" stroke="#6366f1" stroke-width="1"/>
+  <text x="30" y="714" font-size="10" fill="#64748b">Orchestrator</text>
+  <rect x="135" y="705" width="10" height="10" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="150" y="714" font-size="10" fill="#64748b">Worker Agent</text>
+  <rect x="270" y="705" width="10" height="10" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+  <text x="285" y="714" font-size="10" fill="#64748b">Input</text>
+  <rect x="350" y="705" width="10" height="10" rx="2" fill="#fae8ff" stroke="#a855f7" stroke-width="1"/>
+  <text x="365" y="714" font-size="10" fill="#64748b">Output</text>
+</svg>

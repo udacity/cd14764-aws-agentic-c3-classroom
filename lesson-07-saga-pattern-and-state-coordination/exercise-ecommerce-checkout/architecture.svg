@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 800" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrow7" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <filter id="shadow7">
+      <feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- White background for dark mode compatibility -->
+  <rect width="100%" height="100%" fill="white" rx="8"/>
+
+  <!-- Title -->
+  <text x="360" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">Exercise 7: E-Commerce Checkout Saga</text>
+  <text x="360" y="52" text-anchor="middle" font-size="12" fill="#64748b">Saga orchestration with distributed compensation</text>
+
+  <!-- Input -->
+  <rect x="260" y="75" width="200" height="44" rx="22" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" filter="url(#shadow7)"/>
+  <text x="360" y="102" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">Checkout Order</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="119" x2="360" y2="155" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow7)"/>
+
+  <!-- Saga Orchestrator -->
+  <rect x="140" y="157" width="440" height="90" rx="8" fill="#e0e7ff" stroke="#6366f1" stroke-width="2" filter="url(#shadow7)"/>
+  <text x="360" y="182" text-anchor="middle" font-size="13" font-weight="700" fill="#4338ca">Saga Orchestrator (Python)</text>
+  <text x="360" y="202" text-anchor="middle" font-size="10" fill="#6366f1">NOT LLM-driven - deterministic state machine</text>
+  <text x="360" y="220" text-anchor="middle" font-size="10" fill="#64748b">Forward: Inventory → Payment → Shipping</text>
+  <text x="360" y="235" text-anchor="middle" font-size="10" fill="#64748b">Compensate: reverse order on failure</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="247" x2="360" y2="285" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow7)"/>
+
+  <!-- Saga State Machine -->
+  <rect x="130" y="287" width="460" height="90" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="2" filter="url(#shadow7)"/>
+  <text x="360" y="312" text-anchor="middle" font-size="13" font-weight="700" fill="#166534">Saga State Machine (DynamoDB)</text>
+  <text x="360" y="332" text-anchor="middle" font-size="10" fill="#22c55e">checkout_id (PK) | steps[] | overall_status</text>
+  <text x="360" y="350" text-anchor="middle" font-size="10" fill="#22c55e">Barrier counter: compensations_completed</text>
+  <text x="360" y="365" text-anchor="middle" font-size="10" fill="#64748b">Tracks each transaction state independently</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="377" x2="360" y2="415" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow7)"/>
+
+  <!-- Worker Agents -->
+  <g>
+    <!-- Inventory Agent -->
+    <rect x="50" y="417" width="180" height="100" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow7)"/>
+    <text x="140" y="442" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">Inventory Agent</text>
+    <text x="140" y="465" text-anchor="middle" font-size="9" fill="#3b82f6">Forward:</text>
+    <text x="140" y="477" text-anchor="middle" font-size="9" fill="#64748b">reserve_items()</text>
+    <text x="140" y="493" text-anchor="middle" font-size="9" fill="#3b82f6">Compensate:</text>
+    <text x="140" y="505" text-anchor="middle" font-size="9" fill="#64748b">release_items()</text>
+
+    <!-- Payment Agent -->
+    <rect x="270" y="417" width="180" height="100" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow7)"/>
+    <text x="360" y="442" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">Payment Agent</text>
+    <text x="360" y="465" text-anchor="middle" font-size="9" fill="#3b82f6">Forward:</text>
+    <text x="360" y="477" text-anchor="middle" font-size="9" fill="#64748b">charge_card()</text>
+    <text x="360" y="493" text-anchor="middle" font-size="9" fill="#3b82f6">Compensate:</text>
+    <text x="360" y="505" text-anchor="middle" font-size="9" fill="#64748b">refund_card()</text>
+
+    <!-- Shipping Agent -->
+    <rect x="490" y="417" width="180" height="100" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow7)"/>
+    <text x="580" y="442" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">Shipping Agent</text>
+    <text x="580" y="465" text-anchor="middle" font-size="9" fill="#3b82f6">Forward:</text>
+    <text x="580" y="477" text-anchor="middle" font-size="9" fill="#64748b">schedule_deliv()</text>
+    <text x="580" y="493" text-anchor="middle" font-size="9" fill="#3b82f6">Compensate:</text>
+    <text x="580" y="505" text-anchor="middle" font-size="9" fill="#64748b">cancel_deliv()</text>
+  </g>
+
+  <!-- Arrows from agents down -->
+  <line x1="140" y1="517" x2="140" y2="555" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow7)"/>
+  <line x1="360" y1="517" x2="360" y2="555" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow7)"/>
+  <line x1="580" y1="517" x2="580" y2="555" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow7)"/>
+
+  <!-- Execution Flow -->
+  <rect x="150" y="557" width="420" height="70" rx="8" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5" filter="url(#shadow7)"/>
+  <text x="360" y="582" text-anchor="middle" font-size="12" font-weight="700" fill="#4338ca">Sequential Execution Flow</text>
+  <text x="360" y="603" text-anchor="middle" font-size="10" fill="#64748b">Forward steps committed to saga state, compensate on rollback</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="627" x2="360" y2="665" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow7)"/>
+
+  <!-- Output -->
+  <rect x="200" y="667" width="320" height="80" rx="8" fill="#fae8ff" stroke="#a855f7" stroke-width="1.5" filter="url(#shadow7)"/>
+  <text x="360" y="697" text-anchor="middle" font-size="13" font-weight="600" fill="#7e22ce">Order Complete / Failed</text>
+  <text x="360" y="717" text-anchor="middle" font-size="10" fill="#64748b">with compensation record</text>
+  <text x="360" y="733" text-anchor="middle" font-size="9" fill="#64748b">(all compensations tracked and executed)</text>
+
+  <!-- Legend -->
+  <rect x="15" y="765" width="10" height="10" rx="2" fill="#e0e7ff" stroke="#6366f1" stroke-width="1"/>
+  <text x="30" y="774" font-size="10" fill="#64748b">Coordinator</text>
+  <rect x="150" y="765" width="10" height="10" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="165" y="774" font-size="10" fill="#64748b">Worker Agent</text>
+  <rect x="285" y="765" width="10" height="10" rx="2" fill="#f0fdf4" stroke="#22c55e" stroke-width="1"/>
+  <text x="300" y="774" font-size="10" fill="#64748b">Infrastructure</text>
+  <rect x="415" y="765" width="10" height="10" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+  <text x="430" y="774" font-size="10" fill="#64748b">Input/Output</text>
+</svg>

@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 680" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="a10" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+  </defs>
+
+  <rect width="720" height="680" fill="white" rx="8"/>
+
+  <!-- Title -->
+  <text x="360" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">Exercise 10: VectraBank Production Architecture</text>
+  <text x="360" y="52" text-anchor="middle" font-size="12" fill="#64748b">Multi-agent deployment planning with monitoring</text>
+
+  <!-- AgentCore Runtime -->
+  <rect x="200" y="75" width="320" height="55" rx="8" fill="#e0e7ff" stroke="#6366f1" stroke-width="2"/>
+  <text x="360" y="98" text-anchor="middle" font-size="13" font-weight="700" fill="#4338ca">AgentCore Runtime</text>
+  <text x="360" y="115" text-anchor="middle" font-size="10" fill="#64748b">Runtime config: memory, timeout, auth</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="130" x2="360" y2="155" stroke="#475569" stroke-width="1.5"/>
+
+  <!-- Horizontal bus bar -->
+  <line x1="130" y1="155" x2="590" y2="155" stroke="#475569" stroke-width="1.5"/>
+
+  <!-- Drops to 3 agents -->
+  <line x1="130" y1="155" x2="130" y2="178" stroke="#475569" stroke-width="1.5" marker-end="url(#a10)"/>
+  <line x1="360" y1="155" x2="360" y2="178" stroke="#475569" stroke-width="1.5" marker-end="url(#a10)"/>
+  <line x1="590" y1="155" x2="590" y2="178" stroke="#475569" stroke-width="1.5" marker-end="url(#a10)"/>
+
+  <!-- Agent 1: AccountAgent -->
+  <rect x="30" y="180" width="200" height="65" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="130" y="205" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">AccountAgent</text>
+  <text x="130" y="222" text-anchor="middle" font-size="10" fill="#3b82f6">Claude</text>
+  <text x="130" y="237" text-anchor="middle" font-size="9" fill="#64748b">Manages accounts and balances</text>
+
+  <!-- Agent 2: TransferAgent -->
+  <rect x="260" y="180" width="200" height="65" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="360" y="205" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">TransferAgent</text>
+  <text x="360" y="222" text-anchor="middle" font-size="10" fill="#3b82f6">Nova Lite</text>
+  <text x="360" y="237" text-anchor="middle" font-size="9" fill="#64748b">Executes transfers</text>
+
+  <!-- Agent 3: FraudDetector -->
+  <rect x="490" y="180" width="200" height="65" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="590" y="205" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">FraudDetector</text>
+  <text x="590" y="222" text-anchor="middle" font-size="10" fill="#3b82f6">Nova Pro</text>
+  <text x="590" y="237" text-anchor="middle" font-size="9" fill="#64748b">Detects anomalies</text>
+
+  <!-- Converge from 3 agents -->
+  <line x1="130" y1="245" x2="130" y2="275" stroke="#475569" stroke-width="1.5"/>
+  <line x1="360" y1="245" x2="360" y2="275" stroke="#475569" stroke-width="1.5"/>
+  <line x1="590" y1="245" x2="590" y2="275" stroke="#475569" stroke-width="1.5"/>
+  <line x1="130" y1="275" x2="590" y2="275" stroke="#475569" stroke-width="1.5"/>
+  <line x1="360" y1="275" x2="360" y2="298" stroke="#475569" stroke-width="1.5" marker-end="url(#a10)"/>
+
+  <!-- Infrastructure Layer -->
+  <rect x="160" y="300" width="400" height="75" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="360" y="325" text-anchor="middle" font-size="13" font-weight="700" fill="#166534">Infrastructure Layer</text>
+  <text x="360" y="342" text-anchor="middle" font-size="10" fill="#22c55e">DynamoDB | S3 | CloudWatch | X-Ray</text>
+  <text x="360" y="359" text-anchor="middle" font-size="10" fill="#22c55e">Guardrails | Knowledge Bases</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="375" x2="360" y2="408" stroke="#475569" stroke-width="1.5" marker-end="url(#a10)"/>
+
+  <!-- Deployment Pipeline -->
+  <rect x="160" y="410" width="400" height="80" rx="8" fill="#e0e7ff" stroke="#6366f1" stroke-width="2"/>
+  <text x="360" y="435" text-anchor="middle" font-size="13" font-weight="700" fill="#4338ca">Deployment Pipeline</text>
+  <text x="360" y="452" text-anchor="middle" font-size="10" fill="#6366f1">Build - Guardrail - Runtime - Memory -</text>
+  <text x="360" y="467" text-anchor="middle" font-size="10" fill="#6366f1">Observability - Smoke Test</text>
+  <text x="360" y="482" text-anchor="middle" font-size="9" fill="#64748b">Automated testing before production</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="490" x2="360" y2="523" stroke="#475569" stroke-width="1.5" marker-end="url(#a10)"/>
+
+  <!-- Output -->
+  <rect x="260" y="525" width="200" height="44" rx="22" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="360" y="552" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">Cost Estimate Report</text>
+
+  <!-- Legend -->
+  <rect x="15" y="645" width="10" height="10" rx="2" fill="#e0e7ff" stroke="#6366f1" stroke-width="1"/>
+  <text x="30" y="654" font-size="10" fill="#64748b">Coordinator</text>
+  <rect x="140" y="645" width="10" height="10" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="155" y="654" font-size="10" fill="#64748b">Agent</text>
+  <rect x="220" y="645" width="10" height="10" rx="2" fill="#f0fdf4" stroke="#22c55e" stroke-width="1"/>
+  <text x="235" y="654" font-size="10" fill="#64748b">Infrastructure</text>
+  <rect x="370" y="645" width="10" height="10" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+  <text x="385" y="654" font-size="10" fill="#64748b">Output</text>
+</svg>

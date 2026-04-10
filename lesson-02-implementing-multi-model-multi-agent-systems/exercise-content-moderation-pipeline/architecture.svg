@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 700" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrow2" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <filter id="shadow2">
+      <feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- White background for dark mode compatibility -->
+  <rect width="100%" height="100%" fill="white" rx="8"/>
+
+  <!-- Title -->
+  <text x="360" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">Exercise 2: Content Moderation Pipeline</text>
+  <text x="360" y="52" text-anchor="middle" font-size="12" fill="#64748b">Multi-model sequential analysis with progressive escalation</text>
+
+  <!-- Input -->
+  <rect x="260" y="70" width="200" height="44" rx="22" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" filter="url(#shadow2)"/>
+  <text x="360" y="97" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">Content Submission</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="114" x2="360" y2="150" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow2)"/>
+
+  <!-- Agent 1: Quick Screener -->
+  <rect x="210" y="152" width="300" height="70" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow2)"/>
+  <text x="360" y="177" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">Agent 1: Quick Screener</text>
+  <text x="360" y="197" text-anchor="middle" font-size="11" fill="#3b82f6">AWS Nova Lite · Tool: screen()</text>
+  <text x="360" y="212" text-anchor="middle" font-size="10" fill="#64748b">content → flagged: bool, category</text>
+
+  <!-- Arrow down with label -->
+  <line x1="360" y1="222" x2="360" y2="265" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow2)"/>
+  <text x="375" y="251" font-size="10" fill="#64748b">if flagged</text>
+
+  <!-- Agent 2: Deep Reviewer -->
+  <rect x="210" y="267" width="300" height="70" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow2)"/>
+  <text x="360" y="292" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">Agent 2: Deep Reviewer</text>
+  <text x="360" y="312" text-anchor="middle" font-size="11" fill="#3b82f6">Claude · Tool: deep_review()</text>
+  <text x="360" y="327" text-anchor="middle" font-size="10" fill="#64748b">flagged content → violation_type, severity</text>
+
+  <!-- Arrow down with label -->
+  <line x1="360" y1="337" x2="360" y2="380" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow2)"/>
+  <text x="375" y="365" font-size="10" fill="#64748b">violation details</text>
+
+  <!-- Agent 3: Notice Drafter -->
+  <rect x="210" y="382" width="300" height="70" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow2)"/>
+  <text x="360" y="407" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">Agent 3: Notice Drafter</text>
+  <text x="360" y="427" text-anchor="middle" font-size="11" fill="#3b82f6">AWS Nova Pro · Tool: draft_notice()</text>
+  <text x="360" y="442" text-anchor="middle" font-size="10" fill="#64748b">violation details → notice_text, action</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="452" x2="360" y2="495" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow2)"/>
+
+  <!-- Output -->
+  <rect x="245" y="497" width="230" height="44" rx="22" fill="#fae8ff" stroke="#a855f7" stroke-width="1.5" filter="url(#shadow2)"/>
+  <text x="360" y="524" text-anchor="middle" font-size="13" font-weight="600" fill="#7e22ce">Moderation Report</text>
+
+  <!-- Legend -->
+  <rect x="15" y="665" width="10" height="10" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="30" y="674" font-size="10" fill="#64748b">Agent</text>
+  <rect x="75" y="665" width="10" height="10" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+  <text x="90" y="674" font-size="10" fill="#64748b">Input</text>
+  <rect x="140" y="665" width="10" height="10" rx="2" fill="#fae8ff" stroke="#a855f7" stroke-width="1"/>
+  <text x="155" y="674" font-size="10" fill="#64748b">Output</text>
+</svg>

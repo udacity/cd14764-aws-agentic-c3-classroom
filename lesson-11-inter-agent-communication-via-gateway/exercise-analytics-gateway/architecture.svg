@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 700" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrow1" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <filter id="shadow1">
+      <feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- White background for dark mode compatibility -->
+  <rect width="100%" height="100%" fill="white" rx="8"/>
+
+  <!-- Title -->
+  <text x="360" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">Exercise 11: Analytics Gateway</text>
+  <text x="360" y="52" text-anchor="middle" font-size="12" fill="#64748b">Inter-agent communication via Lambda gateway</text>
+
+  <!-- Input -->
+  <rect x="260" y="75" width="200" height="44" rx="22" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" filter="url(#shadow1)"/>
+  <text x="360" y="102" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">Analytics Query</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="119" x2="360" y2="155" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+
+  <!-- Analytics Agent -->
+  <rect x="210" y="157" width="300" height="60" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow1)"/>
+  <text x="360" y="180" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">Analytics Agent</text>
+  <text x="360" y="197" text-anchor="middle" font-size="11" fill="#3b82f6">Nova Lite</text>
+  <text x="360" y="212" text-anchor="middle" font-size="10" fill="#64748b">Routes queries to gateway tools</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="217" x2="360" y2="250" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+
+  <!-- Lambda Gateway -->
+  <rect x="200" y="252" width="320" height="65" rx="8" fill="#e0e7ff" stroke="#6366f1" stroke-width="2" filter="url(#shadow1)"/>
+  <text x="360" y="277" text-anchor="middle" font-size="13" font-weight="700" fill="#4338ca">Lambda Gateway</text>
+  <text x="360" y="294" text-anchor="middle" font-size="10" fill="#6366f1">register → discover → invoke (Lambda calls)</text>
+
+  <!-- Arrow down to split -->
+  <line x1="360" y1="317" x2="360" y2="345" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+
+  <!-- Split to 3 Lambdas -->
+  <line x1="360" y1="345" x2="160" y2="370" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+  <line x1="360" y1="345" x2="360" y2="370" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+  <line x1="360" y1="345" x2="560" y2="370" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+
+  <!-- Weather Lambda -->
+  <rect x="40" y="372" width="240" height="70" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5" filter="url(#shadow1)"/>
+  <text x="160" y="397" text-anchor="middle" font-size="13" font-weight="700" fill="#166534">Weather Lambda</text>
+  <text x="160" y="416" text-anchor="middle" font-size="11" fill="#22c55e">lookup()</text>
+  <text x="160" y="433" text-anchor="middle" font-size="9" fill="#64748b">Get weather data</text>
+
+  <!-- Currency Lambda -->
+  <rect x="280" y="372" width="240" height="70" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5" filter="url(#shadow1)"/>
+  <text x="400" y="397" text-anchor="middle" font-size="13" font-weight="700" fill="#166534">Currency Lambda</text>
+  <text x="400" y="416" text-anchor="middle" font-size="11" fill="#22c55e">convert()</text>
+  <text x="400" y="433" text-anchor="middle" font-size="9" fill="#64748b">Convert currencies</text>
+
+  <!-- News Lambda -->
+  <rect x="520" y="372" width="240" height="70" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5" filter="url(#shadow1)"/>
+  <text x="640" y="397" text-anchor="middle" font-size="13" font-weight="700" fill="#166534">News Lambda</text>
+  <text x="640" y="416" text-anchor="middle" font-size="11" fill="#22c55e">search()</text>
+  <text x="640" y="433" text-anchor="middle" font-size="9" fill="#64748b">Search news</text>
+
+  <!-- Converge from 3 Lambdas -->
+  <line x1="160" y1="442" x2="360" y2="475" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+  <line x1="400" y1="442" x2="360" y2="475" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+  <line x1="640" y1="442" x2="360" y2="475" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+
+  <!-- Invocation Log -->
+  <rect x="230" y="477" width="260" height="65" rx="8" fill="#e0e7ff" stroke="#6366f1" stroke-width="2" filter="url(#shadow1)"/>
+  <text x="360" y="502" text-anchor="middle" font-size="13" font-weight="700" fill="#4338ca">Invocation Log</text>
+  <text x="360" y="519" text-anchor="middle" font-size="10" fill="#6366f1">tool | params | result</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="542" x2="360" y2="575" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow1)"/>
+
+  <!-- Output -->
+  <rect x="260" y="577" width="200" height="44" rx="22" fill="#fae8ff" stroke="#a855f7" stroke-width="1.5" filter="url(#shadow1)"/>
+  <text x="360" y="604" text-anchor="middle" font-size="13" font-weight="600" fill="#7e22ce">Analytics Response</text>
+
+  <!-- Legend -->
+  <rect x="15" y="665" width="10" height="10" rx="2" fill="#e0e7ff" stroke="#6366f1" stroke-width="1"/>
+  <text x="30" y="674" font-size="10" fill="#64748b">Gateway/Control</text>
+  <rect x="150" y="665" width="10" height="10" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="165" y="674" font-size="10" fill="#64748b">Agent</text>
+  <rect x="245" y="665" width="10" height="10" rx="2" fill="#f0fdf4" stroke="#22c55e" stroke-width="1"/>
+  <text x="260" y="674" font-size="10" fill="#64748b">Lambda</text>
+  <rect x="345" y="665" width="10" height="10" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+  <text x="360" y="674" font-size="10" fill="#64748b">Input/Output</text>
+</svg>
