@@ -24,6 +24,10 @@ Tech Stack:
 """
 
 import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 # ═══════════════════════════════════════════════════════
@@ -59,7 +63,7 @@ VECTRABANK_RUNTIME_CONFIG = {
         "PRODUCTS_KB_ID": "KB-PRODUCTS-003",
         "STATE_TABLE_NAME": "vectrabank-agent-state",
         "AUDIT_TABLE_NAME": "vectrabank-audit-log",
-        "AWS_REGION": "us-east-1",
+        "AWS_REGION": os.environ.get("AWS_REGION", "us-east-1"),
         "LOG_LEVEL": "INFO",
         "ENVIRONMENT": "production",
         "ENABLE_XRAY": "true",

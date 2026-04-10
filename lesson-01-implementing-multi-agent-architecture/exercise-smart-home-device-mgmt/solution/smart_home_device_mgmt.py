@@ -1,17 +1,39 @@
 """
 smart_home_device_mgmt.py - SOLUTION
 ======================================
-Module 1 Exercise: Smart Home Device Management System
+Module 1 Exercise: Build a 3-Agent Smart Home Device Management System
 
 Architecture:
-    Device ID
-        │
-    DeviceManager Agent (single agent with 3 specialized tools)
-        │
-    ┌───┼───────────────────┐
-    │   │                   │
-read_sensor_data  diagnose_issue  send_device_command
-(reads sensors)   (identifies issues)  (sends commands)
+    Sensor Data
+         │
+    ┌────▼─────┐
+    │Coordinator│  (orchestrates the 3 worker agents)
+    └──┬──┬──┬─┘
+       │  │  │
+       ▼  │  │
+ ┌─────────┐ │  │
+ │ Device   │ │  │   Agent 1: Reads sensor data for a device
+ │ Monitor  │─┘  │
+ └─────────┘     │
+       │         │
+       ▼         │
+ ┌─────────┐     │
+ │Diagnostics│   │   Agent 2: Applies rules to identify issues
+ │  Agent   │────┘
+ └─────────┘
+       │
+       ▼
+ ┌─────────┐
+ │ Command  │        Agent 3: Sends corrective actions
+ │  Agent   │
+ └─────────┘
+       │
+       ▼
+   Action Report
+
+Pattern: Same multi-agent coordinator pattern as the demo.
+Each agent has a single responsibility, its own model, prompt, and tools.
+The coordinator calls them in sequence, passing outputs forward.
 
 Tech Stack:
   - Python 3.11+
@@ -20,10 +42,16 @@ Tech Stack:
 """
 
 import json
+import os
+import re
+import time
 import logging
 from datetime import datetime
+from dotenv import load_dotenv
 from strands import Agent, tool
 from strands.models import BedrockModel
+
+load_dotenv()
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
@@ -31,8 +59,8 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────────────
 # CONFIGURATION
 # ─────────────────────────────────────────────────────
-AWS_REGION = "us-east-1"
-MODEL_ID = "anthropic.claude-3-sonnet-20240229-v1:0"
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+MODEL_ID = os.environ.get("MODEL_ID", "anthropic.claude-3-sonnet-20240229-v1:0")
 
 # ─────────────────────────────────────────────────────
 # SAMPLE DATA
@@ -74,40 +102,47 @@ CORRECTIVE_ACTIONS = {
 }
 
 
+def clean_response(text: str) -> str:
+    """Strip Nova/Claude thinking tags from agent responses."""
+    cleaned = re.sub(r'<thinking>.*?</thinking>', '', str(text), flags=re.DOTALL)
+    return cleaned.strip()
+
+
+def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> str:
+    """Run an agent with retry logic for transient Bedrock errors.
+    Uses exponential backoff (1s, 2s, 4s) to handle throttling."""
+    for attempt in range(max_retries):
+        try:
+            agent = agent_builder()
+            result = agent(prompt)
+            return clean_response(result)
+        except Exception as e:
+            if attempt < max_retries - 1:
+                wait = 2 ** attempt
+                print(f"    [Retry {attempt + 1}/{max_retries}] {e.__class__.__name__}, waiting {wait}s...")
+                time.sleep(wait)
+            else:
+                print(f"    [Failed] {e.__class__.__name__} after {max_retries} attempts")
+                raise
+
+
 # ═══════════════════════════════════════════════════════
-#  DEVICE MANAGER AGENT — 1 Agent with 3 tools
+#  AGENT 1: DEVICE MONITOR
+#  Single responsibility: read sensor data for a device
 # ═══════════════════════════════════════════════════════
 
-def build_device_manager() -> Agent:
-    """
-    Build the Device Manager Agent with three specialized tools.
-    Same pattern as the demo (healthcare_triage.py): model + prompt + tools.
-    """
+def build_device_monitor() -> Agent:
+    """Build the Device Monitor agent with a read_sensor_data tool."""
 
-    # STEP 1: Create the model (same as demo)
     model = BedrockModel(
         model_id=MODEL_ID,
         region_name=AWS_REGION,
         temperature=0.0,
     )
 
-    # STEP 2: System prompt — same strict pattern as demo
-    system_prompt = """You are a smart home device manager agent. For each device, call these 3 tools in EXACT order:
-
-1. read_sensor_data — pass the device_id
-2. diagnose_issue — pass the EXACT JSON string returned by read_sensor_data
-3. send_device_command — pass the device_id AND each issue_type from diagnose_issue's "issues" array
-
-CRITICAL RULES:
-- When calling diagnose_issue, pass the raw JSON from read_sensor_data as-is
-- When calling send_device_command, use the exact "issue" field values from the diagnosis (e.g., "overheating", "firmware_issue", "low_battery")
-- If diagnose_issue finds NO issues, skip send_device_command and report the device is healthy
-- After all tools complete, write a 3-line summary: readings, diagnosis, actions taken"""
-
     @tool
     def read_sensor_data(device_id: str) -> str:
-        """
-        Read the latest sensor data for a device.
+        """Read the latest sensor data for a device.
 
         Args:
             device_id: The device's unique identifier (e.g., "DEV-001")
@@ -137,10 +172,34 @@ CRITICAL RULES:
             "readings": reading["readings"],
         }, indent=2)
 
+    system_prompt = """You are a Device Monitor agent. Your ONLY job is reading sensor data.
+Call the read_sensor_data tool with the device_id.
+After the tool returns, output ONLY the raw JSON result. Do not diagnose issues or send commands."""
+
+    return Agent(
+        model=model,
+        system_prompt=system_prompt,
+        tools=[read_sensor_data],
+    )
+
+
+# ═══════════════════════════════════════════════════════
+#  AGENT 2: DIAGNOSTICS AGENT
+#  Single responsibility: identify issues from sensor data
+# ═══════════════════════════════════════════════════════
+
+def build_diagnostics_agent() -> Agent:
+    """Build the Diagnostics agent with a diagnose_issue tool."""
+
+    model = BedrockModel(
+        model_id=MODEL_ID,
+        region_name=AWS_REGION,
+        temperature=0.0,
+    )
+
     @tool
     def diagnose_issue(sensor_data_json: str) -> str:
-        """
-        Apply diagnostic rules to sensor readings to identify issues.
+        """Apply diagnostic rules to sensor readings to identify issues.
 
         Rules:
         - temperature > 85 = overheating
@@ -148,19 +207,17 @@ CRITICAL RULES:
         - battery < 10 = low_battery
 
         Args:
-            sensor_data_json: The JSON string returned by read_sensor_data
+            sensor_data_json: JSON string from the Device Monitor
 
         Returns:
             JSON string with device_id, issues found, and status
         """
         data = {}
         readings = {}
-
         try:
             data = json.loads(sensor_data_json)
             readings = data.get("readings", {})
         except (json.JSONDecodeError, AttributeError, TypeError):
-            import re
             text_lower = sensor_data_json.lower()
             temp_match = re.search(r'temperature["\s:]*(\d+\.?\d*)', text_lower)
             if temp_match:
@@ -187,10 +244,34 @@ CRITICAL RULES:
             "status": "issues_detected" if issues else "healthy",
         }, indent=2)
 
+    system_prompt = """You are a Diagnostics agent. Your ONLY job is diagnosing device issues.
+You will receive sensor data JSON. Call the diagnose_issue tool with that JSON.
+After the tool returns, output ONLY the raw JSON result. Do not read sensors or send commands."""
+
+    return Agent(
+        model=model,
+        system_prompt=system_prompt,
+        tools=[diagnose_issue],
+    )
+
+
+# ═══════════════════════════════════════════════════════
+#  AGENT 3: COMMAND AGENT
+#  Single responsibility: send corrective commands
+# ═══════════════════════════════════════════════════════
+
+def build_command_agent() -> Agent:
+    """Build the Command agent with a send_device_command tool."""
+
+    model = BedrockModel(
+        model_id=MODEL_ID,
+        region_name=AWS_REGION,
+        temperature=0.0,
+    )
+
     @tool
     def send_device_command(device_id: str, issue_type: str) -> str:
-        """
-        Send a corrective command to a device based on the diagnosed issue.
+        """Send a corrective command to a device based on the diagnosed issue.
 
         Args:
             device_id: The device's unique identifier
@@ -204,7 +285,6 @@ CRITICAL RULES:
             return json.dumps({"status": "error", "message": f"No action for: {issue_type}"})
 
         device_info = DEVICE_REGISTRY.get(device_id, {"name": "Unknown"})
-
         return json.dumps({
             "status": "command_sent",
             "device_id": device_id,
@@ -215,12 +295,100 @@ CRITICAL RULES:
             "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
         }, indent=2)
 
-    # STEP 3: Build the Agent (same as demo)
+    system_prompt = """You are a Command agent. Your ONLY job is sending corrective commands to devices.
+You will receive a device_id and issue_type. Call the send_device_command tool with those values.
+After the tool returns, output ONLY the raw JSON result. Do not read sensors or diagnose issues."""
+
     return Agent(
         model=model,
         system_prompt=system_prompt,
-        tools=[read_sensor_data, diagnose_issue, send_device_command],
+        tools=[send_device_command],
     )
+
+
+# ═══════════════════════════════════════════════════════
+#  COORDINATOR — Wires the 3 agents together
+#  Calls each in sequence: Monitor → Diagnostics → Command
+# ═══════════════════════════════════════════════════════
+
+def run_device_pipeline(device_id: str) -> dict:
+    """Run the 3-agent device management pipeline.
+
+    Flow: DeviceMonitor → DiagnosticsAgent → CommandAgent
+
+    Each agent is instantiated fresh to avoid context bleed between devices.
+    The coordinator passes the output of one agent as input to the next.
+    """
+
+    # Agent 1: Device Monitor — read sensor data
+    print("    [1/3] Device Monitor...")
+    monitor_result = run_agent_with_retry(
+        build_device_monitor,
+        f"Read sensor data for device_id={device_id}"
+    )
+    try:
+        sensor_json = json.loads(monitor_result)
+        sensor_str = json.dumps(sensor_json)
+    except (json.JSONDecodeError, TypeError):
+        json_match = re.search(r'\{[\s\S]*\}', str(monitor_result))
+        sensor_str = json_match.group(0) if json_match else str(monitor_result)
+        try:
+            sensor_json = json.loads(sensor_str)
+        except Exception:
+            sensor_json = {"raw": sensor_str}
+    print(f"          Device: {sensor_json.get('device_name', '?')}")
+
+    # Agent 2: Diagnostics — identify issues from sensor data
+    print("    [2/3] Diagnostics Agent...")
+    diag_result = run_agent_with_retry(
+        build_diagnostics_agent,
+        f"Diagnose issues from this sensor data: {sensor_str}"
+    )
+    try:
+        diag_json = json.loads(diag_result)
+        diag_str = json.dumps(diag_json)
+    except (json.JSONDecodeError, TypeError):
+        json_match = re.search(r'\{[\s\S]*\}', str(diag_result))
+        diag_str = json_match.group(0) if json_match else str(diag_result)
+        try:
+            diag_json = json.loads(diag_str)
+        except Exception:
+            diag_json = {"raw": diag_str}
+    issues = diag_json.get("issues", [])
+    print(f"          Issues: {len(issues)} found")
+
+    # Agent 3: Command — send corrective actions for each issue
+    commands = []
+    if issues:
+        for issue in issues:
+            issue_type = issue.get("issue", "unknown")
+            print(f"    [3/3] Command Agent ({issue_type})...")
+            cmd_result = run_agent_with_retry(
+                build_command_agent,
+                f"Send command for device_id={device_id} with issue_type={issue_type}"
+            )
+            try:
+                cmd_json = json.loads(cmd_result)
+            except (json.JSONDecodeError, TypeError):
+                json_match = re.search(r'\{[\s\S]*\}', str(cmd_result))
+                if json_match:
+                    try:
+                        cmd_json = json.loads(json_match.group(0))
+                    except Exception:
+                        cmd_json = {"raw": str(cmd_result)}
+                else:
+                    cmd_json = {"raw": str(cmd_result)}
+            commands.append(cmd_json)
+            print(f"          Action: {cmd_json.get('action', '?')}")
+    else:
+        print("    [3/3] Command Agent — skipped (device healthy)")
+
+    return {
+        "device_id": device_id,
+        "sensor_data": sensor_json,
+        "diagnosis": diag_json,
+        "commands": commands,
+    }
 
 
 # ═══════════════════════════════════════════════════════
@@ -230,13 +398,13 @@ CRITICAL RULES:
 def main():
     print("=" * 70)
     print("  Smart Home Device Management — Module 1 Exercise")
-    print("  Strands Agents SDK: Agent + @tool + BedrockModel")
+    print("  3-Agent Architecture: Monitor → Diagnostics → Command")
     print("=" * 70)
 
     test_scenarios = [
-        {"device_id": "DEV-001", "expected": "overheating",   "desc": "Thermostat at 92.5°F"},
-        {"device_id": "DEV-002", "expected": "firmware_issue", "desc": "Smart lock at 12% connectivity"},
-        {"device_id": "DEV-003", "expected": "low_battery",    "desc": "Doorbell camera at 7% battery"},
+        {"device_id": "DEV-001", "expected": "overheating",    "desc": "Thermostat at 92.5°F"},
+        {"device_id": "DEV-002", "expected": "firmware_issue",  "desc": "Smart lock at 12% connectivity"},
+        {"device_id": "DEV-003", "expected": "low_battery",     "desc": "Doorbell camera at 7% battery"},
     ]
 
     for s in test_scenarios:
@@ -245,5 +413,18 @@ def main():
         print(f"  Device: {s['device_id']} | Expected: {s['expected']}")
         print(f"{'─' * 70}")
 
-        # Fresh agent per device to avoid context accumulation
-   
+        result = run_device_pipeline(s["device_id"])
+
+        print(f"\n  Summary:")
+        print(f"    Device: {result['sensor_data'].get('device_name', '?')}")
+        print(f"    Status: {result['diagnosis'].get('status', '?')}")
+        issues = result['diagnosis'].get('issues', [])
+        if issues:
+            for issue in issues:
+                print(f"    Issue: {issue.get('issue', '?')} ({issue.get('field', '?')}={issue.get('value', '?')})")
+        for cmd in result['commands']:
+            print(f"    Action: {cmd.get('action', '?')} — {cmd.get('message', '')}")
+
+
+if __name__ == "__main__":
+    main()

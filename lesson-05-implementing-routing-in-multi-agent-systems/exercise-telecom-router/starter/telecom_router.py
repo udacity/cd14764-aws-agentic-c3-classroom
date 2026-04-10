@@ -42,10 +42,14 @@ import json
 import re
 import time
 import logging
+import os
+import boto3
 from datetime import datetime, timezone
+from dotenv import load_dotenv
 from strands import Agent, tool
 from strands.models import BedrockModel
 
+load_dotenv()
 logging.basicConfig(level=logging.WARNING)
 
 
@@ -76,8 +80,8 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
 # ─────────────────────────────────────────────────────
 # CONFIGURATION
 # ─────────────────────────────────────────────────────
-AWS_REGION = "us-east-1"
-NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")
 
 # ─────────────────────────────────────────────────────
 # SAMPLE TELECOM TICKETS (20 total)
@@ -130,24 +134,33 @@ TICKETS = [
 ]
 
 # ─────────────────────────────────────────────────────
-# SIMULATED DYNAMODB AUDIT LOG
+# DYNAMODB AUDIT LOG
 # ─────────────────────────────────────────────────────
-routing_audit_log = []
+ROUTING_AUDIT_TABLE = os.environ.get("ROUTING_AUDIT_TABLE", "lesson-05-routing-routing-audit")
+dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
+audit_table = dynamodb.Table(ROUTING_AUDIT_TABLE)
 
 
 def log_routing_decision(ticket_id: str, input_text: str, method: str,
                          target_agent: str, confidence: float, latency_ms: float):
-    """Log a routing decision (simulated DynamoDB put_item)."""
+    """
+    Log a routing decision to DynamoDB.
+
+    Table schema (from CloudFormation):
+      PK: request_id (S)  |  SK: timestamp (S)
+      Attributes: input_text, routing_method, target_agent, confidence, latency_ms
+    """
     entry = {
-        "ticket_id": ticket_id,
+        "request_id": ticket_id,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "input_text": input_text[:80],
         "routing_method": method,
         "target_agent": target_agent,
-        "confidence": confidence,
-        "latency_ms": round(latency_ms, 1),
+        "confidence": str(confidence),
+        "latency_ms": str(round(latency_ms, 1)),
+        "ttl": int(time.time()) + 86400,  # Auto-delete after 24 hours
     }
-    routing_audit_log.append(entry)
+    audit_table.put_item(Item=entry)
 
 
 # Shared state
@@ -497,7 +510,9 @@ def main():
         if a in agents:
             print(f"    {a:<22} {agents[a]} tickets")
 
-    print(f"\n  Audit Log: {len(routing_audit_log)} entries (simulated DynamoDB)")
+    scan_result = audit_table.scan()
+    audit_entries = scan_result.get("Items", [])
+    print(f"\n  Audit Log: {len(audit_entries)} entries (DynamoDB: {ROUTING_AUDIT_TABLE})")
 
     print(f"\n  Key Insight: Same hybrid routing pattern, different domain.")
     print(f"  Rules handle 70% cheaply, LLM handles the ambiguous tail,")

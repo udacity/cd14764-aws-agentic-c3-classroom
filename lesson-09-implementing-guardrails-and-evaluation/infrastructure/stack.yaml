@@ -1,0 +1,85 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Lesson 9: Implementing Guardrails and Evaluation
+  Creates Bedrock Guardrails for healthcare (demo) and trading (exercise).
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: lesson-09-guardrails
+
+Resources:
+  HealthcareGuardrail:
+    Type: AWS::Bedrock::Guardrail
+    Properties:
+      Name: !Sub ${ProjectName}-healthcare
+      Description: Healthcare patient intake guardrail — blocks harmful content, PII, denied topics
+      BlockedInputMessaging: "Your input was blocked by our safety guardrail."
+      BlockedOutputsMessaging: "The response was blocked by our safety guardrail."
+      ContentPolicyConfig:
+        FiltersConfig:
+          - Type: VIOLENCE
+            InputStrength: HIGH
+            OutputStrength: HIGH
+          - Type: HATE
+            InputStrength: HIGH
+            OutputStrength: HIGH
+          - Type: SEXUAL
+            InputStrength: HIGH
+            OutputStrength: HIGH
+          - Type: INSULTS
+            InputStrength: HIGH
+            OutputStrength: HIGH
+      SensitiveInformationPolicyConfig:
+        PiiEntitiesConfig:
+          - Type: US_SOCIAL_SECURITY_NUMBER
+            Action: BLOCK
+          - Type: EMAIL
+            Action: ANONYMIZE
+          - Type: PHONE
+            Action: ANONYMIZE
+      TopicPolicyConfig:
+        TopicsConfig:
+          - Name: legal-advice
+            Definition: "Requests for legal advice, legal opinions, or specific legal recommendations"
+            Type: DENY
+          - Name: prescriptions
+            Definition: "Requests for specific medication prescriptions or dosage recommendations"
+            Type: DENY
+      WordPolicyConfig:
+        ManagedWordListsConfig:
+          - Type: PROFANITY
+
+  TradingGuardrail:
+    Type: AWS::Bedrock::Guardrail
+    Properties:
+      Name: !Sub ${ProjectName}-trading
+      Description: Trading compliance guardrail — blocks insider trading, market manipulation
+      BlockedInputMessaging: "Your input was blocked by our compliance guardrail."
+      BlockedOutputsMessaging: "The response was blocked by our compliance guardrail."
+      ContentPolicyConfig:
+        FiltersConfig:
+          - Type: VIOLENCE
+            InputStrength: HIGH
+            OutputStrength: HIGH
+          - Type: HATE
+            InputStrength: HIGH
+            OutputStrength: HIGH
+      TopicPolicyConfig:
+        TopicsConfig:
+          - Name: insider-trading
+            Definition: "Requests involving insider information, non-public material information, or trading on undisclosed corporate actions"
+            Type: DENY
+          - Name: market-manipulation
+            Definition: "Requests to manipulate stock prices, coordinate pump-and-dump schemes, or create artificial market activity"
+            Type: DENY
+
+Outputs:
+  HealthcareGuardrailId:
+    Value: !Ref HealthcareGuardrail
+    Export:
+      Name: !Sub ${ProjectName}-HealthcareGuardrailId
+  TradingGuardrailId:
+    Value: !Ref TradingGuardrail
+    Export:
+      Name: !Sub ${ProjectName}-TradingGuardrailId

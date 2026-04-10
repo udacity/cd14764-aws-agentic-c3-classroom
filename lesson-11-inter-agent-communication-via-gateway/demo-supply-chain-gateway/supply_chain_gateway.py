@@ -7,14 +7,14 @@ Architecture:
     SupplyChainAgent
          │
     ┌────┴─────────────────────────────────────────────────┐
-    │  AgentCore Gateway (Simulated MCP Endpoint)            │
-    │  Converts REST APIs into MCP-compatible tools           │
-    │  Agent discovers tools via semantic search at runtime   │
+    │  LambdaGateway (AWS Lambda Tool Backends)              │
+    │  Routes tool calls to Lambda functions as backends      │
+    │  Agent discovers tools via registry at runtime          │
     └────┬──────────────┬──────────────┬──────────────────┘
          │              │              │
     ┌────┴────┐   ┌────┴────┐   ┌────┴──────────┐
     │Inventory│   │Shipping │   │  Supplier     │
-    │  API    │   │  API    │   │    API        │
+    │ Lambda  │   │ Lambda  │   │    Lambda     │
     └─────────┘   └─────────┘   └───────────────┘
 
 Gateway vs @tool:
@@ -22,7 +22,7 @@ Gateway vs @tool:
   Gateway: Runtime discovery, loose coupling, network latency
 
 When to use Gateway:
-  - Tools are independently deployed services
+  - Tools are independently deployed services (Lambda, microservices, APIs)
   - You need centralized auth and observability
   - Agents need to discover tools dynamically
   - Different teams manage different tools
@@ -31,16 +31,23 @@ Tech Stack:
   - Python 3.11+
   - Strands Agents SDK (Agent class, @tool decorator)
   - Amazon Bedrock (Nova Lite for the agent)
-  - Simulated AgentCore Gateway (in-memory tool registry)
+  - AWS Lambda (tool backends via boto3)
+  - LambdaGateway (registry pattern for Lambda functions)
+
+Production equivalent: Amazon Bedrock AgentCore Gateway (MCP protocol)
 """
 
 import json
+import os
 import re
 import time
 import logging
+import boto3
+from dotenv import load_dotenv
 from strands import Agent, tool
 from strands.models import BedrockModel
 
+load_dotenv()
 logging.basicConfig(level=logging.WARNING)
 
 
@@ -71,118 +78,104 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
 # ─────────────────────────────────────────────────────
 # CONFIGURATION
 # ─────────────────────────────────────────────────────
-AWS_REGION = "us-east-1"
-NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")
+
+# Lambda client for invoking tool backends
+lambda_client = boto3.client("lambda", region_name=AWS_REGION)
+
+# Lambda function names (from CloudFormation)
+INVENTORY_FUNCTION = os.environ.get("INVENTORY_FUNCTION", "lesson-11-gateway-inventory")
+SHIPPING_FUNCTION = os.environ.get("SHIPPING_FUNCTION", "lesson-11-gateway-shipping")
+SUPPLIER_FUNCTION = os.environ.get("SUPPLIER_FUNCTION", "lesson-11-gateway-supplier")
+QUALITY_INSPECTION_FUNCTION = os.environ.get("QUALITY_INSPECTION_FUNCTION", "lesson-11-gateway-quality-inspection")
 
 
-# STEP 1: SIMULATED AgentCore GATEWAY — Tool registry and invocation
-# Production: agentcore.create_gateway() + agentcore.create_gateway_target()
+# STEP 1: LAMBDA GATEWAY — Routes tool calls to AWS Lambda functions
+# Production equivalent: Amazon Bedrock AgentCore Gateway (MCP protocol)
 
-class SimulatedGateway:
-    """Simulates AgentCore Gateway: API → MCP-compatible tools, tool discovery, invocation logging."""
+class LambdaGateway:
+    """Gateway that routes tool calls to AWS Lambda functions.
+
+    This gateway implements the registration → discovery → invocation pattern
+    using AWS Lambda as the tool backend. Each registered tool maps to a
+    Lambda function that is invoked via boto3.
+
+    Production: Amazon Bedrock AgentCore Gateway (MCP protocol)
+    """
 
     def __init__(self, name: str, description: str):
-        self.gateway_id = f"gw-{name.lower().replace(' ', '-')[:20]}"
+        self.gateway_id = f"GW-{name.upper().replace(' ', '-')[:20]}"
         self.name = name
         self.description = description
-        self.targets = {}  # name → target config
+        self.targets = {}  # name → {description, function_name, target_type}
         self.invocation_log = []
 
-    def register_target(self, name: str, description: str, target_type: str,
-                        handler: callable, openapi_spec: dict = None):
-        """Register an API as a Gateway target. Production: agentcore.create_gateway_target()"""
+    def register_target(self, name: str, description: str, function_name: str,
+                        target_type: str = "lambda"):
+        """Register a Lambda function as a gateway target.
+
+        Production: agentcore.create_gateway_target()
+        """
         self.targets[name] = {
-            "name": name,
             "description": description,
-            "type": target_type,
-            "handler": handler,
-            "openapi_spec": openapi_spec,
+            "function_name": function_name,
+            "target_type": target_type,
         }
 
     def discover_tools(self, query: str = None) -> list[dict]:
-        """Discover tools via semantic search. Production: MCP list_tools protocol."""
+        """List all registered tools (or filter by query).
+
+        Production: MCP list_tools protocol
+        """
         tools = []
-        for name, target in self.targets.items():
-            tools.append({
-                "name": name,
-                "description": target["description"],
-                "type": target["type"],
-            })
+        for name, config in self.targets.items():
+            if query is None or query.lower() in name.lower() or query.lower() in config["description"].lower():
+                tools.append({
+                    "name": name,
+                    "description": config["description"],
+                    "type": config["target_type"],
+                })
         return tools
 
     def invoke_tool(self, tool_name: str, params: dict) -> dict:
-        """Invoke a registered tool through the Gateway."""
+        """Invoke a registered tool via Lambda.
+
+        Production: MCP tool invocation protocol
+        """
         if tool_name not in self.targets:
-            return {"error": f"Tool '{tool_name}' not found in Gateway"}
+            return {"status": "error", "message": f"Tool '{tool_name}' not found in gateway"}
 
         target = self.targets[tool_name]
-        result = target["handler"](params)
+        function_name = target["function_name"]
+
+        # Invoke Lambda function
+        response = lambda_client.invoke(
+            FunctionName=function_name,
+            InvocationType="RequestResponse",
+            Payload=json.dumps(params),
+        )
+
+        result = json.loads(response["Payload"].read().decode("utf-8"))
 
         self.invocation_log.append({
             "tool": tool_name,
+            "function": function_name,
             "params": params,
+            "result_status": result.get("status", "unknown"),
             "timestamp": time.time(),
         })
 
         return result
 
 
-# STEP 2: API HANDLERS — REST API endpoints registered as Gateway targets
-def inventory_api_handler(params: dict) -> dict:
-    """Simulated Inventory REST API."""
-    inventory = {
-        "WIDGET-001": {"name": "Steel Bolts M8", "stock": 15000, "warehouse": "WH-East", "reorder_point": 5000},
-        "WIDGET-002": {"name": "Copper Wire 12AWG", "stock": 2000, "warehouse": "WH-West", "reorder_point": 3000},
-        "WIDGET-003": {"name": "Aluminum Sheet 2mm", "stock": 8500, "warehouse": "WH-East", "reorder_point": 2000},
-    }
-    item_id = params.get("item_id", "")
-    if item_id in inventory:
-        item = inventory[item_id]
-        item["needs_reorder"] = item["stock"] < item["reorder_point"]
-        return {"status": "ok", "item": item}
-    return {"status": "ok", "inventory": list(inventory.values())}
-
-def shipping_api_handler(params: dict) -> dict:
-    """Simulated Shipping REST API."""
-    shipments = {
-        "SHIP-101": {"destination": "New York", "status": "in_transit", "eta": "2024-03-15", "carrier": "FedEx"},
-        "SHIP-102": {"destination": "Chicago", "status": "delayed", "eta": "2024-03-18", "carrier": "UPS",
-                     "delay_reason": "Weather disruption"},
-        "SHIP-103": {"destination": "Miami", "status": "delivered", "delivered_at": "2024-03-10", "carrier": "USPS"},
-    }
-    tracking_id = params.get("tracking_id", "")
-    if tracking_id in shipments:
-        return {"status": "ok", "shipment": shipments[tracking_id]}
-    return {"status": "ok", "all_shipments": list(shipments.values())}
-
-def supplier_api_handler(params: dict) -> dict:
-    """Simulated Supplier REST API."""
-    suppliers = {
-        "SUP-A": {"name": "SteelCo Industries", "rating": 4.5, "lead_time_days": 7, "min_order": 1000},
-        "SUP-B": {"name": "CopperWire Direct", "rating": 3.8, "lead_time_days": 14, "min_order": 500},
-        "SUP-C": {"name": "MetalSheets Global", "rating": 4.2, "lead_time_days": 10, "min_order": 200},
-    }
-    supplier_id = params.get("supplier_id", "")
-    if supplier_id in suppliers:
-        return {"status": "ok", "supplier": suppliers[supplier_id]}
-    return {"status": "ok", "all_suppliers": list(suppliers.values())}
-
-def quality_inspection_handler(params: dict) -> dict:
-    """Simulated Quality Inspection API — added AFTER initial setup."""
-    inspections = {
-        "WIDGET-001": {"last_inspection": "2024-03-01", "result": "PASS", "defect_rate": 0.02},
-        "WIDGET-002": {"last_inspection": "2024-02-28", "result": "FAIL", "defect_rate": 0.08,
-                       "issues": ["Insulation thickness below spec"]},
-        "WIDGET-003": {"last_inspection": "2024-03-05", "result": "PASS", "defect_rate": 0.01},
-    }
-    item_id = params.get("item_id", "")
-    if item_id in inspections:
-        return {"status": "ok", "inspection": inspections[item_id]}
-    return {"status": "ok", "all_inspections": list(inspections.values())}
+# Note: Handler functions now live in AWS Lambda (see infrastructure/stack.yaml)
+# The data that was previously in-memory is now stored in Lambda functions,
+# which are invoked through the gateway's invoke_tool() method.
 
 
 # STEP 3: AGENT BUILDER — Supply chain agent with Gateway-based tools
-def build_supply_chain_agent(gateway: SimulatedGateway) -> Agent:
+def build_supply_chain_agent(gateway: LambdaGateway) -> Agent:
     """Build a supply chain agent connected to the Gateway."""
     # STEP 3.1: BedrockModel — Nova Lite for supply chain reasoning (temperature 0.1)
     model = BedrockModel(model_id=NOVA_LITE_MODEL, region_name=AWS_REGION, temperature=0.1)
@@ -294,28 +287,25 @@ def main():
     print("=" * 70)
 
     # ── Create Gateway ──
-    gateway = SimulatedGateway(
+    gateway = LambdaGateway(
         name="supply-chain-gateway",
-        description="MCP endpoint for supply chain REST APIs"
+        description="Lambda-backed tool gateway for supply chain operations"
     )
     print(f"\n  Gateway: {gateway.gateway_id}")
     gateway.register_target(
         name="inventory_api",
         description="Check inventory levels, stock counts, and reorder status for warehouse items",
-        target_type="REST_API",
-        handler=inventory_api_handler,
+        function_name=INVENTORY_FUNCTION,
     )
     gateway.register_target(
         name="shipping_api",
         description="Track shipment status, ETAs, and delivery confirmations by tracking ID",
-        target_type="REST_API",
-        handler=shipping_api_handler,
+        function_name=SHIPPING_FUNCTION,
     )
     gateway.register_target(
         name="supplier_api",
         description="Look up supplier information, ratings, lead times, and minimum order quantities",
-        target_type="REST_API",
-        handler=supplier_api_handler,
+        function_name=SUPPLIER_FUNCTION,
     )
 
     print(f"  Registered 3 targets:")
@@ -325,8 +315,7 @@ def main():
     gateway.register_target(
         name="quality_inspection_api",
         description="Check quality inspection results, defect rates, and pass/fail status for items",
-        target_type="LAMBDA",
-        handler=quality_inspection_handler,
+        function_name=QUALITY_INSPECTION_FUNCTION,
     )
     print(f"  {len(gateway.targets)} tools available:")
     for t in gateway.discover_tools():
@@ -347,7 +336,7 @@ def main():
     print("INVOCATION LOG")
     print(f"{'═' * 70}")
     for entry in gateway.invocation_log:
-        print(f"  Tool: {entry['tool']:25s} Params: {json.dumps(entry['params'])}")
+        print(f"  Tool: {entry['tool']:25s} Lambda: {entry['function']:35s} Status: {entry['result_status']}")
 
 
     print(f"\n  Key: 1) PLUGIN ARCH — register APIs 2) DYNAMIC DISCOVERY — no code changes")

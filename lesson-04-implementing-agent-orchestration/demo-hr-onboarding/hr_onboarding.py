@@ -43,12 +43,16 @@ Tech Stack:
 """
 
 import json
+import os
 import re
 import time
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dotenv import load_dotenv
 from strands import Agent, tool
 from strands.models import BedrockModel
+
+load_dotenv()
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -78,9 +82,9 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
 
 
 # Configuration
-AWS_REGION = "us-east-1"
-CLAUDE_MODEL = "anthropic.claude-3-sonnet-20240229-v1:0"     # Orchestrator (reasoning)
-NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"                    # Workers (fast execution)
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "anthropic.claude-3-sonnet-20240229-v1:0")     # Orchestrator (reasoning)
+NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")                    # Workers (fast execution)
 
 # Sample employees
 EMPLOYEES = [

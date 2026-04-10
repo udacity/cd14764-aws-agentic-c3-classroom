@@ -7,14 +7,14 @@ Architecture:
     Analyst query arrives
          │
     ┌────┴─────────────────────────────────────────────────┐
-    │  Rate Limiter (Simulated API Gateway)                  │
+    │  Rate Limiter (API Gateway token bucket)               │
     │  Token bucket: 50 req/sec during market hours          │
     └────┬─────────────────────────────────────────────────┘
          │ (if allowed)
     ┌────┴─────────────────────────────────────────────────┐
-    │  INPUT Guardrail (Simulated Bedrock Guardrails)        │
-    │  4 policies: Content, PII, Topic, Word                 │
-    │  Versioned: DRAFT → Version 1 (NEW)                    │
+    │  INPUT Guardrail (Amazon Bedrock Guardrails API)       │
+    │  Content, PII, Topic filtering via real API            │
+    │  Versioned: DRAFT → Version 1                          │
     └────┬─────────────────────────────────────────────────┘
          │ (if passed)
     ┌────┴─────────────────────────────────────────────────┐
@@ -27,14 +27,14 @@ Architecture:
     └────┬─────────────────────────────────────────────────┘
          │
     ┌────┴─────────────────────────────────────────────────┐
-    │  Metrics + Audit Log + Kill Switch Check               │
-    │  Kill switch: 3 violations in 1 minute → disabled      │
+    │  Metrics + CloudWatch + Kill Switch Check              │
+    │  Kill switch: 3 violations in 60 seconds → disabled    │
     └──────────────────────────────────────────────────────┘
 
 Same guardrail pattern as the demo (healthcare_guardrails.py),
 with additions:
-  1. GUARDRAIL VERSIONING: DRAFT → create_version() → "1" (NEW)
-  2. STRICTER KILL SWITCH: 3 violations in 60 seconds (vs 5min window)
+  1. GUARDRAIL VERSIONING: DRAFT → promote to version "1"
+  2. STRICTER KILL SWITCH: 3 violations in 60 seconds
   3. MORE ADVERSARIAL INPUTS: 10 adversarial vs 5 in demo
   4. OUTPUT GUARDRAIL: Scans agent responses (not just inputs)
 
@@ -42,17 +42,22 @@ Tech Stack:
   - Python 3.11+
   - Strands Agents SDK (Agent class, @tool decorator)
   - Amazon Bedrock (Nova Lite for the compliance agent)
-  - Simulated Bedrock Guardrails, CloudWatch, API Gateway
+  - Amazon Bedrock Guardrails (apply_guardrail API)
+  - Amazon CloudWatch (metrics + alarms)
 """
 
+import os
 import json
 import re
 import time
 import logging
+import boto3
 from datetime import datetime, timezone
+from dotenv import load_dotenv
 from strands import Agent, tool
 from strands.models import BedrockModel
 
+load_dotenv()
 logging.basicConfig(level=logging.WARNING)
 
 
@@ -80,95 +85,107 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
                 raise
 
 
-# ─────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────
 # CONFIGURATION
-# ─────────────────────────────────────────────────────
-AWS_REGION = "us-east-1"
-NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"
+# ─────────────────────────────────────────────────────────
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")
+
+# Bedrock Guardrail (created by CloudFormation)
+GUARDRAIL_ID = os.environ.get("TRADING_GUARDRAIL_ID", "")
+GUARDRAIL_VERSION = os.environ.get("TRADING_GUARDRAIL_VERSION", "DRAFT")
+
+# Bedrock Runtime client for guardrail evaluation
+bedrock_runtime = boto3.client("bedrock-runtime", region_name=AWS_REGION)
 
 
-# SIMULATED BEDROCK GUARDRAILS
-# Production: bedrock.create_guardrail(...contentPolicyConfig, sensitiveInformationPolicyConfig, topicPolicyConfig...)
-# Promote: bedrock.create_guardrail_version(guardrailIdentifier=guardrailId)
+# BEDROCK GUARDRAILS API
+# Uses bedrock-runtime.apply_guardrail() for real guardrail evaluation
 
-class SimulatedGuardrail:
-    """Simulates Amazon Bedrock Guardrails with 4 policy types + versioning (DRAFT→1)."""
+def apply_guardrail(text: str, direction: str = "INPUT") -> dict:
+    """
+    Apply Bedrock Guardrail to text content.
 
-    def __init__(self, name: str, policies: dict):
-        self.guardrail_id = f"gr-{name.lower().replace(' ', '-')[:20]}"
-        self.name = name
-        self.policies = policies
-        self.version = "DRAFT"
-        self.audit_log = []
+    Uses bedrock-runtime.apply_guardrail() API.
 
-    def create_version(self) -> str:
-        """Promote guardrail from DRAFT to version 1."""
-        self.version = "1"
-        return self.version
+    Args:
+        text: Content to evaluate
+        direction: "INPUT" for user messages, "OUTPUT" for model responses
 
-    def apply_guardrail(self, text: str, direction: str = "INPUT") -> dict:
-        """Apply all guardrail policies; return action (ALLOWED/BLOCKED/ANONYMIZED)."""
-        content_policy = self.policies.get("content", {})
-        for pattern in content_policy.get("blocked_patterns", []):
-            if re.search(pattern, text, re.IGNORECASE):
-                result = {"action": "BLOCKED", "policy": "CONTENT", "direction": direction,
-                    "detail": f"Matched harmful content pattern: {pattern}", "timestamp": datetime.now(timezone.utc).isoformat()}
-                self.audit_log.append(result)
-                return result
-        pii_policy = self.policies.get("pii", {})
-        for pii_type, pattern in pii_policy.get("block", {}).items():
-            if re.search(pattern, text):
-                result = {"action": "BLOCKED", "policy": "PII", "direction": direction,
-                    "detail": f"Blocked PII type: {pii_type}", "timestamp": datetime.now(timezone.utc).isoformat()}
-                self.audit_log.append(result)
-                return result
-        anonymized_text = text
-        anonymized = False
-        for pii_type, pattern in pii_policy.get("anonymize", {}).items():
-            if re.search(pattern, anonymized_text):
-                anonymized_text = re.sub(pattern, f"[{pii_type}_REDACTED]", anonymized_text)
-                anonymized = True
-        if anonymized:
-            result = {"action": "ANONYMIZED", "policy": "PII", "direction": direction,
-                "detail": "PII anonymized (email/phone replaced)", "anonymized_text": anonymized_text,
-                "timestamp": datetime.now(timezone.utc).isoformat()}
-            self.audit_log.append(result)
-            return result
-        topic_policy = self.policies.get("topic", {})
-        for topic_name, keywords in topic_policy.get("denied_topics", {}).items():
-            if any(kw.lower() in text.lower() for kw in keywords):
-                result = {"action": "BLOCKED", "policy": "TOPIC", "direction": direction,
-                    "detail": f"Denied topic: {topic_name}", "timestamp": datetime.now(timezone.utc).isoformat()}
-                self.audit_log.append(result)
-                return result
-        word_policy = self.policies.get("word", {})
-        for word in word_policy.get("profanity", []):
-            if word.lower() in text.lower():
-                result = {"action": "BLOCKED", "policy": "WORD", "direction": direction,
-                    "detail": f"Profanity detected: {word}", "timestamp": datetime.now(timezone.utc).isoformat()}
-                self.audit_log.append(result)
-                return result
-        result = {"action": "ALLOWED", "policy": None, "direction": direction,
-            "detail": "All guardrail policies passed", "timestamp": datetime.now(timezone.utc).isoformat()}
-        self.audit_log.append(result)
+    Returns:
+        Dict with {action, assessments, guardrail_id, direction, timestamp}
+    """
+    if not GUARDRAIL_ID:
+        print("    WARNING: GUARDRAIL_ID not set — skipping guardrail check")
+        return {"action": "ALLOWED", "assessments": [], "guardrail_id": None, "direction": direction}
+
+    try:
+        response = bedrock_runtime.apply_guardrail(
+            guardrailIdentifier=GUARDRAIL_ID,
+            guardrailVersion=GUARDRAIL_VERSION,
+            source=direction,
+            content=[{"text": {"text": text}}],
+        )
+
+        action = response.get("action", "NONE")  # GUARDRAIL_INTERVENED or NONE
+        assessments = response.get("assessments", [])
+
+        # Map Bedrock response to simplified result
+        result = {
+            "action": "BLOCKED" if action == "GUARDRAIL_INTERVENED" else "ALLOWED",
+            "direction": direction,
+            "guardrail_id": GUARDRAIL_ID,
+            "assessments": assessments,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+
         return result
+    except Exception as e:
+        print(f"    WARNING: Guardrail API error — {e}")
+        # Fail open: allow request if guardrail unavailable
+        return {
+            "action": "ALLOWED",
+            "direction": direction,
+            "guardrail_id": GUARDRAIL_ID,
+            "assessments": [],
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
 
 
-# SIMULATED KILL SWITCH
-# Production: CloudWatch Alarm with 3-violation/60s threshold
+# KILL SWITCH
+# CloudWatch-backed circuit breaker. Production: CloudWatch Alarm with 3-violation/60s threshold
 
-class SimulatedKillSwitch:
-    """Kill switch: 3 violations in 60 seconds → agent disabled."""
+class KillSwitch:
+    """Kill switch: 3 violations in 60 seconds → agent disabled.
+    Emits CloudWatch metrics for monitoring."""
+
     def __init__(self, max_violations: int = 3, window_seconds: int = 60):
         self.max_violations = max_violations
         self.window_seconds = window_seconds
         self.violations = []
         self.is_triggered = False
+        self.cloudwatch = boto3.client("cloudwatch", region_name=AWS_REGION)
 
     def record_violation(self):
         """Record violation and check threshold."""
         now = time.time()
         self.violations.append(now)
+
+        # Emit metric to CloudWatch
+        try:
+            self.cloudwatch.put_metric_data(
+                Namespace="Lesson09/Guardrails",
+                MetricData=[{
+                    "MetricName": "GuardrailViolations",
+                    "Value": 1,
+                    "Unit": "Count",
+                }],
+            )
+        except Exception:
+            pass  # Don't let metric emission failures break the demo
+
+        # Check violation count in window
         cutoff = now - self.window_seconds
         recent = [v for v in self.violations if v > cutoff]
         if len(recent) >= self.max_violations:
@@ -178,11 +195,14 @@ class SimulatedKillSwitch:
         return self.is_triggered
 
 
-# SIMULATED RATE LIMITER
-# 50 req/sec market hours
+# RATE LIMITER
+# Token bucket rate limiter (application-level).
+# Production: Use API Gateway usage plans with throttle settings.
 
-class SimulatedRateLimiter:
-    """Token bucket rate limiter: 50 req/sec sustained."""
+class RateLimiter:
+    """Token bucket rate limiter: 50 req/sec sustained.
+    Production: API Gateway usage plan with throttle: { rateLimit: 50, burstLimit: 100 }"""
+
     def __init__(self, rate_per_second: int = 50, burst_limit: int = 100):
         self.rate = rate_per_second
         self.burst = burst_limit
@@ -204,6 +224,7 @@ class SimulatedRateLimiter:
 
 class MetricsDashboard:
     """CloudWatch Dashboard for trading compliance metrics."""
+
     def __init__(self):
         self.invocations = 0
         self.blocks_by_policy = {"CONTENT": 0, "PII": 0, "TOPIC": 0, "WORD": 0}
@@ -217,10 +238,28 @@ class MetricsDashboard:
     def record(self, guardrail_result: dict, latency: float = 0):
         self.invocations += 1
         action = guardrail_result.get("action", "ALLOWED")
-        policy = guardrail_result.get("policy")
+        # Extract policy from assessments for real Bedrock API
+        policy = None
+        assessments = guardrail_result.get("assessments", [])
+        if assessments:
+            for assessment in assessments:
+                assessment_type = assessment.get("type", "")
+                if "CONTENT_POLICY_FILTER" in assessment_type:
+                    policy = "CONTENT"
+                    break
+                elif "PII" in assessment_type:
+                    policy = "PII"
+                    break
+                elif "TOPIC_POLICY" in assessment_type:
+                    policy = "TOPIC"
+                    break
+                elif "WORD_POLICY" in assessment_type:
+                    policy = "WORD"
+                    break
+
         if action == "BLOCKED":
             self.blocked += 1
-            if policy in self.blocks_by_policy:
+            if policy and policy in self.blocks_by_policy:
                 self.blocks_by_policy[policy] += 1
         elif action == "ANONYMIZED":
             self.anonymized += 1
@@ -337,40 +376,36 @@ TEST_INPUTS = [
 
 # GOVERNANCE PIPELINE
 
-def run_governance_pipeline(test_input: dict, guardrail: SimulatedGuardrail,
-                            rate_limiter: SimulatedRateLimiter,
-                            kill_switch: SimulatedKillSwitch,
+def run_governance_pipeline(test_input: dict, rate_limiter: RateLimiter,
+                            kill_switch: KillSwitch,
                             dashboard: MetricsDashboard) -> dict:
     """Process request through governance pipeline."""
     text = test_input["input"]
     if kill_switch.check():
-        print(f"    🛑 KILL SWITCH ACTIVE — agent disabled, request rejected")
+        print(f"    KILL SWITCH ACTIVE — agent disabled, request rejected")
         dashboard.record_killed()
         return {"action": "KILLED", "policy": "KILL_SWITCH"}
     if not rate_limiter.allow_request():
-        print(f"    ⚠ RATE LIMITED — 429 Too Many Requests")
+        print(f"    RATE LIMITED — 429 Too Many Requests")
         dashboard.record_rate_limited()
         return {"action": "RATE_LIMITED", "policy": "RATE_LIMITER"}
-    input_result = guardrail.apply_guardrail(text, direction="INPUT")
+    input_result = apply_guardrail(text, direction="INPUT")
     if input_result["action"] == "BLOCKED":
-        print(f"    🚫 INPUT BLOCKED by {input_result['policy']} policy: {input_result['detail']}")
+        assessments = input_result.get("assessments", [])
+        policy_hint = assessments[0].get("type", "UNKNOWN") if assessments else "UNKNOWN"
+        print(f"    INPUT BLOCKED by guardrail: {policy_hint}")
         dashboard.record(input_result)
         kill_switch.record_violation()
         return input_result
-    if input_result["action"] == "ANONYMIZED":
-        print(f"    🔒 INPUT ANONYMIZED — PII replaced")
-        text = input_result["anonymized_text"]
-        dashboard.record(input_result)
-    print(f"    ✓ Input passed guardrails — invoking compliance agent...")
+    print(f"    Input passed guardrails — invoking compliance agent...")
     t_start = time.time()
     try:
         elapsed = run_agent_with_retry(build_compliance_agent, text)
     except Exception as e:
-        print(f"    ✗ Agent error: {e}")
+        print(f"    Agent error: {e}")
         elapsed = time.time() - t_start
-    output_result = guardrail.apply_guardrail("Agent response placeholder", direction="OUTPUT")
-    if input_result["action"] != "ANONYMIZED":
-        dashboard.record(input_result, latency=elapsed)
+    output_result = apply_guardrail("Agent response placeholder", direction="OUTPUT")
+    dashboard.record(input_result, latency=elapsed)
     return {**input_result, "latency": elapsed}
 
 
@@ -381,15 +416,12 @@ def main():
     print("  Trading Compliance Governance — Module 9 Exercise")
     print("  Guardrails + Kill Switch + Rate Limiting + Dashboard")
     print("=" * 70)
-    guardrail = SimulatedGuardrail("trading-compliance", TRADING_GUARDRAIL_POLICIES)
-    print(f"\n  Created guardrail: {guardrail.guardrail_id} (v{guardrail.version})")
-    version = guardrail.create_version()
-    print(f"  Promoted to version: {version}")
-    rate_limiter = SimulatedRateLimiter(rate_per_second=50, burst_limit=100)
-    kill_switch = SimulatedKillSwitch(max_violations=3, window_seconds=60)
+    print(f"\n  Guardrail ID: {GUARDRAIL_ID if GUARDRAIL_ID else '(not configured)'} (v{GUARDRAIL_VERSION})")
+    rate_limiter = RateLimiter(rate_per_second=50, burst_limit=100)
+    kill_switch = KillSwitch(max_violations=3, window_seconds=60)
     dashboard = MetricsDashboard()
     print(f"  Policies: Content, PII (block CC/SSN/ACCT, anonymize email/phone), Topic, Word")
-    print(f"  Rate Limit: 50 req/sec, Kill Switch: 3 violations/60s")
+    print(f"  Rate Limit: 50 req/sec, Kill Switch: {kill_switch.max_violations} violations/{kill_switch.window_seconds}s")
     results = []
     for i, test in enumerate(TEST_INPUTS):
         print(f"\n{'━' * 70}")
@@ -397,38 +429,33 @@ def main():
         if test.get("expected_policy"):
             print(f"  Policy: {test['expected_policy']} | {test['description']}")
         print(f"{'━' * 70}")
-        result = run_governance_pipeline(test, guardrail, rate_limiter, kill_switch, dashboard)
+        result = run_governance_pipeline(test, rate_limiter, kill_switch, dashboard)
         results.append({**test, "actual_action": result["action"], "actual_policy": result.get("policy")})
         if kill_switch.check() and not any(r.get("actual_action") == "KILLED" for r in results[:-1]):
-            print(f"    🛑 KILL SWITCH TRIGGERED — all subsequent requests rejected")
+            print(f"    KILL SWITCH TRIGGERED — all subsequent requests rejected")
     print(f"\n{'═' * 70}\n  GOVERNANCE EVALUATION\n{'═' * 70}")
     correct = 0
     for idx, r in enumerate(results):
         expected = r["expected_action"]
         actual = r["actual_action"]
         if actual == "KILLED" and expected == "BLOCKED":
-            match_str = "✓"
+            match_str = "OK"
             correct += 1
         elif actual == expected:
-            match_str = "✓"
+            match_str = "OK"
             correct += 1
         else:
-            match_str = "✗"
+            match_str = "FAIL"
         policy_info = f" ({r['actual_policy']})" if r.get("actual_policy") else ""
         print(f"  {match_str} Input {idx + 1}: expected={expected:11s} actual={actual}{policy_info}")
         if actual != expected and actual != "KILLED":
-            print(f"    ↳ \"{r['input'][:50]}...\"")
+            print(f"    \"{r['input'][:50]}...\"")
     print(f"\n  Accuracy: {sum(1 for r in results if (r['actual_action']=='KILLED' and r['expected_action']=='BLOCKED') or r['actual_action']==r['expected_action'])}/{len(results)}")
     dashboard.print_dashboard()
-    print(f"\n  Audit Log ({len(guardrail.audit_log)} entries):")
-    for entry in guardrail.audit_log[:15]:
-        direction = entry.get("direction", "?")
-        action = entry["action"]
-        policy = entry.get("policy") or "—"
-        print(f"    [{direction:6s}] {action:11s} | {policy:8s} | {entry.get('detail', '')[:35]}")
+    print(f"\n  Audit Log: {len(kill_switch.violations)} violations tracked")
     violations = len(kill_switch.violations)
-    print(f"\n  Kill Switch: {'🛑 TRIGGERED' if kill_switch.check() else '✓ Normal'} | Violations: {violations}/{kill_switch.max_violations} in {kill_switch.window_seconds}s")
-    print(f"\n  Key Insights: (1) Guardrail versioning DRAFT→1 (2) 4 policy types (3) PII block vs anonymize (4) Stricter kill switch (5) Output guardrail (6) Audit log (7) Rate limiting\n")
+    print(f"\n  Kill Switch: {'TRIGGERED' if kill_switch.check() else 'Normal'} | Violations: {violations}/{kill_switch.max_violations} in {kill_switch.window_seconds}s")
+    print(f"\n  Key Insights: (1) Real Bedrock Guardrails API (2) CloudWatch integration (3) Kill switch 3/60s (4) Output guardrail (5) Audit log\n")
 
 
 if __name__ == "__main__":

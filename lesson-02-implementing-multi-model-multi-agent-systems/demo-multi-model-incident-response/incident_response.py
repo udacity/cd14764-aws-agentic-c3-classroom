@@ -27,11 +27,15 @@ Tech Stack:
 """
 
 import json
+import os
 import re
 import time
 import logging
+from dotenv import load_dotenv
 from strands import Agent, tool
 from strands.models import BedrockModel
+
+load_dotenv()
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -43,10 +47,10 @@ def clean_response(text: str) -> str:
 # ─────────────────────────────────────────────────────
 # CONFIGURATION — Three different models
 # ─────────────────────────────────────────────────────
-AWS_REGION = "us-east-1"
-NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"                    # Fast, lightweight
-CLAUDE_MODEL = "anthropic.claude-3-sonnet-20240229-v1:0"     # Deep reasoning
-NOVA_PRO_MODEL = "amazon.nova-pro-v1:0"                      # Balanced
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")                    # Fast, lightweight
+CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "anthropic.claude-3-sonnet-20240229-v1:0")     # Deep reasoning
+NOVA_PRO_MODEL = os.environ.get("NOVA_PRO_MODEL", "amazon.nova-pro-v1:0")                      # Balanced
 
 # ─────────────────────────────────────────────────────
 # SAMPLE DATA

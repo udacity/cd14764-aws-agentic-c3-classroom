@@ -1,0 +1,240 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Lesson 11: Inter-Agent Communication via Gateway
+  Creates Lambda functions as tool backends for the gateway pattern.
+  Both demo (supply chain) and exercise (analytics) Lambda functions included.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: lesson-11-gateway
+
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-lambda-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # ─────────────────────────────────────────────────────
+  # DEMO: Supply Chain Gateway Lambda Functions
+  # ─────────────────────────────────────────────────────
+
+  InventoryFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-inventory
+      Runtime: python3.11
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          INVENTORY = {
+              "WIDGET-001": {"name": "Steel Bolts M8", "stock": 15000, "warehouse": "WH-East", "reorder_point": 5000},
+              "WIDGET-002": {"name": "Copper Wire 12AWG", "stock": 2000, "warehouse": "WH-West", "reorder_point": 3000},
+              "WIDGET-003": {"name": "Aluminum Sheet 2mm", "stock": 8500, "warehouse": "WH-East", "reorder_point": 2000},
+          }
+          def handler(event, context):
+              item_id = event.get("item_id", "")
+              if item_id in INVENTORY:
+                  item = INVENTORY[item_id].copy()
+                  item["needs_reorder"] = item["stock"] < item["reorder_point"]
+                  return {"status": "ok", "item": item}
+              return {"status": "ok", "inventory": list(INVENTORY.values())}
+
+  ShippingFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-shipping
+      Runtime: python3.11
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          SHIPMENTS = {
+              "SHIP-101": {"destination": "New York", "status": "in_transit", "eta": "2024-03-15", "carrier": "FedEx"},
+              "SHIP-102": {"destination": "Chicago", "status": "delayed", "eta": "2024-03-18", "carrier": "UPS", "delay_reason": "Weather disruption"},
+              "SHIP-103": {"destination": "Miami", "status": "delivered", "delivered_at": "2024-03-10", "carrier": "USPS"},
+          }
+          def handler(event, context):
+              tracking_id = event.get("tracking_id", "")
+              if tracking_id in SHIPMENTS:
+                  return {"status": "ok", "shipment": SHIPMENTS[tracking_id]}
+              return {"status": "ok", "all_shipments": list(SHIPMENTS.values())}
+
+  SupplierFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-supplier
+      Runtime: python3.11
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          SUPPLIERS = {
+              "SUP-A": {"name": "SteelCo Industries", "rating": 4.5, "lead_time_days": 7, "min_order": 1000},
+              "SUP-B": {"name": "CopperWire Direct", "rating": 3.8, "lead_time_days": 14, "min_order": 500},
+              "SUP-C": {"name": "MetalSheets Global", "rating": 4.2, "lead_time_days": 10, "min_order": 200},
+          }
+          def handler(event, context):
+              supplier_id = event.get("supplier_id", "")
+              if supplier_id in SUPPLIERS:
+                  return {"status": "ok", "supplier": SUPPLIERS[supplier_id]}
+              return {"status": "ok", "all_suppliers": list(SUPPLIERS.values())}
+
+  QualityInspectionFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-quality-inspection
+      Runtime: python3.11
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          INSPECTIONS = {
+              "WIDGET-001": {"last_inspection": "2024-03-01", "result": "PASS", "defect_rate": 0.02},
+              "WIDGET-002": {"last_inspection": "2024-02-28", "result": "FAIL", "defect_rate": 0.08, "issues": ["Insulation thickness below spec"]},
+              "WIDGET-003": {"last_inspection": "2024-03-05", "result": "PASS", "defect_rate": 0.01},
+          }
+          def handler(event, context):
+              item_id = event.get("item_id", "")
+              if item_id in INSPECTIONS:
+                  return {"status": "ok", "inspection": INSPECTIONS[item_id]}
+              return {"status": "ok", "all_inspections": list(INSPECTIONS.values())}
+
+  # ─────────────────────────────────────────────────────
+  # EXERCISE: Analytics Gateway Lambda Functions
+  # ─────────────────────────────────────────────────────
+
+  WeatherFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-weather
+      Runtime: python3.11
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          WEATHER_DATA = {
+              "tokyo": {"city": "Tokyo", "temp_c": 22, "condition": "Partly Cloudy", "humidity": 65, "wind_kph": 12},
+              "london": {"city": "London", "temp_c": 14, "condition": "Rainy", "humidity": 82, "wind_kph": 20},
+              "new york": {"city": "New York", "temp_c": 18, "condition": "Sunny", "humidity": 45, "wind_kph": 8},
+              "sydney": {"city": "Sydney", "temp_c": 26, "condition": "Clear", "humidity": 55, "wind_kph": 15},
+          }
+          def handler(event, context):
+              city = event.get("city", "").lower()
+              if city in WEATHER_DATA:
+                  return {"status": "ok", "weather": WEATHER_DATA[city]}
+              return {"status": "error", "message": f"City '{city}' not found"}
+
+  CurrencyFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-currency
+      Runtime: python3.11
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          RATES = {
+              "USD": 1.0, "EUR": 0.92, "GBP": 0.79, "JPY": 151.5,
+              "AUD": 1.53, "CAD": 1.36, "CHF": 0.88,
+          }
+          def handler(event, context):
+              amount = event.get("amount", 0)
+              from_currency = event.get("from", "USD").upper()
+              to_currency = event.get("to", "EUR").upper()
+
+              if from_currency not in RATES or to_currency not in RATES:
+                  return {"status": "error", "message": "Unsupported currency"}
+
+              usd_amount = amount / RATES[from_currency]
+              converted = round(usd_amount * RATES[to_currency], 2)
+
+              return {
+                  "status": "ok",
+                  "conversion": {
+                      "from": from_currency, "to": to_currency,
+                      "original_amount": amount, "converted_amount": converted,
+                      "rate": round(RATES[to_currency] / RATES[from_currency], 4),
+                  },
+              }
+
+  NewsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-news
+      Runtime: python3.11
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          HEADLINES = {
+              "ai": [
+                  {"title": "OpenAI Announces GPT-5 with Multimodal Reasoning", "source": "TechCrunch"},
+                  {"title": "AWS Launches AgentCore for Multi-Agent Systems", "source": "AWS Blog"},
+                  {"title": "AI Regulation Framework Advances in EU Parliament", "source": "Reuters"},
+              ],
+              "finance": [
+                  {"title": "Fed Holds Interest Rates Steady at 5.25%", "source": "Bloomberg"},
+                  {"title": "S&P 500 Hits New All-Time High on Tech Rally", "source": "CNBC"},
+                  {"title": "Bitcoin Surges Past $70,000 Amid ETF Inflows", "source": "CoinDesk"},
+              ],
+              "technology": [
+                  {"title": "Apple Unveils M4 Ultra Chip at Developer Conference", "source": "The Verge"},
+                  {"title": "Quantum Computing Breakthrough: 1000-Qubit Processor", "source": "Nature"},
+                  {"title": "Cybersecurity Spending to Reach $200B in 2025", "source": "Gartner"},
+              ],
+          }
+          def handler(event, context):
+              topic = event.get("topic", "ai").lower()
+              if topic in HEADLINES:
+                  return {"status": "ok", "topic": topic, "headlines": HEADLINES[topic]}
+              return {"status": "ok", "topic": "general", "headlines": [
+                  item for sublist in HEADLINES.values() for item in sublist[:1]
+              ]}
+
+Outputs:
+  InventoryFunctionArn:
+    Value: !GetAtt InventoryFunction.Arn
+    Export:
+      Name: !Sub ${ProjectName}-inventory-arn
+  ShippingFunctionArn:
+    Value: !GetAtt ShippingFunction.Arn
+    Export:
+      Name: !Sub ${ProjectName}-shipping-arn
+  SupplierFunctionArn:
+    Value: !GetAtt SupplierFunction.Arn
+    Export:
+      Name: !Sub ${ProjectName}-supplier-arn
+  QualityInspectionFunctionArn:
+    Value: !GetAtt QualityInspectionFunction.Arn
+    Export:
+      Name: !Sub ${ProjectName}-quality-inspection-arn
+  WeatherFunctionArn:
+    Value: !GetAtt WeatherFunction.Arn
+    Export:
+      Name: !Sub ${ProjectName}-weather-arn
+  CurrencyFunctionArn:
+    Value: !GetAtt CurrencyFunction.Arn
+    Export:
+      Name: !Sub ${ProjectName}-currency-arn
+  NewsFunctionArn:
+    Value: !GetAtt NewsFunction.Arn
+    Export:
+      Name: !Sub ${ProjectName}-news-arn

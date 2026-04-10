@@ -13,7 +13,7 @@ Architecture:
     └────┬─────────────────────────────────────────────────┘
          │
     ┌────┴─────────────────────────────────────────────────┐
-    │  Saga State Machine (Simulated DynamoDB)              │
+    │  Saga State Machine (DynamoDB)                        │
     │  saga_id (PK) | current_phase | steps[] | lock       │
     │  Each step: {name, status, booking_ref, comp_ref}     │
     │  Statuses: pending → executing → completed            │
@@ -54,20 +54,23 @@ Tech Stack:
   - Python 3.11+
   - Strands Agents SDK (Agent class, @tool decorator)
   - Amazon Bedrock (Nova Lite for all agents)
-  - Simulated DynamoDB (in-memory; production uses boto3 DynamoDB)
-
-Note: This lesson uses in-memory simulations to keep the exercise self-contained.
-Production-mapping comments show the exact boto3 API calls used in real systems.
+  - DynamoDB saga state (real AWS resource — created by CloudFormation)
 """
 
 import json
 import re
 import time
-import threading
 import logging
+import os
+import boto3
+from decimal import Decimal
 from datetime import datetime, timezone
+from dotenv import load_dotenv
+from botocore.exceptions import ClientError
 from strands import Agent, tool
 from strands.models import BedrockModel
+
+load_dotenv()
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -99,8 +102,8 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
 # ─────────────────────────────────────────────────────
 # CONFIGURATION
 # ─────────────────────────────────────────────────────
-AWS_REGION = "us-east-1"
-NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")
 
 # ─────────────────────────────────────────────────────
 # SAMPLE BOOKING DATA
@@ -138,65 +141,24 @@ TRAVEL_PACKAGES = [
 
 
 # ═══════════════════════════════════════════════════════
-#  STEP 2: SIMULATED DYNAMODB — Saga State Machine
-#  Production: dynamodb = boto3.resource('dynamodb'); table = dynamodb.Table('SagaState')
+#  STEP 2: DYNAMODB — Saga State Machine
+#  Real AWS DynamoDB resource (created by CloudFormation)
 # ═══════════════════════════════════════════════════════
 
-class ConditionalCheckFailedException(Exception):
-    """Version mismatch on conditional write. Production: botocore.exceptions.ClientError."""
-    pass
+def to_dynamo(obj):
+    """Convert Python objects to DynamoDB-compatible types (float→Decimal)."""
+    return json.loads(json.dumps(obj), parse_float=Decimal)
 
 
-class SimulatedDynamoDB:
-    """In-memory DynamoDB simulator for saga state machine."""
-
-    def __init__(self):
-        self._tables = {}
-        self._lock = threading.Lock()
-
-    def create_table(self, table_name: str):
-        self._tables[table_name] = {}
-
-    def put_item(self, table_name: str, item: dict):
-        with self._lock:
-            pk = item.get("saga_id") or item.get("checkout_id")
-            self._tables[table_name][pk] = item.copy()
-
-    def get_item(self, table_name: str, pk_value: str) -> dict | None:
-        with self._lock:
-            record = self._tables.get(table_name, {}).get(pk_value)
-            return record.copy() if record else None
-
-    def update_item_conditional(self, table_name: str, pk_value: str,
-                                 updates: dict, condition_field: str,
-                                 expected_value) -> dict:
-        """Conditional update for distributed locking. Production: table.update_item with ConditionExpression."""
-        with self._lock:
-            record = self._tables.get(table_name, {}).get(pk_value)
-            if not record:
-                raise KeyError(f"Record {pk_value} not found")
-            if record.get(condition_field) != expected_value:
-                raise ConditionalCheckFailedException(
-                    f"Condition failed: {condition_field} is {record.get(condition_field)}, "
-                    f"expected {expected_value}"
-                )
-            record.update(updates)
-            record["updated_at"] = datetime.now(timezone.utc).isoformat()
-            return record.copy()
-
-    def update_item(self, table_name: str, pk_value: str, updates: dict) -> dict:
-        with self._lock:
-            record = self._tables.get(table_name, {}).get(pk_value)
-            if not record:
-                raise KeyError(f"Record {pk_value} not found")
-            record.update(updates)
-            record["updated_at"] = datetime.now(timezone.utc).isoformat()
-            return record.copy()
+def from_dynamo(obj):
+    """Convert DynamoDB types back to Python (Decimal→float)."""
+    return json.loads(json.dumps(obj, default=str))
 
 
-# Global state store
-db = SimulatedDynamoDB()
-db.create_table("SagaState")
+# DynamoDB saga state table (real AWS resource — created by CloudFormation)
+SAGA_STATE_TABLE = os.environ.get("SAGA_STATE_TABLE", "lesson-07-saga-saga-state")
+dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
+saga_table = dynamodb.Table(SAGA_STATE_TABLE)
 
 
 # ═══════════════════════════════════════════════════════
@@ -216,38 +178,51 @@ def create_saga(saga_id: str, steps: list[str]) -> dict:
         "locked": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
-    db.put_item("SagaState", record)
+    saga_table.put_item(Item=to_dynamo(record))
     return record
 
 
 def update_step(saga_id: str, step_index: int, updates: dict) -> dict:
     """Update step status (pending→executing→completed or completed→compensating→compensated)."""
-    saga = db.get_item("SagaState", saga_id)
+    response = saga_table.get_item(Key={"saga_id": saga_id})
+    saga = from_dynamo(response.get("Item"))
     saga["steps"][step_index].update(updates)
-    db.update_item("SagaState", saga_id, {"steps": saga["steps"]})
-    return db.get_item("SagaState", saga_id)
+    saga["updated_at"] = datetime.now(timezone.utc).isoformat()
+    saga_table.put_item(Item=to_dynamo(saga))
+    return saga
 
 
 def acquire_lock(saga_id: str) -> bool:
-    """Acquire distributed lock (conditional write, only if locked==False)."""
+    """Acquire distributed lock (conditional write: only if locked==False)."""
     try:
-        db.update_item_conditional(
-            "SagaState", saga_id,
-            {"locked": True}, "locked", False
+        saga_table.update_item(
+            Key={"saga_id": saga_id},
+            UpdateExpression="SET locked = :true_val",
+            ConditionExpression="locked = :false_val",
+            ExpressionAttributeValues={":true_val": True, ":false_val": False},
         )
         return True
-    except ConditionalCheckFailedException:
-        print(f"      [Lock] Failed to acquire lock for {saga_id} — already locked")
-        return False
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+            print(f"      [Lock] Failed to acquire lock for {saga_id} — already locked")
+            return False
+        raise
 
 
 def release_lock(saga_id: str):
     """Release lock after compensation completes."""
-    db.update_item("SagaState", saga_id, {"locked": False})
+    saga_table.update_item(
+        Key={"saga_id": saga_id},
+        UpdateExpression="SET locked = :false_val",
+        ExpressionAttributeValues={":false_val": False},
+    )
+
 
 def get_saga(saga_id: str) -> dict | None:
     """Read current saga state."""
-    return db.get_item("SagaState", saga_id)
+    response = saga_table.get_item(Key={"saga_id": saga_id})
+    item = response.get("Item")
+    return from_dynamo(item) if item else None
 
 # ═══════════════════════════════════════════════════════
 #  STEP 4: BOOKING AGENTS — Each has forward + compensating action
@@ -582,7 +557,11 @@ def run_saga(package: dict):
 
         # Mark step as executing
         update_step(saga_id, idx, {"status": "executing"})
-        db.update_item("SagaState", saga_id, {"current_phase": idx})
+        saga_table.update_item(
+            Key={"saga_id": saga_id},
+            UpdateExpression="SET current_phase = :val",
+            ExpressionAttributeValues={":val": idx},
+        )
 
         print(f"\n  [{idx + 1}/3] {name.title()}Agent (forward)...")
         try:
@@ -609,13 +588,21 @@ def run_saga(package: dict):
 
     if failed_step is None:
         # All steps succeeded
-        db.update_item("SagaState", saga_id, {"overall_status": "completed"})
+        saga_table.update_item(
+            Key={"saga_id": saga_id},
+            UpdateExpression="SET overall_status = :val",
+            ExpressionAttributeValues={":val": "completed"},
+        )
         print(f"\n  ✓ Saga {saga_id} COMPLETED — all bookings confirmed")
         return get_saga(saga_id)
 
     # ── Compensation Phase ───────────────────────────
     print(f"\n  ✗ Step '{agents_config[failed_step]['name']}' failed — starting compensation...")
-    db.update_item("SagaState", saga_id, {"overall_status": "compensating"})
+    saga_table.update_item(
+        Key={"saga_id": saga_id},
+        UpdateExpression="SET overall_status = :val",
+        ExpressionAttributeValues={":val": "compensating"},
+    )
 
     # Acquire distributed lock
     print(f"  Acquiring compensation lock...")
@@ -667,7 +654,11 @@ def run_saga(package: dict):
     print(f"\n  Lock released")
 
     # Update overall status
-    db.update_item("SagaState", saga_id, {"overall_status": "failed"})
+    saga_table.update_item(
+        Key={"saga_id": saga_id},
+        UpdateExpression="SET overall_status = :val",
+        ExpressionAttributeValues={":val": "failed"},
+    )
 
     saga_final = get_saga(saga_id)
     print(f"  Total refund: ${total_refund:.2f}")

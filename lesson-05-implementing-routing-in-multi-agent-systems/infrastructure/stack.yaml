@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Lesson 5: Implementing Routing in Multi-Agent Systems
+  Creates a DynamoDB table for routing audit logs.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: lesson-05-routing
+
+Resources:
+  RoutingAuditTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${ProjectName}-routing-audit
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: request_id
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: request_id
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+Outputs:
+  RoutingAuditTableName:
+    Value: !Ref RoutingAuditTable
+    Export:
+      Name: !Sub ${ProjectName}-RoutingAuditTable

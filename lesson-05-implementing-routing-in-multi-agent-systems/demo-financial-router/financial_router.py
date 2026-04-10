@@ -34,23 +34,27 @@ Key Concepts (NEW in Module 5):
   2. LLM CLASSIFICATION: Flexible, handles ambiguity — handles remaining 30%
   3. PRIORITY ROUTING: Business-critical override (high-value transactions)
   4. FALLBACK: Safety net when both rules and LLM are uncertain
-  5. AUDIT LOGGING: Every routing decision logged (simulated DynamoDB)
+  5. AUDIT LOGGING: Every routing decision logged to DynamoDB
 
 Tech Stack:
   - Python 3.11+
   - Strands Agents SDK (Agent class, @tool decorator)
   - Amazon Bedrock (Nova Lite for all agents — routing needs speed, not depth)
-  - Simulated DynamoDB audit log (in-memory, production would use real DynamoDB)
+  - DynamoDB audit log (real AWS resource — created by CloudFormation)
 """
 
 import json
 import re
 import time
 import logging
+import os
+import boto3
 from datetime import datetime, timezone
+from dotenv import load_dotenv
 from strands import Agent, tool
 from strands.models import BedrockModel
 
+load_dotenv()
 logging.basicConfig(level=logging.WARNING)
 
 
@@ -79,8 +83,8 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
 
 
 # Configuration
-AWS_REGION = "us-east-1"
-NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"   # All agents use Nova Lite (routing needs speed)
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")   # All agents use Nova Lite (routing needs speed)
 
 # Sample financial requests (10 total — covers rule/priority/LLM/fallback)
 REQUESTS = [
@@ -111,17 +115,20 @@ REQUESTS = [
      "amount": 0, "expected_agent": "GeneralSupportAgent", "expected_method": "fallback"},
 ]
 
-# Simulated DynamoDB audit log (PK: request_id, SK: timestamp, attrs: routing_method/agent/confidence/latency)
-routing_audit_log = []
+# DynamoDB audit table (real AWS resource — created by CloudFormation)
+ROUTING_AUDIT_TABLE = os.environ.get("ROUTING_AUDIT_TABLE", "lesson-05-routing-routing-audit")
+dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
+audit_table = dynamodb.Table(ROUTING_AUDIT_TABLE)
 
 
 def log_routing_decision(request_id: str, input_text: str, method: str,
                          target_agent: str, confidence: float, latency_ms: float):
     """
-    Log a routing decision (simulated DynamoDB put_item).
+    Log a routing decision to DynamoDB.
 
-    In production, this would be:
-        dynamodb.Table('RoutingAuditLog').put_item(Item={...})
+    Table schema (from CloudFormation):
+      PK: request_id (S)  |  SK: timestamp (S)
+      Attributes: input_text, routing_method, target_agent, confidence, latency_ms
     """
     entry = {
         "request_id": request_id,
@@ -129,10 +136,11 @@ def log_routing_decision(request_id: str, input_text: str, method: str,
         "input_text": input_text[:80],
         "routing_method": method,
         "target_agent": target_agent,
-        "confidence": confidence,
-        "latency_ms": round(latency_ms, 1),
+        "confidence": str(confidence),
+        "latency_ms": str(round(latency_ms, 1)),
+        "ttl": int(time.time()) + 86400,  # Auto-delete after 24 hours
     }
-    routing_audit_log.append(entry)
+    audit_table.put_item(Item=entry)
 
 
 # Shared state for LLM classifier results
@@ -617,14 +625,19 @@ def main():
     for a, count in sorted(agents.items()):
         print(f"    {a:<22} {count} requests")
 
-    # ── Audit Log (simulated DynamoDB) ───────────────────
-    print(f"\n  Audit Log ({len(routing_audit_log)} entries — simulated DynamoDB):")
+    # ── Audit Log (DynamoDB) ─────────────────────────────
+    scan_result = audit_table.scan()
+    audit_entries = scan_result.get("Items", [])
+    audit_entries.sort(key=lambda x: x.get("timestamp", ""))
+    print(f"\n  Audit Log ({len(audit_entries)} entries — DynamoDB table: {ROUTING_AUDIT_TABLE}):")
     print(f"  {'ID':<10} {'Method':<10} {'Agent':<22} {'Confidence':<12} {'Latency':<10}")
     print(f"  {'─' * 65}")
-    for entry in routing_audit_log:
+    for entry in audit_entries:
+        conf = float(entry.get("confidence", 0))
+        lat = float(entry.get("latency_ms", 0))
         print(f"  {entry['request_id']:<10} {entry['routing_method']:<10} "
-              f"{entry['target_agent']:<22} {entry['confidence']:<12.2f} "
-              f"{entry['latency_ms']:<10.1f}ms")
+              f"{entry['target_agent']:<22} {conf:<12.2f} "
+              f"{lat:<10.1f}ms")
 
     print(f"\n  Key Insight: Hybrid routing is the production standard:")
     print(f"  1. PRIORITY — business-critical overrides run first (2 requests)")

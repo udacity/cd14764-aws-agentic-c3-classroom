@@ -22,7 +22,11 @@ Tech Stack:
 """
 
 import json
+import os
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 # ═══════════════════════════════════════════════════════
@@ -76,7 +80,7 @@ RUNTIME_CONFIG = {
         "CLAIMS_KB_ID": "KB-CLAIMS-001",
         "POLICY_KB_ID": "KB-POLICY-002",
         "STATE_TABLE_NAME": "insurance-claims-state",
-        "AWS_REGION": "us-east-1",
+        "AWS_REGION": os.environ.get("AWS_REGION", "us-east-1"),
         "LOG_LEVEL": "INFO",
         "ENVIRONMENT": "production",
     },

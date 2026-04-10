@@ -33,12 +33,16 @@ Tech Stack:
 """
 
 import json
+import os
 import re
 import time
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dotenv import load_dotenv
 from strands import Agent, tool
 from strands.models import BedrockModel
+
+load_dotenv()
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -68,10 +72,10 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
 
 
 # Configuration — Models for specialist and synthesizer agents
-AWS_REGION = "us-east-1"
-NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"                    # Security review (fast)
-CLAUDE_MODEL = "anthropic.claude-3-sonnet-20240229-v1:0"     # Scalability + Synthesis (deep)
-NOVA_PRO_MODEL = "amazon.nova-pro-v1:0"                      # Cost review (balanced)
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")                    # Security review (fast)
+CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "anthropic.claude-3-sonnet-20240229-v1:0")     # Scalability + Synthesis (deep)
+NOVA_PRO_MODEL = os.environ.get("NOVA_PRO_MODEL", "amazon.nova-pro-v1:0")                      # Cost review (balanced)
 
 # Sample system design documents (for launch review)
 DOCUMENTS = [

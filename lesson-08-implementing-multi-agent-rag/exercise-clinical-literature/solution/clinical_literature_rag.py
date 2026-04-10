@@ -42,16 +42,21 @@ Tech Stack:
   - Python 3.11+
   - Strands Agents SDK (Agent class, @tool decorator)
   - Amazon Bedrock (Nova Lite for retrievers, Nova Pro for synthesis)
-  - Simulated Knowledge Bases (in-memory; production uses Bedrock KB + S3 Vectors)
+  - Amazon Bedrock Knowledge Bases (real AWS resources for semantic search)
 """
 
 import json
+import os
 import re
 import time
 import logging
+import boto3
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dotenv import load_dotenv
 from strands import Agent, tool
 from strands.models import BedrockModel
+
+load_dotenv()
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -83,13 +88,20 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
 # ─────────────────────────────────────────────────────
 # CONFIGURATION
 # ─────────────────────────────────────────────────────
-AWS_REGION = "us-east-1"
-NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"
-NOVA_PRO_MODEL = "amazon.nova-pro-v1:0"
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")
+NOVA_PRO_MODEL = os.environ.get("NOVA_PRO_MODEL", "amazon.nova-pro-v1:0")
 TOP_K = 10  # More passages for clinical context
 
+# Bedrock Knowledge Base IDs (created manually in AWS Console)
+DRUG_INTERACTIONS_KB_ID = os.environ.get("DRUG_INTERACTIONS_KB_ID", "")
+CLINICAL_GUIDELINES_KB_ID = os.environ.get("CLINICAL_GUIDELINES_KB_ID", "")
 
-# SIMULATED KNOWLEDGE BASES — Clinical Domain
+# Bedrock Agent Runtime client for KB retrieval
+bedrock_agent_runtime = boto3.client("bedrock-agent-runtime", region_name=AWS_REGION)
+
+
+# REFERENCE KNOWLEDGE BASES — Clinical Domain
 # Production: bedrock_agent.retrieve(knowledgeBaseId, retrievalQuery, vectorSearchConfiguration)
 
 DRUG_INTERACTIONS_KB = [
@@ -231,36 +243,58 @@ CLINICAL_QUERIES = [
 ]
 
 
-# SIMULATED RETRIEVAL ENGINE
-def retrieve_from_kb(documents: list[dict], query: str, kb_name: str,
-                     top_k: int = 10) -> list[dict]:
-    """Simulated KB retrieval with keyword-based scoring."""
-    query_terms = set(query.lower().split())
+# BEDROCK KB RETRIEVAL ENGINE
+def retrieve_from_kb(kb_id: str, query: str, kb_name: str,
+                     top_k: int = 10, simulate_failure: bool = False) -> list[dict]:
+    """
+    Retrieve relevant documents from a Bedrock Knowledge Base.
+
+    Production API: bedrock-agent-runtime.retrieve()
+
+    Args:
+        kb_id: The Knowledge Base ID from AWS Console
+        query: Natural language search query
+        kb_name: Display name for logging
+        top_k: Number of results to return
+        simulate_failure: If True, raise ConnectionError (for graceful degradation testing)
+
+    Returns:
+        List of dicts with {doc_id, title, source, content, score, kb}
+    """
+    if simulate_failure:
+        raise ConnectionError(f"Knowledge Base '{kb_name}' is temporarily unavailable")
+
+    if not kb_id:
+        print(f"    WARNING: {kb_name} KB ID not set — returning empty results")
+        return []
+
+    response = bedrock_agent_runtime.retrieve(
+        knowledgeBaseId=kb_id,
+        retrievalQuery={"text": query},
+        retrievalConfiguration={
+            "vectorSearchConfiguration": {
+                "numberOfResults": top_k,
+            }
+        },
+    )
+
     results = []
+    for i, result in enumerate(response.get("retrievalResults", [])):
+        content = result.get("content", {}).get("text", "")
+        score = result.get("score", 0.0)
+        location = result.get("location", {})
+        uri = location.get("s3Location", {}).get("uri", "") if location.get("type") == "S3" else ""
 
-    for doc in documents:
-        doc_terms = set(word.lower() for kw in doc["keywords"] for word in kw.split())
-        title_terms = set(doc["title"].lower().split())
-        all_doc_terms = doc_terms | title_terms
+        results.append({
+            "doc_id": f"{kb_name}-{i+1}",
+            "title": uri.split("/")[-1] if uri else f"Result {i+1}",
+            "source": uri or kb_name,
+            "content": content,
+            "score": score,
+            "kb": kb_name,
+        })
 
-        overlap = query_terms & all_doc_terms
-        if overlap:
-            score = round(len(overlap) / len(query_terms), 3)
-            keyword_matches = sum(1 for kw in doc["keywords"]
-                                if any(qt in kw.lower() for qt in query_terms))
-            score = min(round(score + keyword_matches * 0.05, 3), 0.99)
-
-            results.append({
-                "doc_id": doc["doc_id"],
-                "title": doc["title"],
-                "source": doc["source"],
-                "content": doc["content"],
-                "score": score,
-                "kb": kb_name,
-            })
-
-    results.sort(key=lambda x: x["score"], reverse=True)
-    return results[:top_k]
+    return results
 
 
 # RETRIEVER AGENTS
@@ -289,17 +323,17 @@ Do NOT add any other commentary."""
         Returns:
             JSON with retrieved passages and relevance scores
         """
-        if simulate_failure:
+        try:
+            passages = retrieve_from_kb(DRUG_INTERACTIONS_KB_ID, search_query, "Drug Interactions", TOP_K, simulate_failure)
+            retrieval_results["drug"] = passages
+        except ConnectionError as e:
             retrieval_results["drug"] = []
             return json.dumps({
                 "kb": "Drug Interactions",
                 "query": search_query,
-                "error": "Drug Interactions KB temporarily unavailable — service degraded",
+                "error": str(e),
                 "passages_found": 0,
             }, indent=2)
-
-        passages = retrieve_from_kb(DRUG_INTERACTIONS_KB, search_query, "Drug Interactions")
-        retrieval_results["drug"] = passages
 
         return json.dumps({
             "kb": "Drug Interactions",
@@ -336,17 +370,17 @@ Do NOT add any other commentary."""
         Returns:
             JSON with retrieved passages and relevance scores
         """
-        if simulate_failure:
+        try:
+            passages = retrieve_from_kb(CLINICAL_GUIDELINES_KB_ID, search_query, "Clinical Guidelines", TOP_K, simulate_failure)
+            retrieval_results["guidelines"] = passages
+        except ConnectionError as e:
             retrieval_results["guidelines"] = []
             return json.dumps({
                 "kb": "Clinical Guidelines",
                 "query": search_query,
-                "error": "Clinical Guidelines KB temporarily unavailable",
+                "error": str(e),
                 "passages_found": 0,
             }, indent=2)
-
-        passages = retrieve_from_kb(CLINICAL_GUIDELINES_KB, search_query, "Clinical Guidelines")
-        retrieval_results["guidelines"] = passages
 
         return json.dumps({
             "kb": "Clinical Guidelines",

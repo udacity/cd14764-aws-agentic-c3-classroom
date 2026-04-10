@@ -42,25 +42,37 @@ Tech Stack:
   - Python 3.11+
   - Strands Agents SDK (Agent class, @tool decorator)
   - Amazon Bedrock (Nova Lite for all agents)
-  - Simulated DynamoDB (in-memory; production uses boto3 DynamoDB resource API)
-  - Simulated AgentCore Memory (in-memory; production uses bedrock-agentcore-control)
-
-Note: This lesson uses in-memory simulations to keep the exercise self-contained.
-The simulations preserve the exact same API patterns and behaviors you'll use
-with real DynamoDB and AgentCore Memory in the capstone project.
+  - DynamoDB shared state (real AWS resource — created by CloudFormation)
+  - AgentCore Memory simulation (in-memory; production uses bedrock-agentcore-control)
 """
 
+import os
 import json
 import re
 import time
-import threading
 import logging
+from decimal import Decimal
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dotenv import load_dotenv
+import boto3
+from botocore.exceptions import ClientError
 from strands import Agent, tool
 from strands.models import BedrockModel
 
+load_dotenv()
+
 logging.basicConfig(level=logging.WARNING)
+
+
+def to_dynamo(obj):
+    """Convert Python objects to DynamoDB-compatible types (float→Decimal)."""
+    return json.loads(json.dumps(obj), parse_float=Decimal)
+
+
+def from_dynamo(obj):
+    """Convert DynamoDB types back to Python (Decimal→float)."""
+    return json.loads(json.dumps(obj, default=str))
 
 
 def clean_response(text: str) -> str:
@@ -87,8 +99,8 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
                 raise
 
 
-AWS_REGION = "us-east-1"
-NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")
 
 ORDERS = [
     {"order_id": "ORD-001", "customer_id": "CUST-42", "customer_name": "Alice Chen",
@@ -114,63 +126,21 @@ DELIVERY_FEE = 4.99
 TAX_RATE = 0.08
 
 
-class ConditionalCheckFailedException(Exception):
-    """Raised when a conditional write fails (version mismatch).
-    Production: botocore.exceptions.ClientError with error code 'ConditionalCheckFailedException'."""
+class VersionConflictError(Exception):
+    """Raised when optimistic locking detects a version mismatch.
+    Maps to DynamoDB ConditionalCheckFailedException."""
     pass
 
 
-class SimulatedDynamoDB:
-    """In-memory DynamoDB simulator with optimistic locking support.
-    Production: dynamodb = boto3.resource('dynamodb', region_name='us-east-1'); table = dynamodb.Table('OrderState')"""
-    def __init__(self):
-        self._tables = {}
-        self._lock = threading.Lock()
-        self._write_log = []
+# STEP 1: DYNAMODB SHARED STATE — Real DynamoDB with Optimistic Locking
+ORDER_STATE_TABLE = os.environ.get("ORDER_STATE_TABLE", "lesson-06-shared-state-order-state")
+dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
+order_table = dynamodb.Table(ORDER_STATE_TABLE)
 
-    def create_table(self, table_name: str):
-        """Create a table (simulated). Production: Pre-created via CloudFormation."""
-        self._tables[table_name] = {}
+# Diagnostic write log (in-memory — for demo output only, not stored in DynamoDB)
+_write_log = []
 
-    def put_item(self, table_name: str, item: dict):
-        """Insert a new record. Production: table.put_item(Item=item)"""
-        with self._lock:
-            pk = item.get("order_id")
-            self._tables[table_name][pk] = item.copy()
-            self._write_log.append({"op": "put_item", "table": table_name, "pk": pk,
-                "version": item.get("version", 0), "timestamp": time.time()})
-
-    def get_item(self, table_name: str, pk_value: str) -> dict | None:
-        """Read a record. Production: table.get_item(Key={'order_id': pk_value})['Item']"""
-        with self._lock:
-            record = self._tables.get(table_name, {}).get(pk_value)
-            return record.copy() if record else None
-
-    def update_item_conditional(self, table_name: str, pk_value: str, updates: dict, expected_version: int) -> dict:
-        """Conditional update with optimistic locking (KEY PATTERN for Module 6).
-        Production: table.update_item(Key={'order_id': pk_value}, UpdateExpression='SET #f0 = :v0, #v = :new_ver',
-          ConditionExpression='#v = :expected_ver', ExpressionAttributeNames={'#v': 'version', '#f0': 'driver'},
-          ExpressionAttributeValues={':v0': driver_info, ':expected_ver': N, ':new_ver': N + 1}, ReturnValues='ALL_NEW')"""
-        with self._lock:
-            record = self._tables.get(table_name, {}).get(pk_value)
-            if not record:
-                raise KeyError(f"Record {pk_value} not found in {table_name}")
-            current_version = record.get("version", 0)
-            if current_version != expected_version:
-                self._write_log.append({"op": "CONFLICT", "table": table_name, "pk": pk_value,
-                    "expected": expected_version, "actual": current_version, "timestamp": time.time()})
-                raise ConditionalCheckFailedException(f"Version conflict: expected {expected_version}, found {current_version}")
-            record.update(updates)
-            record["version"] = current_version + 1
-            record["updated_at"] = datetime.now(timezone.utc).isoformat()
-            self._write_log.append({"op": "update_item", "table": table_name, "pk": pk_value,
-                "version": f"{current_version} → {record['version']}", "fields": list(updates.keys()), "timestamp": time.time()})
-            return record.copy()
-
-
-db = SimulatedDynamoDB()
-db.create_table("OrderState")
-
+# AgentCore Memory simulation (in-memory; production uses bedrock-agentcore-control)
 customer_memory = {}
 
 
@@ -185,35 +155,56 @@ def create_order(order_data: dict) -> dict:
         "status": "pending", "progress": [], "version": 0, "ttl": int(now + 7200),
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
-    db.put_item("OrderState", record)
+    order_table.put_item(Item=to_dynamo(record))
+    _write_log.append({"op": "put_item", "pk": order_id, "version": 0, "timestamp": time.time()})
     return record
 
 
 def update_order(order_id: str, updates: dict, max_retries: int = 3) -> dict:
     """STEP 2: Update order state with optimistic locking + retry.
-    Pattern: 1. Read current (get version N), 2. Apply updates with condition: version == N,
-    3. If conflict → re-read, get new version, retry"""
+    Pattern: read → modify → conditional put (version must match)."""
     for attempt in range(max_retries):
-        current = db.get_item("OrderState", order_id)
+        response = order_table.get_item(Key={"order_id": order_id})
+        current = response.get("Item")
         if not current:
             raise KeyError(f"Order {order_id} not found")
-        expected_version = current["version"]
+        expected_version = int(current["version"])
+
+        # Apply updates locally
+        current.update(to_dynamo(updates))
+        current["version"] = expected_version + 1
+        current["updated_at"] = datetime.now(timezone.utc).isoformat()
+
         try:
-            result = db.update_item_conditional("OrderState", order_id, updates, expected_version)
-            return result
-        except ConditionalCheckFailedException as e:
-            if attempt < max_retries - 1:
-                wait = 0.1 * (2 ** attempt)
-                print(f"      [Conflict] {e} — retrying in {wait:.1f}s (attempt {attempt + 1})")
-                time.sleep(wait)
+            order_table.put_item(
+                Item=current,
+                ConditionExpression="version = :expected_ver",
+                ExpressionAttributeValues={":expected_ver": expected_version},
+            )
+            _write_log.append({"op": "update_item", "pk": order_id,
+                "version": f"{expected_version} → {expected_version + 1}",
+                "fields": list(updates.keys()), "timestamp": time.time()})
+            return from_dynamo(current)
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                _write_log.append({"op": "CONFLICT", "pk": order_id,
+                    "expected": expected_version, "timestamp": time.time()})
+                if attempt < max_retries - 1:
+                    wait = 0.1 * (2 ** attempt)
+                    print(f"      [Conflict] Version conflict — retrying in {wait:.1f}s (attempt {attempt + 1})")
+                    time.sleep(wait)
+                else:
+                    print(f"      [Failed] Version conflict after {max_retries} retries")
+                    raise VersionConflictError(f"Version conflict after {max_retries} retries")
             else:
-                print(f"      [Failed] Version conflict after {max_retries} retries")
                 raise
 
 
 def get_order(order_id: str) -> dict | None:
     """STEP 3: Read current order state."""
-    return db.get_item("OrderState", order_id)
+    response = order_table.get_item(Key={"order_id": order_id})
+    item = response.get("Item")
+    return from_dynamo(item) if item else None
 
 
 def recover_order(order_id: str) -> dict:
@@ -386,7 +377,7 @@ def main():
 
     record2 = create_order(order2)
     print(f"\n  Created: {order2['order_id']} (version {record2['version']})")
-    conflicts_before = sum(1 for e in db._write_log if e["op"] == "CONFLICT")
+    conflicts_before = sum(1 for e in _write_log if e["op"] == "CONFLICT")
 
     print(f"  Launching 4 agents in parallel...")
     t_start = time.time()
@@ -408,7 +399,7 @@ def main():
                 pass
 
     t_parallel = time.time() - t_start
-    conflicts_after = sum(1 for e in db._write_log if e["op"] == "CONFLICT")
+    conflicts_after = sum(1 for e in _write_log if e["op"] == "CONFLICT")
     new_conflicts = conflicts_after - conflicts_before
 
     state2 = get_order(order2["order_id"])
@@ -459,8 +450,8 @@ def main():
     print("  SHARED STATE SUMMARY")
     print(f"{'═' * 70}")
 
-    total_writes = sum(1 for e in db._write_log if e["op"] in ("put_item", "update_item"))
-    total_conflicts = sum(1 for e in db._write_log if e["op"] == "CONFLICT")
+    total_writes = sum(1 for e in _write_log if e["op"] in ("put_item", "update_item"))
+    total_conflicts = sum(1 for e in _write_log if e["op"] == "CONFLICT")
 
     print(f"  Total writes: {total_writes} | Total conflicts: {total_conflicts}")
     if (total_writes + total_conflicts) > 0:
@@ -470,7 +461,7 @@ def main():
     print(f"\n  Write Log (last 10 entries):")
     print(f"  {'Op':<15} {'Order':<12} {'Version':<12} {'Fields'}")
     print(f"  {'─' * 55}")
-    for entry in db._write_log[-10:]:
+    for entry in _write_log[-10:]:
         fields = ", ".join(entry.get("fields", []))
         version = str(entry.get("version", ""))
         print(f"  {entry['op']:<15} {entry['pk']:<12} {version:<12} {fields}")

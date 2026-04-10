@@ -3,12 +3,13 @@
 This folder contains the working solution for the Module 1 exercise.
 
 ## File
-- `smart_home_device_mgmt.py` — Complete implementation of a smart home device management agent.
+- `smart_home_device_mgmt.py` — Complete 3-agent device management system.
 
 ## What It Demonstrates
-- Same 1-agent-3-tools pattern as the demo, applied to a different domain (IoT)
-- Tools: read_sensor_data, diagnose_issue, send_device_command
-- Keyword-based diagnostic rules with regex fallback parsing
+- Same multi-agent coordinator pattern as the demo, applied to IoT domain
+- 3 Agents: DeviceMonitor, DiagnosticsAgent, CommandAgent
+- Coordinator calls agents in sequence, passing outputs forward
+- Each agent has a single responsibility and its own tool
 
 ## How to Run
 ```bash

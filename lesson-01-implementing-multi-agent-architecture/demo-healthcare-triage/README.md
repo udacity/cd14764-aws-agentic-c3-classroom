@@ -1,4 +1,4 @@
-# Demo Solution: Healthcare Triage System
+# Demo: Healthcare Triage System
 
 ## Architecture
 
@@ -7,13 +7,15 @@
 This folder contains the working solution for the Module 1 demo.
 
 ## File
-- `healthcare_triage.py` — Complete implementation of a healthcare triage agent using Strands Agents SDK.
+- `healthcare_triage.py` — Complete 3-agent healthcare triage system using Strands Agents SDK.
 
 ## What It Demonstrates
-- Creating a BedrockModel with Claude 3 Sonnet
-- Defining 3 tools with the @tool decorator (lookup_symptoms, classify_urgency, book_appointment)
-- Writing a system prompt that enforces sequential tool calling
-- Building an Agent that orchestrates the full triage pipeline
+- Building 3 separate Agent instances, each with a single responsibility
+- SymptomAnalyzer: maps complaint text to conditions using lookup_symptoms tool
+- UrgencyClassifier: assigns priority level using classify_urgency tool
+- AppointmentScheduler: books time slots using book_appointment tool
+- Coordinator pattern: calling agents in sequence, passing outputs forward
+- Fresh agent instantiation per test case to avoid context bleed
 
 ## How to Run
 ```bash

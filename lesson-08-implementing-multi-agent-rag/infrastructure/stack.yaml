@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Lesson 8: Implementing Multi-Agent RAG
+  Creates S3 bucket for Knowledge Base source documents.
+  NOTE: Bedrock Knowledge Bases must be created manually in the AWS Console.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: lesson-08-rag
+
+Resources:
+  KBSourceBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${ProjectName}-kb-sources-${AWS::AccountId}
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+Outputs:
+  KBSourceBucketName:
+    Value: !Ref KBSourceBucket
+    Export:
+      Name: !Sub ${ProjectName}-KBSourceBucket

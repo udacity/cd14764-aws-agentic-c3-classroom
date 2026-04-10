@@ -13,7 +13,7 @@ Architecture:
     └────┬─────────────────────────────────────────────────┘
          │
     ┌────┴─────────────────────────────────────────────────┐
-    │  Saga State Machine (Simulated DynamoDB)              │
+    │  Saga State Machine (DynamoDB)                        │
     │  checkout_id (PK) | steps[] | overall_status | lock   │
     │  + Barrier counter: compensations_completed           │
     │  Saga resolves to 'failed' only when barrier reached  │
@@ -43,11 +43,17 @@ Instructions:
 import json
 import re
 import time
-import threading
 import logging
+import os
+import boto3
+from decimal import Decimal
 from datetime import datetime, timezone
+from dotenv import load_dotenv
+from botocore.exceptions import ClientError
 from strands import Agent, tool
 from strands.models import BedrockModel
+
+load_dotenv()
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -83,8 +89,8 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
 # ─────────────────────────────────────────────────────
 # CONFIGURATION
 # ─────────────────────────────────────────────────────
-AWS_REGION = "us-east-1"
-NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")
 
 # ─────────────────────────────────────────────────────
 # SAMPLE CHECKOUT DATA (provided)
@@ -127,74 +133,24 @@ CHECKOUTS = [
 
 
 # ═══════════════════════════════════════════════════════
-#  SIMULATED DYNAMODB — Saga State Machine + Barrier (provided)
+#  DYNAMODB — Saga State Machine + Barrier (provided)
+#  Real AWS DynamoDB resource (created by CloudFormation)
 # ═══════════════════════════════════════════════════════
 
-class ConditionalCheckFailedException(Exception):
-    """Version mismatch on conditional write. Production: botocore.exceptions.ClientError."""
-    pass
-
-class SimulatedDynamoDB:
-    """In-memory DynamoDB simulator for saga state machine + barrier."""
-
-    def __init__(self):
-        self._tables = {}
-        self._lock = threading.Lock()
-
-    def create_table(self, table_name: str):
-        self._tables[table_name] = {}
-
-    def put_item(self, table_name: str, item: dict):
-        with self._lock:
-            pk = item.get("checkout_id")
-            self._tables[table_name][pk] = item.copy()
-
-    def get_item(self, table_name: str, pk_value: str) -> dict | None:
-        with self._lock:
-            record = self._tables.get(table_name, {}).get(pk_value)
-            return record.copy() if record else None
-
-    def update_item_conditional(self, table_name: str, pk_value: str,
-                                 updates: dict, condition_field: str,
-                                 expected_value) -> dict:
-        """Conditional update (used for distributed locking)."""
-        with self._lock:
-            record = self._tables.get(table_name, {}).get(pk_value)
-            if not record:
-                raise KeyError(f"Record {pk_value} not found")
-            if record.get(condition_field) != expected_value:
-                raise ConditionalCheckFailedException(
-                    f"Condition failed: {condition_field} is {record.get(condition_field)}, "
-                    f"expected {expected_value}"
-                )
-            record.update(updates)
-            record["updated_at"] = datetime.now(timezone.utc).isoformat()
-            return record.copy()
-
-    def update_item(self, table_name: str, pk_value: str, updates: dict) -> dict:
-        """Unconditional update for state transitions."""
-        with self._lock:
-            record = self._tables.get(table_name, {}).get(pk_value)
-            if not record:
-                raise KeyError(f"Record {pk_value} not found")
-            record.update(updates)
-            record["updated_at"] = datetime.now(timezone.utc).isoformat()
-            return record.copy()
-
-    def atomic_increment(self, table_name: str, pk_value: str,
-                          counter_field: str, increment: int = 1) -> int:
-        """Atomic counter increment for barrier coordination. Production: DynamoDB ADD expression."""
-        with self._lock:
-            record = self._tables.get(table_name, {}).get(pk_value)
-            if not record:
-                raise KeyError(f"Record {pk_value} not found")
-            record[counter_field] = record.get(counter_field, 0) + increment
-            return record[counter_field]
+def to_dynamo(obj):
+    """Convert Python objects to DynamoDB-compatible types (float→Decimal)."""
+    return json.loads(json.dumps(obj), parse_float=Decimal)
 
 
-# Global state store
-db = SimulatedDynamoDB()
-db.create_table("CheckoutSaga")
+def from_dynamo(obj):
+    """Convert DynamoDB types back to Python (Decimal→float)."""
+    return json.loads(json.dumps(obj, default=str))
+
+
+# DynamoDB checkout saga table (real AWS resource — created by CloudFormation)
+CHECKOUT_SAGA_TABLE = os.environ.get("CHECKOUT_SAGA_TABLE", "lesson-07-saga-checkout-saga")
+dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
+checkout_table = dynamodb.Table(CHECKOUT_SAGA_TABLE)
 
 
 # ═══════════════════════════════════════════════════════
@@ -208,7 +164,7 @@ db.create_table("CheckoutSaga")
 #     forward_ref=None, compensation_ref=None), current_phase=0,
 #     overall_status="in_progress", locked=False,
 #     compensations_needed=0, compensations_completed=0, created_at
-#   - Call db.put_item("CheckoutSaga", record)
+#   - Call checkout_table.put_item(Item=to_dynamo(record))
 #   - Return the record
 #   Hint: Same as demo's create_saga(), plus the barrier counter fields
 def create_saga(checkout_id: str, steps: list[str]) -> dict:
@@ -216,31 +172,33 @@ def create_saga(checkout_id: str, steps: list[str]) -> dict:
 
 
 # TODO 2: Implement update_step(checkout_id, step_index, updates)
-#   - Read saga, update saga["steps"][step_index], write back
+#   - Read saga from checkout_table, update saga["steps"][step_index], write back
 #   - Return updated saga
-#   Hint: Same as demo's update_step()
+#   Hint: Same as demo's update_step() — use checkout_table.get_item and put_item with to_dynamo/from_dynamo
 def update_step(checkout_id: str, step_index: int, updates: dict) -> dict:
     pass
 
 
 # TODO 3: Implement acquire_lock(checkout_id) -> bool
-#   - Use db.update_item_conditional to set locked=True only if locked==False
-#   - Return True if acquired, False if ConditionalCheckFailedException
-#   Hint: Same as demo's acquire_lock()
+#   - Use checkout_table.update_item with ConditionExpression to set locked=True only if locked==False
+#   - Return True if acquired, False if ClientError with ConditionalCheckFailedException
+#   Hint: Same as demo's acquire_lock() — use UpdateExpression and ConditionExpression
 def acquire_lock(checkout_id: str) -> bool:
     pass
 
 
 # TODO 4: Implement release_lock(checkout_id)
-#   - Set locked=False
+#   - Use checkout_table.update_item to set locked=False
 #   Hint: Same as demo's release_lock()
 def release_lock(checkout_id: str):
     pass
 
 
 # TODO 5: Implement increment_barrier(checkout_id) -> tuple[int, int]
-#   - Call db.atomic_increment, read saga, return (completed, needed)
-#   Hint: NEW pattern. Barrier ensures saga doesn't resolve until all compensations finish
+#   - Use checkout_table.update_item with UpdateExpression='ADD compensations_completed :one'
+#   - Read saga, return (completed, needed)
+#   Hint: NEW pattern. Barrier ensures saga doesn't resolve until all compensations finish.
+#         Use ADD expression for atomic counter, ReturnValues="ALL_NEW" to get updated item.
 def increment_barrier(checkout_id: str) -> tuple[int, int]:
     pass
 

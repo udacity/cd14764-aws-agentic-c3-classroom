@@ -7,18 +7,18 @@ Architecture:
     AnalyticsAgent
          │
     ┌────┴─────────────────────────────────────────────────┐
-    │  AgentCore Gateway (Simulated MCP Endpoint)            │
-    │  3 registered targets: 2 Lambda + 1 REST API           │
+    │  LambdaGateway (AWS Lambda Tool Backends)              │
+    │  3 registered targets: 2 Lambda + 1 Lambda            │
     └────┬──────────────┬──────────────┬──────────────────┘
          │              │              │
     ┌────┴────┐   ┌────┴────┐   ┌────┴──────────┐
     │Weather  │   │Currency │   │  News         │
-    │ Lambda  │   │ Lambda  │   │  REST API     │
+    │ Lambda  │   │ Lambda  │   │   Lambda      │
     └─────────┘   └─────────┘   └───────────────┘
 
 Same Gateway pattern as the demo (supply_chain_gateway.py),
 with additions:
-  1. MIXED TARGET TYPES: 2 Lambda functions + 1 REST API (vs all REST in demo)
+  1. MIXED FUNCTIONALITY: 2 analytical tools + 1 news tool
   2. DIFFERENT DOMAIN: Analytics utilities instead of supply chain
   3. SEMANTIC ROUTING FOCUS: Agent must select correct tool by query semantics
 
@@ -26,16 +26,23 @@ Tech Stack:
   - Python 3.11+
   - Strands Agents SDK (Agent class, @tool decorator)
   - Amazon Bedrock (Nova Lite for the agent)
-  - Simulated AgentCore Gateway
+  - AWS Lambda (tool backends via boto3)
+  - LambdaGateway (registry pattern for Lambda functions)
+
+Production equivalent: Amazon Bedrock AgentCore Gateway (MCP protocol)
 """
 
 import json
+import os
 import re
 import time
 import logging
+import boto3
+from dotenv import load_dotenv
 from strands import Agent, tool
 from strands.models import BedrockModel
 
+load_dotenv()
 logging.basicConfig(level=logging.WARNING)
 
 
@@ -66,110 +73,90 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
 # ─────────────────────────────────────────────────────
 # CONFIGURATION
 # ─────────────────────────────────────────────────────
-AWS_REGION = "us-east-1"
-NOVA_LITE_MODEL = "amazon.nova-lite-v1:0"
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")
+
+# Lambda client for invoking tool backends
+lambda_client = boto3.client("lambda", region_name=AWS_REGION)
+
+# Lambda function names (from CloudFormation)
+WEATHER_FUNCTION = os.environ.get("WEATHER_FUNCTION", "lesson-11-gateway-weather")
+CURRENCY_FUNCTION = os.environ.get("CURRENCY_FUNCTION", "lesson-11-gateway-currency")
+NEWS_FUNCTION = os.environ.get("NEWS_FUNCTION", "lesson-11-gateway-news")
 
 
-# SIMULATED AgentCore GATEWAY
-class SimulatedGateway:
-    """Simulates AgentCore Gateway with tool registration and discovery."""
+# LAMBDA GATEWAY
+class LambdaGateway:
+    """Gateway that routes tool calls to AWS Lambda functions.
+
+    This gateway implements the registration → discovery → invocation pattern
+    using AWS Lambda as the tool backend. Each registered tool maps to a
+    Lambda function that is invoked via boto3.
+
+    Production: Amazon Bedrock AgentCore Gateway (MCP protocol)
+    """
 
     def __init__(self, name: str, description: str):
-        self.gateway_id = f"gw-{name.lower().replace(' ', '-')[:20]}"
+        self.gateway_id = f"GW-{name.upper().replace(' ', '-')[:20]}"
         self.name = name
         self.description = description
-        self.targets = {}
+        self.targets = {}  # name → {description, function_name, target_type}
         self.invocation_log = []
 
-    def register_target(self, name: str, description: str, target_type: str,
-                        handler: callable, openapi_spec: dict = None):
+    def register_target(self, name: str, description: str, function_name: str,
+                        target_type: str = "lambda"):
+        """Register a Lambda function as a gateway target."""
         self.targets[name] = {
-            "name": name, "description": description,
-            "type": target_type, "handler": handler,
-            "openapi_spec": openapi_spec,
+            "description": description,
+            "function_name": function_name,
+            "target_type": target_type,
         }
 
     def discover_tools(self, query: str = None) -> list[dict]:
-        return [{"name": n, "description": t["description"], "type": t["type"]}
-                for n, t in self.targets.items()]
+        """List all registered tools (or filter by query)."""
+        tools = []
+        for name, config in self.targets.items():
+            if query is None or query.lower() in name.lower() or query.lower() in config["description"].lower():
+                tools.append({
+                    "name": name,
+                    "description": config["description"],
+                    "type": config["target_type"],
+                })
+        return tools
 
     def invoke_tool(self, tool_name: str, params: dict) -> dict:
+        """Invoke a registered tool via Lambda."""
         if tool_name not in self.targets:
-            return {"error": f"Tool '{tool_name}' not found"}
-        result = self.targets[tool_name]["handler"](params)
-        self.invocation_log.append({"tool": tool_name, "params": params, "timestamp": time.time()})
+            return {"status": "error", "message": f"Tool '{tool_name}' not found in gateway"}
+
+        target = self.targets[tool_name]
+        function_name = target["function_name"]
+
+        # Invoke Lambda function
+        response = lambda_client.invoke(
+            FunctionName=function_name,
+            InvocationType="RequestResponse",
+            Payload=json.dumps(params),
+        )
+
+        result = json.loads(response["Payload"].read().decode("utf-8"))
+
+        self.invocation_log.append({
+            "tool": tool_name,
+            "function": function_name,
+            "params": params,
+            "result_status": result.get("status", "unknown"),
+            "timestamp": time.time(),
+        })
+
         return result
 
 
-# SIMULATED APIs (Gateway targets)
-def weather_lambda_handler(params: dict) -> dict:
-    """Simulated Lambda: weather lookup by city."""
-    weather_data = {
-        "tokyo": {"city": "Tokyo", "temp_c": 22, "condition": "Partly Cloudy",
-                  "humidity": 65, "wind_kph": 12},
-        "london": {"city": "London", "temp_c": 14, "condition": "Rainy",
-                   "humidity": 82, "wind_kph": 20},
-        "new york": {"city": "New York", "temp_c": 18, "condition": "Sunny",
-                     "humidity": 45, "wind_kph": 8},
-        "sydney": {"city": "Sydney", "temp_c": 26, "condition": "Clear",
-                   "humidity": 55, "wind_kph": 15},
-    }
-    city = params.get("city", "").lower()
-    if city in weather_data:
-        return {"status": "ok", "weather": weather_data[city]}
-    return {"status": "error", "message": f"City '{city}' not found"}
+# Note: Handler functions now live in AWS Lambda (see infrastructure/stack.yaml)
+# The data that was previously in-memory is now stored in Lambda functions,
+# which are invoked through the gateway's invoke_tool() method.
 
-def currency_lambda_handler(params: dict) -> dict:
-    """Simulated Lambda: currency conversion."""
-    rates = {
-        "USD": 1.0, "EUR": 0.92, "GBP": 0.79, "JPY": 151.5,
-        "AUD": 1.53, "CAD": 1.36, "CHF": 0.88,
-    }
-    amount = params.get("amount", 0)
-    from_currency = params.get("from", "USD").upper()
-    to_currency = params.get("to", "EUR").upper()
-
-    if from_currency not in rates or to_currency not in rates:
-        return {"status": "error", "message": "Unsupported currency"}
-    usd_amount = amount / rates[from_currency]
-    converted = round(usd_amount * rates[to_currency], 2)
-
-    return {
-        "status": "ok",
-        "conversion": {
-            "from": from_currency, "to": to_currency,
-            "original_amount": amount, "converted_amount": converted,
-            "rate": round(rates[to_currency] / rates[from_currency], 4),
-        },
-    }
-
-def news_api_handler(params: dict) -> dict:
-    """Simulated REST API: news headlines by topic."""
-    headlines = {
-        "ai": [
-            {"title": "OpenAI Announces GPT-5 with Multimodal Reasoning", "source": "TechCrunch"},
-            {"title": "AWS Launches AgentCore for Multi-Agent Systems", "source": "AWS Blog"},
-            {"title": "AI Regulation Framework Advances in EU Parliament", "source": "Reuters"},
-        ],
-        "finance": [
-            {"title": "Fed Holds Interest Rates Steady at 5.25%", "source": "Bloomberg"},
-            {"title": "S&P 500 Hits New All-Time High on Tech Rally", "source": "CNBC"},
-            {"title": "Bitcoin Surges Past $70,000 Amid ETF Inflows", "source": "CoinDesk"},
-        ],
-        "technology": [
-            {"title": "Apple Unveils M4 Ultra Chip at Developer Conference", "source": "The Verge"},
-            {"title": "Quantum Computing Breakthrough: 1000-Qubit Processor", "source": "Nature"},
-            {"title": "Cybersecurity Spending to Reach $200B in 2025", "source": "Gartner"},
-        ],
-    }
-    topic = params.get("topic", "ai").lower()
-    if topic in headlines:
-        return {"status": "ok", "topic": topic, "headlines": headlines[topic]}
-    return {"status": "ok", "topic": "general", "headlines": [
-        item for sublist in headlines.values() for item in sublist[:1]
-    ]}
-
-def build_analytics_agent(gateway: SimulatedGateway) -> Agent:
+def build_analytics_agent(gateway: LambdaGateway) -> Agent:
     """Build an analytics agent connected to the Gateway."""
 
     model = BedrockModel(model_id=NOVA_LITE_MODEL, region_name=AWS_REGION, temperature=0.1)
@@ -260,29 +247,25 @@ def main():
     print("=" * 70)
 
     # ── Create Gateway ──
-    gateway = SimulatedGateway(
+    gateway = LambdaGateway(
         name="analytics-gateway",
-        description="MCP endpoint for analytics utility services"
+        description="Lambda-backed tool gateway for analytics utilities"
     )
     print(f"\n  Gateway: {gateway.gateway_id}")
     gateway.register_target(
         name="weather_lambda",
         description="Look up current weather conditions for a given city including temperature, humidity, and wind",
-        target_type="LAMBDA",
-        handler=weather_lambda_handler,
+        function_name=WEATHER_FUNCTION,
     )
     gateway.register_target(
         name="currency_lambda",
         description="Convert amounts between currencies using real-time exchange rates",
-        target_type="LAMBDA",
-        handler=currency_lambda_handler,
+        function_name=CURRENCY_FUNCTION,
     )
     gateway.register_target(
         name="news_api",
         description="Get latest news headlines by topic including AI, finance, and technology",
-        target_type="REST_API",
-        handler=news_api_handler,
-        openapi_spec={"openapi": "3.0.0", "info": {"title": "News API"}},
+        function_name=NEWS_FUNCTION,
     )
 
     print(f"  Registered {len(gateway.targets)} targets:")
@@ -304,7 +287,7 @@ def main():
     print("INVOCATION LOG")
     print(f"{'═' * 70}")
     for entry in gateway.invocation_log:
-        print(f"  Tool: {entry['tool']:20s} Params: {json.dumps(entry['params'])}")
+        print(f"  Tool: {entry['tool']:20s} Lambda: {entry['function']:30s} Status: {entry['result_status']}")
 
     print(f"\n  Key: 1) MIXED TARGETS — 2 Lambda + 1 REST API 2) SEMANTIC ROUTING")
     print(f"       3) ZERO CODE CHANGES — new API = config only\n")
