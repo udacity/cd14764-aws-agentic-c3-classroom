@@ -142,8 +142,12 @@ class KillSwitch:
     def __init__(self, max_violations: int = 3, window_seconds: int = 60):
         self.max_violations = max_violations
         self.window_seconds = window_seconds
-        # TODO 2: Initialize violations list, is_triggered, CloudWatch client
-        pass
+        self.violations = []  # Timestamps of guardrail violations
+        self.is_triggered = False
+        # TODO 2: Add CloudWatch client and emit_metric() logic
+        #   Hint: self.cw = boto3.client("cloudwatch", region_name=AWS_REGION)
+        #   Hint: record_violation() should append time.time(), emit a CloudWatch metric,
+        #         then check if len(recent violations in window) >= max_violations
 
     def record_violation(self):
         """Record violation and check threshold."""

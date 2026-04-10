@@ -8,7 +8,7 @@ Architecture:
          │
     ┌────┴─────────────────────────────────────────────────┐
     │  LambdaGateway (AWS Lambda Tool Backends)              │
-    │  3 registered targets: 2 Lambda + 1 Lambda            │
+    │  3 registered targets: 2 Lambda + 1 REST API           │
     └────┬──────────────┬──────────────┬──────────────────┘
          │              │              │
     ┌────┴────┐   ┌────┴────┐   ┌────┴──────────┐

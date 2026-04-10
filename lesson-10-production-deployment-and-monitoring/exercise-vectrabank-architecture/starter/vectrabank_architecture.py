@@ -143,6 +143,12 @@ def estimate_monthly_costs(agents: list, days: int = 30) -> dict:
     # Example: costs["DynamoDB"] = {"monthly_cost": sum of dynamodb costs}
     #         costs["Knowledge Bases"] = {"monthly_cost": sum of KB costs}
     #         etc.
+    # Then add infrastructure total to `total` before computing TOTAL below:
+    infra_total = sum(
+        cost for category in infrastructure_costs.values()
+        for cost in category.values()
+    )
+    total += infra_total
 
     costs["TOTAL"] = {"monthly_cost": round(total, 2)}
     return costs
