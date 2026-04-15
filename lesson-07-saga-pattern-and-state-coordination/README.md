@@ -35,3 +35,11 @@ lesson-07-saga-pattern-and-state-coordination/
 - **Barrier (NEW):** Atomic counter tracks compensation completions — saga resolves to 'failed' only when all compensations finish
 - **Test cases:** 3 checkouts — all succeed, payment fails (release inventory), shipping fails (refund payment + release inventory)
 - **Key insight:** The barrier primitive prevents premature saga resolution while compensations are still running
+
+## Cleanup
+
+The CloudFormation stack creates two DynamoDB tables (SagaState + CheckoutSaga), both billing on-demand. Tear them down when you're done:
+
+```bash
+aws cloudformation delete-stack --stack-name lesson-07-saga
+```

@@ -32,3 +32,11 @@ lesson-05-implementing-routing-in-multi-agent-systems/
 - **Routing strategies:** Priority (cancellation → RetentionAgent), Rule-based (billing/technical keywords), LLM classification, Fallback
 - **Test cases:** 20 tickets (40% billing, 30% technical, 10% cancellation, 20% ambiguous)
 - **Key insight:** Same hybrid pattern, different domain — routing effectiveness report with accuracy, latency, and distribution metrics
+
+## Cleanup
+
+The CloudFormation stack creates a DynamoDB audit table that bills on-demand. Tear it down when you're done with the lesson:
+
+```bash
+aws cloudformation delete-stack --stack-name lesson-05-routing
+```

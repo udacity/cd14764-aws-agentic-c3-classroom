@@ -265,8 +265,16 @@ def retrieve_from_kb(kb_id: str, query: str, kb_name: str,
         raise ConnectionError(f"Knowledge Base '{kb_name}' is temporarily unavailable")
 
     if not kb_id:
-        print(f"    WARNING: {kb_name} KB ID not set — returning empty results")
-        return []
+        # Hard error: a missing KB ID was previously a silent "returns empty"
+        # which made broken setup indistinguishable from queries with no matches.
+        # Fail loudly and point the learner at the lesson README setup section.
+        raise RuntimeError(
+            f"{kb_name} Knowledge Base ID is not set. "
+            f"Create the Bedrock Knowledge Base per the Setup section of "
+            f"lesson-08-implementing-multi-agent-rag/README.md, then set "
+            f"DRUG_INTERACTIONS_KB_ID / CLINICAL_GUIDELINES_KB_ID in your .env file "
+            f"before re-running."
+        )
 
     response = bedrock_agent_runtime.retrieve(
         knowledgeBaseId=kb_id,
@@ -545,12 +553,39 @@ def run_clinical_rag(query_data: dict):
 #  MAIN
 # ═══════════════════════════════════════════════════════
 
+def _verify_kb_ids():
+    """Fail fast if the learner hasn't configured the clinical KB IDs.
+
+    Bedrock Knowledge Bases are created manually per the lesson README, so this
+    check catches the most common setup mistake (forgotten .env) before the
+    first query runs — not in the middle of a scenario.
+    """
+    missing = [
+        name for name, val in [
+            ("DRUG_INTERACTIONS_KB_ID", DRUG_INTERACTIONS_KB_ID),
+            ("CLINICAL_GUIDELINES_KB_ID", CLINICAL_GUIDELINES_KB_ID),
+        ] if not val
+    ]
+    if missing:
+        print("\n" + "=" * 70)
+        print("  SETUP REQUIRED: Bedrock Knowledge Base IDs not set")
+        print("=" * 70)
+        print(f"  Missing env vars: {', '.join(missing)}")
+        print("\n  Follow the Setup section of:")
+        print("    lesson-08-implementing-multi-agent-rag/README.md")
+        print("  It walks through creating the S3 bucket, uploading source docs,")
+        print("  creating the Bedrock KBs, and populating your .env file.\n")
+        raise SystemExit(1)
+
+
 def main():
     print("=" * 70)
     print("  Clinical Literature RAG — Module 8 Exercise")
     print("  2 Specialized Retrievers + Parallel Retrieval + Synthesis")
     print("  Drug Interactions KB + Clinical Guidelines KB")
     print("=" * 70)
+
+    _verify_kb_ids()
 
     results = []
 

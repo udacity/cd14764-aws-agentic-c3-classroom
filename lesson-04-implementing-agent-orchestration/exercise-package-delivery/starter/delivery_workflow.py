@@ -30,14 +30,23 @@ Architecture:
     Delivery Processed
 
 Your Task:
-  Follow the SAME pattern from the demo (hr_onboarding.py):
-  - Each build_*() function follows STEP 1 → STEP 2 → STEP 3
-  - STEP 1: Create BedrockModel (Nova Lite, temperature 0.0)
-  - STEP 2: Write system prompt (focused, single responsibility)
-  - STEP 3: Build and return Agent(model, system_prompt, tools)
-  - The tool functions are provided — you just wire the agents
+  Complete 9 TODOs total to build the full orchestrated workflow:
 
-  Complete ALL 18 TODOs (3 per build function × 6 agents) to build the full workflow.
+  PART A — Agent system prompts (TODOs 1-6, one per worker)
+    For each build_*() function, the BedrockModel and Agent construction are
+    already written for you. You only need to fill in the system_prompt —
+    the thing that actually distinguishes one worker from another. Keep each
+    prompt focused and single-purpose.
+
+  PART B — Orchestrator phases (TODOs 7-9, in orchestrate_delivery)
+    The orchestrator is the control plane — it decides WHEN each agent runs,
+    handles failures, and routes between branches. You implement three phases:
+      - TODO 7: Sequential GATE (validate → halt on failure)
+      - TODO 8: Parallel dispatch with ThreadPoolExecutor
+      - TODO 9: Conditional routing (domestic vs international)
+
+  This lesson is about orchestration patterns, not agent wiring. Most of the
+  scaffolding is pre-built so you can focus on the control-flow primitives.
 """
 
 import json
@@ -163,13 +172,19 @@ workflow_state = {}
 def build_address_validator() -> Agent:
     """Worker: Validates the delivery address (must pass BEFORE anything else)."""
 
-    # TODO 1: Create a BedrockModel with Nova Lite, temperature 0.0
-    #   Hint: model = BedrockModel(model_id=..., region_name=..., temperature=...)
+    # Nova Lite for fast, deterministic validation (pre-filled — see Module 1 for pattern).
+    model = BedrockModel(
+        model_id=os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0"),
+        region_name=os.environ.get("AWS_REGION", "us-east-1"),
+        temperature=0.0,
+    )
 
-    # TODO 2: Write a system prompt telling the agent to:
-    #   1. Call validate_address with the package_id
-    #   2. Report: Address <valid/invalid> for <package_id>: <reason>
-    #   Keep it focused — no extra commentary.
+    # TODO 1: Write a focused system prompt for this worker.
+    #   The agent should:
+    #     1. Call validate_address with the package_id
+    #     2. Report: "Address <valid/invalid> for <package_id>: <reason>"
+    #   Single responsibility — no extra commentary.
+    system_prompt = ""  # ← your prompt here
 
     @tool
     def validate_address(package_id: str) -> str:
@@ -214,9 +229,7 @@ def build_address_validator() -> Agent:
         workflow_state["validation"] = result
         return json.dumps(result, indent=2)
 
-    # TODO 3: Build and return the Agent with model, system_prompt, and tools=[validate_address]
-    #   Hint: return Agent(model=..., system_prompt=..., tools=[...])
-    pass
+    return Agent(model=model, system_prompt=system_prompt, tools=[validate_address])
 
 
 # ── Phase 2: Parallel Workers ─────────────────────────
@@ -224,11 +237,17 @@ def build_address_validator() -> Agent:
 def build_label_generator() -> Agent:
     """Worker: Generates shipping label (can run in PARALLEL with insurance/carrier)."""
 
-    # TODO 4: Create a BedrockModel with Nova Lite, temperature 0.0
+    model = BedrockModel(
+        model_id=os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0"),
+        region_name=os.environ.get("AWS_REGION", "us-east-1"),
+        temperature=0.0,
+    )
 
-    # TODO 5: Write a system prompt telling the agent to:
-    #   1. Call generate_label with the package_id
-    #   2. Report: Label generated for <package_id>: tracking <tracking_number>
+    # TODO 2: Write a focused system prompt for this worker.
+    #   The agent should:
+    #     1. Call generate_label with the package_id
+    #     2. Report: "Label generated for <package_id>: tracking <tracking_number>"
+    system_prompt = ""  # ← your prompt here
 
     @tool
     def generate_label(package_id: str) -> str:
@@ -260,18 +279,23 @@ def build_label_generator() -> Agent:
         workflow_state["label"] = result
         return json.dumps(result, indent=2)
 
-    # TODO 6: Build and return the Agent
-    pass
+    return Agent(model=model, system_prompt=system_prompt, tools=[generate_label])
 
 
 def build_insurance_calculator() -> Agent:
     """Worker: Calculates insurance premium (can run in PARALLEL with label/carrier)."""
 
-    # TODO 7: Create a BedrockModel with Nova Lite, temperature 0.0
+    model = BedrockModel(
+        model_id=os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0"),
+        region_name=os.environ.get("AWS_REGION", "us-east-1"),
+        temperature=0.0,
+    )
 
-    # TODO 8: Write a system prompt telling the agent to:
-    #   1. Call calculate_insurance with the package_id
-    #   2. Report: Insurance for <package_id>: $<premium> (<tier> coverage)
+    # TODO 3: Write a focused system prompt for this worker.
+    #   The agent should:
+    #     1. Call calculate_insurance with the package_id
+    #     2. Report: "Insurance for <package_id>: $<premium> (<tier> coverage)"
+    system_prompt = ""  # ← your prompt here
 
     @tool
     def calculate_insurance(package_id: str) -> str:
@@ -311,18 +335,23 @@ def build_insurance_calculator() -> Agent:
         workflow_state["insurance"] = result
         return json.dumps(result, indent=2)
 
-    # TODO 9: Build and return the Agent
-    pass
+    return Agent(model=model, system_prompt=system_prompt, tools=[calculate_insurance])
 
 
 def build_carrier_selector() -> Agent:
     """Worker: Selects optimal carrier (can run in PARALLEL with label/insurance)."""
 
-    # TODO 10: Create a BedrockModel with Nova Lite, temperature 0.0
+    model = BedrockModel(
+        model_id=os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0"),
+        region_name=os.environ.get("AWS_REGION", "us-east-1"),
+        temperature=0.0,
+    )
 
-    # TODO 11: Write a system prompt telling the agent to:
-    #   1. Call select_carrier with the package_id
-    #   2. Report: Carrier for <package_id>: <carrier_name> ($<rate>, <days> days)
+    # TODO 4: Write a focused system prompt for this worker.
+    #   The agent should:
+    #     1. Call select_carrier with the package_id
+    #     2. Report: "Carrier for <package_id>: <carrier_name> ($<rate>, <days> days)"
+    system_prompt = ""  # ← your prompt here
 
     @tool
     def select_carrier(package_id: str) -> str:
@@ -356,8 +385,7 @@ def build_carrier_selector() -> Agent:
         workflow_state["carrier"] = result
         return json.dumps(result, indent=2)
 
-    # TODO 12: Build and return the Agent
-    pass
+    return Agent(model=model, system_prompt=system_prompt, tools=[select_carrier])
 
 
 # ── Phase 3: Conditional Workers ──────────────────────
@@ -365,11 +393,17 @@ def build_carrier_selector() -> Agent:
 def build_domestic_shipping() -> Agent:
     """Worker: Processes domestic shipment (conditional — same country only)."""
 
-    # TODO 13: Create a BedrockModel with Nova Lite, temperature 0.0
+    model = BedrockModel(
+        model_id=os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0"),
+        region_name=os.environ.get("AWS_REGION", "us-east-1"),
+        temperature=0.0,
+    )
 
-    # TODO 14: Write a system prompt telling the agent to:
-    #   1. Call process_domestic with the package_id
-    #   2. Report: Domestic shipment processed for <package_id>
+    # TODO 5: Write a focused system prompt for this worker.
+    #   The agent should:
+    #     1. Call process_domestic with the package_id
+    #     2. Report: "Domestic shipment processed for <package_id>"
+    system_prompt = ""  # ← your prompt here
 
     @tool
     def process_domestic(package_id: str) -> str:
@@ -399,18 +433,23 @@ def build_domestic_shipping() -> Agent:
         workflow_state["shipping"] = result
         return json.dumps(result, indent=2)
 
-    # TODO 15: Build and return the Agent
-    pass
+    return Agent(model=model, system_prompt=system_prompt, tools=[process_domestic])
 
 
 def build_international_shipping() -> Agent:
     """Worker: Processes international shipment (conditional — different country only)."""
 
-    # TODO 16: Create a BedrockModel with Nova Lite, temperature 0.0
+    model = BedrockModel(
+        model_id=os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0"),
+        region_name=os.environ.get("AWS_REGION", "us-east-1"),
+        temperature=0.0,
+    )
 
-    # TODO 17: Write a system prompt telling the agent to:
-    #   1. Call process_international with the package_id
-    #   2. Report: International shipment processed for <package_id>
+    # TODO 6: Write a focused system prompt for this worker.
+    #   The agent should:
+    #     1. Call process_international with the package_id
+    #     2. Report: "International shipment processed for <package_id>"
+    system_prompt = ""  # ← your prompt here
 
     @tool
     def process_international(package_id: str) -> str:
@@ -451,16 +490,25 @@ def build_international_shipping() -> Agent:
         workflow_state["shipping"] = result
         return json.dumps(result, indent=2)
 
-    # TODO 18: Build and return the Agent
-    pass
+    return Agent(model=model, system_prompt=system_prompt, tools=[process_international])
 
 
 # ═══════════════════════════════════════════════════════
-#  ORCHESTRATOR — Already implemented (same pattern as demo)
-#  Study how the orchestrator manages:
-#  - Phase 1: Sequential GATE (halt if invalid)
-#  - Phase 2: Parallel execution (ThreadPoolExecutor)
-#  - Phase 3: Conditional routing (if/elif code)
+#  ORCHESTRATOR — You implement this
+#  The orchestrator is the control plane. It decides WHEN each worker runs,
+#  handles failures, and routes between branches. Three phases to implement:
+#   - Phase 1: Sequential GATE (halt workflow if validation fails)
+#   - Phase 2: Parallel execution via ThreadPoolExecutor
+#   - Phase 3: Conditional routing based on data (not LLM)
+#
+#  Patterns:
+#   - run_agent_with_retry(builder, prompt) -> float (elapsed seconds) is
+#     already provided above. Use it for every agent invocation so you get
+#     free retry + backoff handling.
+#   - Reading a worker's output happens via the shared `workflow_state` dict.
+#     Each @tool writes its result there (see the tool implementations).
+#   - Compare with the Module 3 demo for the ThreadPoolExecutor pattern and
+#     the Module 4 demo (hr_onboarding.py) for the full 3-phase flow.
 # ═══════════════════════════════════════════════════════
 
 def orchestrate_delivery(package_id: str) -> dict:
@@ -471,105 +519,100 @@ def orchestrate_delivery(package_id: str) -> dict:
         Phase 1 (SEQUENTIAL GATE): AddressValidator → valid? If NO → halt
         Phase 2 (PARALLEL):        LabelGenerator + InsuranceCalculator + CarrierSelector
         Phase 3 (CONDITIONAL):     DomesticShipping OR InternationalShipping
+
+    Returns a dict with per-phase timings and a `halted` flag.
     """
     pkg = next((p for p in DELIVERIES if p["id"] == package_id), None)
     if not pkg:
         return {"error": f"Package {package_id} not found"}
 
-    timings = {}
+    timings: dict = {}
+    phase2_time: float = 0.0
 
+    # ══════════════════════════════════════════════════
     # PHASE 1: SEQUENTIAL GATE — Address must be valid
+    # ══════════════════════════════════════════════════
     print(f"\n  ── Phase 1: SEQUENTIAL GATE (address validation) ──")
 
-    print(f"    Validating address...")
-    timings["validation"] = run_agent_with_retry(
-        build_address_validator,
-        f"Validate address for package {package_id}",
-    )
+    # TODO 7: Implement the sequential gate.
+    #
+    #   1. Invoke the address validator with run_agent_with_retry(...) and
+    #      store the elapsed time in timings["validation"]. Use a prompt like
+    #      f"Validate address for package {package_id}".
+    #
+    #   2. After the agent runs, read workflow_state["validation"] — the
+    #      @tool wrote the result there. If its "status" is not "valid",
+    #      print a HALTED message and RETURN EARLY with:
+    #        - phase1_gate: timings["validation"]
+    #        - phase2_parallel: 0
+    #        - phase3_conditional: 0
+    #        - total: timings["validation"]
+    #        - halted: True
+    #        - halt_reason: the validation "reason" field
+    #        - timings: timings
+    #
+    #   3. Otherwise, fall through to Phase 2. Print a "valid" confirmation.
+    #
+    # Pattern reference: see the Module 4 demo (hr_onboarding.py).
+    raise NotImplementedError("TODO 7: implement the sequential gate")
 
-    validation = workflow_state.get("validation", {})
-    if validation.get("status") != "valid":
-        print(f"    HALTED: Address invalid — {validation.get('reason', 'unknown')}")
-        print(f"    Workflow stopped. No further processing.")
-        return {
-            "phase1_gate": timings["validation"],
-            "phase2_parallel": 0,
-            "phase3_conditional": 0,
-            "total": timings["validation"],
-            "halted": True,
-            "halt_reason": validation.get("reason", "Address validation failed"),
-            "timings": timings,
-        }
-
-    print(f"    Address valid: {validation.get('address', '?')} ({timings['validation']:.1f}s)")
-
-    # PHASE 2: PARALLEL — Label, insurance, carrier selection
+    # ══════════════════════════════════════════════════
+    # PHASE 2: PARALLEL — Label, insurance, carrier
+    # These three agents are INDEPENDENT — none reads another's output — so
+    # they can run at the same time. Expect a ~3× speedup over running them
+    # one-after-another.
+    # ══════════════════════════════════════════════════
     print(f"\n  ── Phase 2: PARALLEL (label + insurance + carrier) ──")
 
-    def run_label():
-        return run_agent_with_retry(
-            build_label_generator,
-            f"Generate shipping label for package {package_id}",
-        )
+    # TODO 8: Dispatch the three parallel workers with ThreadPoolExecutor.
+    #
+    #   The pattern is identical to the Module 3 demo (document_analysis.py):
+    #     - For each worker, define a small zero-arg closure that calls
+    #       run_agent_with_retry(build_<worker>, "<prompt for that worker>")
+    #     - Open a ThreadPoolExecutor(max_workers=3)
+    #     - submit() each closure, mapping the Future to a name
+    #       ("label" | "insurance" | "carrier")
+    #     - Iterate with as_completed(futures) and store each result in
+    #       timings[name]
+    #     - Measure the WALL-CLOCK time of the whole parallel phase and
+    #       assign it to phase2_time (use time.time() before and after)
+    #
+    # The three worker builders are build_label_generator, build_insurance_calculator,
+    # and build_carrier_selector. Use prompts like
+    #   f"Generate shipping label for package {package_id}"
+    #   f"Calculate insurance for package {package_id}"
+    #   f"Select carrier for package {package_id}"
+    pass  # ← replace with your implementation
 
-    def run_insurance():
-        return run_agent_with_retry(
-            build_insurance_calculator,
-            f"Calculate insurance for package {package_id}",
-        )
-
-    def run_carrier():
-        return run_agent_with_retry(
-            build_carrier_selector,
-            f"Select carrier for package {package_id}",
-        )
-
-    t_parallel_start = time.time()
-    with ThreadPoolExecutor(max_workers=3) as executor:
-        futures = {
-            executor.submit(run_label): "label",
-            executor.submit(run_insurance): "insurance",
-            executor.submit(run_carrier): "carrier",
-        }
-        for future in as_completed(futures):
-            name = futures[future]
-            timings[name] = future.result()
-
-    phase2_time = time.time() - t_parallel_start
     print(f"    Label: {timings.get('label', 0):.1f}s | Insurance: {timings.get('insurance', 0):.1f}s | Carrier: {timings.get('carrier', 0):.1f}s")
     print(f"    Phase 2 total: {phase2_time:.1f}s (parallel)")
 
+    # ══════════════════════════════════════════════════
     # PHASE 3: CONDITIONAL — Route based on destination country
+    # This is a CODE decision (deterministic if/else), not an LLM decision.
+    # Routing logic that can be expressed as code should be — it's cheaper,
+    # faster, and impossible to hallucinate.
+    # ══════════════════════════════════════════════════
     print(f"\n  ── Phase 3: CONDITIONAL (shipping route) ──")
-    sender_country = pkg["sender_country"]
-    dest_country = pkg["country"]
-    is_domestic = sender_country == dest_country
 
-    if is_domestic:
-        print(f"    Routing to Domestic Shipping ({sender_country} → {dest_country})...")
-        timings["shipping"] = run_agent_with_retry(
-            build_domestic_shipping,
-            f"Process domestic shipment for package {package_id}",
-        )
-    else:
-        print(f"    Routing to International Shipping ({sender_country} → {dest_country})...")
-        timings["shipping"] = run_agent_with_retry(
-            build_international_shipping,
-            f"Process international shipment for package {package_id}",
-        )
+    # TODO 9: Route conditionally based on destination country.
+    #
+    #   - Read pkg["sender_country"] and pkg["country"].
+    #   - If they're the same, invoke build_domestic_shipping via
+    #     run_agent_with_retry(...). Otherwise invoke build_international_shipping.
+    #   - Store the elapsed time in timings["shipping"].
+    #   - Print which branch you took.
+    pass  # ← replace with your implementation
 
     shipping = workflow_state.get("shipping", {})
-    print(f"    {shipping.get('shipping_type', '?').title()} shipping processed ({timings['shipping']:.1f}s)")
+    print(f"    {shipping.get('shipping_type', '?').title()} shipping processed ({timings.get('shipping', 0):.1f}s)")
     print(f"    Carrier: {shipping.get('carrier', '?')} | Total: ${shipping.get('total_cost', 0):.2f}")
 
-    phase1_time = timings["validation"]
-    phase3_time = timings["shipping"]
-
     return {
-        "phase1_gate": phase1_time,
+        "phase1_gate": timings["validation"],
         "phase2_parallel": phase2_time,
-        "phase3_conditional": phase3_time,
-        "total": phase1_time + phase2_time + phase3_time,
+        "phase3_conditional": timings.get("shipping", 0),
+        "total": timings["validation"] + phase2_time + timings.get("shipping", 0),
         "halted": False,
         "timings": timings,
     }

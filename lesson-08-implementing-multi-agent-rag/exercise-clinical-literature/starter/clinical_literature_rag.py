@@ -270,8 +270,14 @@ def retrieve_from_kb(kb_id: str, query: str, kb_name: str,
         raise ConnectionError(f"Knowledge Base '{kb_name}' is temporarily unavailable")
 
     if not kb_id:
-        print(f"    WARNING: {kb_name} KB ID not set — returning empty results")
-        return []
+        # Hard error: missing KB ID = you forgot to run the Setup section.
+        # Fail loudly so you don't chase empty-result "bugs" in your own code.
+        raise RuntimeError(
+            f"{kb_name} Knowledge Base ID is not set. "
+            f"Follow the Setup section of "
+            f"lesson-08-implementing-multi-agent-rag/README.md to create the "
+            f"Bedrock Knowledge Bases and populate your .env file."
+        )
 
     response = bedrock_agent_runtime.retrieve(
         knowledgeBaseId=kb_id,

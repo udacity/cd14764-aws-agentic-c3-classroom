@@ -46,6 +46,7 @@ import time
 import logging
 import os
 import boto3
+from botocore.exceptions import ClientError
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 from strands import Agent, tool
@@ -506,6 +507,33 @@ AGENT_BUILDERS = {
 
 # Main — Process all 20 tickets
 
+def _verify_audit_table():
+    """Fail fast with a clear message if the CloudFormation stack wasn't deployed.
+
+    Every routing decision is logged to DynamoDB, so if the table is missing
+    we surface a helpful error *before* the first ticket runs rather than a
+    cryptic ResourceNotFoundException mid-loop.
+    """
+    try:
+        audit_table.load()
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ResourceNotFoundException":
+            print("\n" + "=" * 70)
+            print("  SETUP REQUIRED: DynamoDB audit table not found")
+            print("=" * 70)
+            print(f"  Expected table: {ROUTING_AUDIT_TABLE}")
+            print(f"  Region:         {AWS_REGION}")
+            print("\n  Deploy the CloudFormation stack that creates it:")
+            print("    cd lesson-05-implementing-routing-in-multi-agent-systems/infrastructure")
+            print("    aws cloudformation deploy \\")
+            print("      --template-file stack.yaml \\")
+            print("      --stack-name lesson-05-routing \\")
+            print("      --capabilities CAPABILITY_IAM")
+            print("\n  Then re-run this exercise.\n")
+            raise SystemExit(1)
+        raise
+
+
 def main():
     print("=" * 70)
     print("  Telecom Customer Ticket Router — Module 5 Exercise")
@@ -513,6 +541,8 @@ def main():
     print("  4 Specialist Agents + 1 Classifier Agent")
     print("  20 Tickets (8 billing, 6 technical, 2 cancellation, 4 ambiguous)")
     print("=" * 70)
+
+    _verify_audit_table()
 
     results = []
 

@@ -112,10 +112,11 @@ BIO_KB_ID = os.environ.get("BIO_KB_ID", "")
 bedrock_agent_runtime = boto3.client("bedrock-agent-runtime", region_name=AWS_REGION)
 
 
-# STEP 1: KNOWLEDGE BASE DATA — Reference data showing what's indexed in Bedrock KBs via S3
-# Production: bedrock_agent.retrieve(knowledgeBaseId, retrievalQuery, vectorSearchConfiguration)
-# Returns: retrievalResults[].content.text, .score, .location
-# Here: In-memory docs + keyword matching
+# STEP 1: KNOWLEDGE BASE REFERENCE DOCS
+# These arrays describe what each Bedrock Knowledge Base *should contain* after
+# you upload source documents per the lesson README's Setup section. They are
+# NOT queried at runtime — `retrieve_from_kb()` calls the real Bedrock API.
+# If CS_KB_ID / BIO_KB_ID are missing from .env, the demo fails fast.
 
 CS_PAPERS = [
     {
@@ -252,8 +253,15 @@ def retrieve_from_kb(kb_id: str, query: str, kb_name: str,
         raise ConnectionError(f"Knowledge Base '{kb_name}' is temporarily unavailable")
 
     if not kb_id:
-        print(f"    WARNING: {kb_name} KB ID not set — returning empty results")
-        return []
+        # Hard error: a missing KB ID was previously a silent "returns empty"
+        # which made broken setup indistinguishable from queries with no matches.
+        # Fail loudly and point the learner at the README setup section.
+        raise RuntimeError(
+            f"{kb_name} Knowledge Base ID is not set. "
+            f"Create the Bedrock Knowledge Base per the Setup section of "
+            f"lesson-08-implementing-multi-agent-rag/README.md, then set "
+            f"CS_KB_ID / BIO_KB_ID in your .env file before re-running."
+        )
 
     response = bedrock_agent_runtime.retrieve(
         knowledgeBaseId=kb_id,
@@ -395,12 +403,37 @@ Do NOT add any other commentary."""
     return Agent(model=model, system_prompt=system_prompt, tools=[retrieve_bio_papers])
 
 
-# STEP 4: RESULT AGGREGATION — Combine and rank retrieved passages
+# STEP 4: RESULT AGGREGATION — Combine, dedupe, and rank retrieved passages
 def aggregate_results(cs_passages: list, bio_passages: list, top_k: int = TOP_K) -> list[dict]:
-    """Combine passages from both KBs, rank by relevance score, select top-K."""
+    """Combine passages from both KBs, deduplicate, rank by score, select top-K.
+
+    Why deduplicate?
+        When two retrievers query overlapping corpora — or when a single doc
+        is chunked twice during indexing — the same passage can come back
+        from both sides with slightly different scores. Without dedup the
+        top-K window fills up with near-duplicates and the synthesis agent
+        sees the same evidence twice (but counted as two independent sources),
+        which inflates apparent groundedness.
+
+    Strategy used here:
+        Group by doc_id and keep the highest-scoring instance. This is the
+        cheapest dedup that catches "same chunk indexed twice." The exercise
+        extends this to NEAR-duplicate detection (e.g., normalized text hash
+        or embedding cosine similarity) for cases where two different
+        passages restate the same fact.
+    """
     all_passages = cs_passages + bio_passages
-    all_passages.sort(key=lambda x: x["score"], reverse=True)
-    return all_passages[:top_k]
+
+    # Dedupe by doc_id, keeping the highest-scoring copy of each.
+    best_by_id: dict[str, dict] = {}
+    for p in all_passages:
+        existing = best_by_id.get(p["doc_id"])
+        if existing is None or p["score"] > existing["score"]:
+            best_by_id[p["doc_id"]] = p
+
+    deduped = list(best_by_id.values())
+    deduped.sort(key=lambda x: x["score"], reverse=True)
+    return deduped[:top_k]
 
 
 # STEP 5: SYNTHESIS AGENT — Grounded answer with citations
@@ -418,6 +451,15 @@ def build_synthesis_agent(passages: list[dict], query: str) -> Agent:
     )
 
     # STEP 5.2: System prompt — Synthesis rules for grounded answers with citations
+    #
+    # STRUCTURED OUTPUT NOTE:
+    # The demo uses a light structure (summary + findings). Production RAG
+    # systems usually demand tighter schemas — for example the clinical
+    # exercise enforces three named sections plus an Integrated Recommendation.
+    # The technique is the same: declare the section headers in the system
+    # prompt and have the model fill them. The trade-off is that stricter
+    # schemas reduce hallucination but limit how the model can express
+    # nuance, so match the schema rigor to your domain's risk tolerance.
     system_prompt = f"""You are a research synthesis agent. Your job is to answer the research
 question using ONLY the retrieved passages below. Rules:
 1. Every factual claim MUST cite a specific passage using [DOC_ID] format
@@ -514,12 +556,34 @@ def run_rag_query(query_data: dict):
 #  STEP 7: DEMO EXECUTION — Run 3 RAG query scenarios
 # ═══════════════════════════════════════════════════════
 
+def _verify_kb_ids():
+    """Fail fast if the learner hasn't configured CS_KB_ID / BIO_KB_ID.
+
+    Bedrock Knowledge Bases are created manually per the lesson README, so this
+    check catches the most common setup mistake (forgotten .env) before the
+    first query runs — not in the middle of a scenario.
+    """
+    missing = [name for name, val in [("CS_KB_ID", CS_KB_ID), ("BIO_KB_ID", BIO_KB_ID)] if not val]
+    if missing:
+        print("\n" + "=" * 70)
+        print("  SETUP REQUIRED: Bedrock Knowledge Base IDs not set")
+        print("=" * 70)
+        print(f"  Missing env vars: {', '.join(missing)}")
+        print("\n  Follow the Setup section of:")
+        print("    lesson-08-implementing-multi-agent-rag/README.md")
+        print("  It walks through creating the S3 bucket, uploading source docs,")
+        print("  creating the Bedrock KBs, and populating your .env file.\n")
+        raise SystemExit(1)
+
+
 def main():
     print("=" * 70)
     print("  Multi-Agent RAG Research Assistant — Module 8 Demo")
     print("  2 Specialized Retrievers + Parallel Retrieval + Synthesis")
     print("  CS Papers KB + Biology Papers KB → Grounded Answers")
     print("=" * 70)
+
+    _verify_kb_ids()
 
     results = []
 

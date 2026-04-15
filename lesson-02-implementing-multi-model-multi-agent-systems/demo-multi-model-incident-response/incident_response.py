@@ -371,9 +371,67 @@ def main():
     for r in latency_report:
         print(f"  {r['incident']:<10} {r['severity']:<10} {r['nova_lite_s']:<11.1f} {r['claude_s']:<10.1f} {r['nova_pro_s']:<10.1f} {r['total_s']:<8.1f}")
 
+    # ── Cost Projection Table ───────────────────────────────
+    # Reference pricing per 1M tokens (us-east-1, on-demand, April 2026).
+    # These are INDICATIVE numbers — always check current pricing at
+    # https://aws.amazon.com/bedrock/pricing/ before sizing a production workload.
+    pricing = {
+        # model_name: (input_per_1M, output_per_1M)
+        "Nova Lite": (0.06, 0.24),
+        "Nova Pro":  (0.80, 3.20),
+        "Claude 3 Sonnet": (3.00, 15.00),
+    }
+
+    # Assume a typical short-task footprint per agent call. Real workloads
+    # should instrument token usage via Bedrock CloudWatch metrics.
+    tokens_in_per_call = 200
+    tokens_out_per_call = 100
+
+    def dollars_per_call(model_name: str) -> float:
+        inp, out = pricing[model_name]
+        return (tokens_in_per_call * inp + tokens_out_per_call * out) / 1_000_000
+
+    cost_per_incident = {
+        "Nova Lite (routing)":     dollars_per_call("Nova Lite"),
+        "Claude (analysis)":       dollars_per_call("Claude 3 Sonnet"),
+        "Nova Pro (comms)":        dollars_per_call("Nova Pro"),
+    }
+    mix_per_incident = sum(cost_per_incident.values())
+    claude_only_per_incident = 3 * dollars_per_call("Claude 3 Sonnet")
+
+    # Project to 10,000 incidents/day
+    volume = 10_000
+    mix_daily = mix_per_incident * volume
+    claude_daily = claude_only_per_incident * volume
+    savings_daily = claude_daily - mix_daily
+    savings_pct = (savings_daily / claude_daily) * 100 if claude_daily else 0
+
+    print(f"\n{'═' * 70}")
+    print("  COST PROJECTION (10,000 incidents/day)")
+    print(f"{'═' * 70}")
+    print(f"  Assumed per-call footprint: {tokens_in_per_call} input + {tokens_out_per_call} output tokens")
+    print(f"  Reference pricing per 1M tokens (us-east-1, on-demand):")
+    for name, (inp, out) in pricing.items():
+        print(f"    {name:<18} ${inp:>6.2f} in  /  ${out:>6.2f} out")
+
+    print(f"\n  Multi-model mix (this demo):")
+    for role, cost in cost_per_incident.items():
+        print(f"    {role:<22} ${cost * 1000:>7.4f} per 1K calls")
+    print(f"    {'─' * 40}")
+    print(f"    {'TOTAL per incident':<22} ${mix_per_incident:>8.6f}")
+    print(f"    {'Daily @ 10K/day':<22} ${mix_daily:>8.2f}")
+
+    print(f"\n  Claude-for-everything baseline:")
+    print(f"    {'TOTAL per incident':<22} ${claude_only_per_incident:>8.6f}")
+    print(f"    {'Daily @ 10K/day':<22} ${claude_daily:>8.2f}")
+
+    print(f"\n  Savings from multi-model routing: ${savings_daily:.2f}/day ({savings_pct:.0f}% reduction)")
+
     print(f"\n  Key Insight: Nova Lite handles fast routing, Claude provides")
     print(f"  deep analysis, Nova Pro balances speed and quality for comms.")
-    print(f"  Choose the right model for each agent's task requirements.\n")
+    print(f"  The 80/20 rule applies: most agent calls are routing/comms where")
+    print(f"  cheap models are good enough. Reserve Claude-class spend for the")
+    print(f"  reasoning hot path that actually needs it.\n")
 
 
 if __name__ == "__main__":

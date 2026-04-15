@@ -36,3 +36,11 @@ lesson-06-implementing-shared-state-with-dynamodb/
 - **Cross-Session Memory:** Simulated AgentCore Memory (customer_memory dict) with SESSION_SUMMARY strategy comments
 - **Test cases:** 3 orders — sequential, concurrent (4-way conflicts), state recovery (restaurant rejects → cleanup partial updates)
 - **Key insight:** State recovery handles the case where some agents wrote partial data before a failure — cleanup resets fields and cancels the order
+
+## Cleanup
+
+The CloudFormation stack creates two DynamoDB tables (TripState + OrderState), both billing on-demand. Tear them down when you're done:
+
+```bash
+aws cloudformation delete-stack --stack-name lesson-06-shared-state
+```

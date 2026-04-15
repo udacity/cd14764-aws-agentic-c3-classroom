@@ -33,3 +33,13 @@ lesson-11-inter-agent-communication-via-gateway/
 - **Mixed targets (NEW):** 2 Lambda functions + 1 REST API
 - **Semantic routing:** Agent selects correct tool based on query semantics
 - **Key insight:** Gateway enables a plugin architecture for agent tools
+
+## Cleanup
+
+The CloudFormation stack creates seven Lambda functions and an IAM role. Lambda is free at this scale but the functions clutter the console — tear the stack down when you're done:
+
+```bash
+aws cloudformation delete-stack --stack-name lesson-11-gateway
+```
+
+If you also created an AgentCore Gateway during the exercise, delete it from the Bedrock console (Gateway → select → Delete). The CloudFormation stack only manages the Lambda targets, not the Gateway itself.

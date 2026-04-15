@@ -1,22 +1,32 @@
 # Exercise Starter: Orchestrated Package Delivery Workflow
 
 ## Overview
-Build an orchestrated logistics workflow for package delivery following the same pattern from the demo (hr_onboarding.py).
+This exercise is about **orchestration**, not agent wiring. The control plane — when agents run, how failures are handled, which branch is taken — is what you implement. Most of the agent boilerplate is already filled in so you can stay focused on the three orchestration primitives from the demo (hr_onboarding.py): sequential gate, parallel dispatch, and conditional routing.
 
 ## Your Task
-Complete **18 TODOs** (3 per agent × 6 agents) in `delivery_workflow.py`:
+Complete **9 TODOs** in `delivery_workflow.py`, split into two parts.
 
-Each `build_*()` function needs three things (same STEP 1/2/3 pattern as the demo):
+### Part A — Agent system prompts (TODOs 1–6)
+For each of the 6 `build_*()` workers, the `BedrockModel` and `Agent(...)` construction are already written. You just fill in one thing per worker: the `system_prompt`. A good worker prompt is tight and single-purpose — tell the agent which tool to call and exactly what to report. If you're stuck, Module 1's SymptomAnalyzer prompt is a good reference.
 
-| TODO | What to do | Hint |
-|------|-----------|------|
-| STEP 1 | Create `BedrockModel` | `BedrockModel(model_id=NOVA_LITE_MODEL, region_name=AWS_REGION, temperature=0.0)` |
-| STEP 2 | Write system prompt | Tell the agent its ONE job — which tool to call and what to report |
-| STEP 3 | Return `Agent(...)` | `return Agent(model=model, system_prompt=system_prompt, tools=[the_tool])` |
+### Part B — Orchestrator phases (TODOs 7–9)
+Inside `orchestrate_delivery(...)`, implement the three control-flow phases:
+
+| TODO | Phase | What you write |
+|------|-------|----------------|
+| 7 | Sequential GATE | Call the validator; if the result isn't valid, HALT and return early with `halted=True` |
+| 8 | Parallel dispatch | Run label + insurance + carrier workers concurrently with `ThreadPoolExecutor(max_workers=3)`, record each timing, measure wall-clock for the phase |
+| 9 | Conditional routing | Compare `pkg["sender_country"]` to `pkg["country"]` and dispatch to `build_domestic_shipping` or `build_international_shipping` |
+
+Pattern references:
+- The parallel dispatch primitive is the same one used in the Module 3 demo (`document_analysis.py`).
+- The full 3-phase flow mirrors the Module 4 demo (`hr_onboarding.py`).
+- `run_agent_with_retry(builder, prompt)` is already provided and returns elapsed seconds — use it for every agent invocation.
+- Workers write their output into the shared `workflow_state` dict. Read from there to check a worker's result (e.g., `workflow_state["validation"]`).
 
 ## What's Already Done
 - All 6 `@tool` functions (validate_address, generate_label, calculate_insurance, select_carrier, process_domestic, process_international)
-- The orchestrator (orchestrate_delivery) with all 3 phases
+- All 6 `BedrockModel` + `Agent(...)` constructions (you only write the prompts)
 - The main() function with test execution and summary table
 - Helper functions (clean_response, run_agent_with_retry)
 - Sample data (DELIVERIES, CARRIER_RATES, INSURANCE_RATES)

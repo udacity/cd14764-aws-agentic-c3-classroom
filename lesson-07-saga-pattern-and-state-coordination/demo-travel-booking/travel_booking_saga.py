@@ -226,6 +226,43 @@ def get_saga(saga_id: str) -> dict | None:
     item = response.get("Item")
     return from_dynamo(item) if item else None
 
+
+def initialize_barrier(saga_id: str, needed: int):
+    """Set the target count for the compensation barrier.
+
+    The barrier is an atomic counter pattern for coordinating "N-of-N done"
+    across independent compensators. We set `compensations_needed` to the
+    number of completed steps that require rollback, and then increment
+    `compensations_done` after each compensation finishes. The saga is only
+    allowed to transition to `failed` when done == needed — this prevents
+    premature resolution while rollbacks are still running.
+    """
+    saga_table.update_item(
+        Key={"saga_id": saga_id},
+        UpdateExpression="SET compensations_needed = :n, compensations_done = :z",
+        ExpressionAttributeValues={":n": needed, ":z": 0},
+    )
+
+
+def increment_barrier(saga_id: str) -> tuple[int, int]:
+    """Atomically increment the barrier counter and return (done, needed).
+
+    Uses DynamoDB's ADD expression for lock-free increment. This is the same
+    primitive the exercise asks you to implement in the e-commerce saga — if
+    two compensators finish at the exact same moment, DynamoDB serializes the
+    ADDs so neither update is lost. Contrast with a read-modify-write, which
+    would lose one of the increments.
+    """
+    response = saga_table.update_item(
+        Key={"saga_id": saga_id},
+        UpdateExpression="ADD compensations_done :one",
+        ExpressionAttributeValues={":one": 1},
+        ReturnValues="ALL_NEW",
+    )
+    attrs = from_dynamo(response["Attributes"])
+    return int(attrs.get("compensations_done", 0)), int(attrs.get("compensations_needed", 0))
+
+
 # ═══════════════════════════════════════════════════════
 #  STEP 4: BOOKING AGENTS — Each has forward + compensating action
 #  FlightAgent, HotelAgent, CarAgent (3 agents)
@@ -622,12 +659,26 @@ def run_saga(package: dict):
 
     print(f"  Compensating {len(completed_steps)} completed step(s) in reverse order...")
 
+    # Initialize the barrier counter. We know up front how many compensations
+    # we need to finish — the barrier is the condition that gates saga resolution.
+    initialize_barrier(saga_id, needed=len(completed_steps))
+
     compensation_builders = {
         "flight": lambda: build_flight_agent(package["flight"], saga_id, cancel_mode=True),
         "hotel": lambda: build_hotel_agent(package["hotel"], saga_id, cancel_mode=True),
         "car": lambda: build_car_agent(package["car"], saga_id, cancel_mode=True),
     }
 
+    # IDEMPOTENCY NOTE:
+    # Compensating transactions must be idempotent — running cancel_flight twice
+    # against the same booking must NOT refund twice, double-cancel, or error.
+    # In production, achieve this by passing a unique compensation_ref (e.g.
+    # f"cancel-{saga_id}-{step_idx}") that the downstream service de-duplicates
+    # server-side, or by making the cancel a no-op when the booking is already
+    # marked compensated. The demo relies on the local state machine (status
+    # transitions to 'compensating' first), but that's the weakest form — real
+    # services need end-to-end idempotency tokens because the orchestrator can
+    # crash between the downstream call and the local state update.
     total_refund = 0.0
     for idx, step in completed_steps:
         name = step["name"]
@@ -643,24 +694,44 @@ def run_saga(package: dict):
             comp_step = saga_after["steps"][idx]
             print(f"    Compensated: {comp_step.get('compensation_ref', '?')} ({t:.1f}s)")
 
+            # Barrier: atomically report that this compensation is done.
+            # If two compensators finished simultaneously (e.g. parallel rollback
+            # for a wider saga), DynamoDB's ADD expression would serialize the
+            # increments — no lost counts, no custom locking.
+            done, needed = increment_barrier(saga_id)
+            print(f"    [Barrier] {done}/{needed} compensations complete")
+
             # Track refund
             refund = package.get(name, {}).get("price", 0)
             total_refund += refund
 
         except Exception as e:
             print(f"    COMPENSATION FAILED: {e}")
-            # In production: alert, manual intervention needed
+            # In production: alert, manual intervention needed.
+            # The barrier would STILL be short of `needed`, so the saga stays
+            # in 'compensating' state rather than silently resolving to 'failed'.
+
+    # Barrier check: only resolve the saga when done == needed. If any
+    # compensation failed above, we skip the status transition and leave the
+    # saga in 'compensating' — an operator has to reconcile manually.
+    saga_after = get_saga(saga_id)
+    done = int(saga_after.get("compensations_done", 0))
+    needed = int(saga_after.get("compensations_needed", 0))
 
     # Release lock
     release_lock(saga_id)
     print(f"\n  Lock released")
 
-    # Update overall status
-    saga_table.update_item(
-        Key={"saga_id": saga_id},
-        UpdateExpression="SET overall_status = :val",
-        ExpressionAttributeValues={":val": "failed"},
-    )
+    if done == needed and needed > 0:
+        saga_table.update_item(
+            Key={"saga_id": saga_id},
+            UpdateExpression="SET overall_status = :val",
+            ExpressionAttributeValues={":val": "failed"},
+        )
+        print(f"  Barrier reached ({done}/{needed}) — saga resolved to 'failed'")
+    else:
+        print(f"  Barrier NOT reached ({done}/{needed}) — saga stays in 'compensating'"
+              f" for operator review")
 
     saga_final = get_saga(saga_id)
     print(f"  Total refund: ${total_refund:.2f}")
@@ -720,8 +791,9 @@ def main():
     print(f"  4. STATE MACHINE — tracks each step: pending → executing → completed/failed")
     print(f"     On compensation: completed → compensating → compensated")
     print(f"  5. DISTRIBUTED LOCK — conditional write prevents concurrent compensation")
-    print(f"  6. IDEMPOTENT COMPENSATIONS — safe to retry (cancel twice = same result)")
-    print(f"  7. CRASH RECOVERY — read state machine, resume from last recorded phase\n")
+    print(f"  6. BARRIER COUNTER — atomic DynamoDB ADD gates saga resolution on N-of-N done")
+    print(f"  7. IDEMPOTENT COMPENSATIONS — safe to retry (cancel twice = same result)")
+    print(f"  8. CRASH RECOVERY — read state machine, resume from last recorded phase\n")
 
 
 if __name__ == "__main__":

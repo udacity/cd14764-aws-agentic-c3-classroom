@@ -49,6 +49,7 @@ import time
 import logging
 import os
 import boto3
+from botocore.exceptions import ClientError
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 from strands import Agent, tool
@@ -525,12 +526,41 @@ AGENT_BUILDERS = {
 
 # Main — Process all requests through hybrid router
 
+def _verify_audit_table():
+    """Fail fast with a clear message if the CloudFormation stack wasn't deployed.
+
+    The demo writes a routing decision to DynamoDB for every request, so if the
+    table is missing we want to surface a helpful error *before* the first
+    scenario runs — not a cryptic ResourceNotFoundException halfway through.
+    """
+    try:
+        audit_table.load()  # describes the table; raises if it doesn't exist
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ResourceNotFoundException":
+            print("\n" + "=" * 70)
+            print("  SETUP REQUIRED: DynamoDB audit table not found")
+            print("=" * 70)
+            print(f"  Expected table: {ROUTING_AUDIT_TABLE}")
+            print(f"  Region:         {AWS_REGION}")
+            print("\n  Deploy the CloudFormation stack that creates it:")
+            print("    cd lesson-05-implementing-routing-in-multi-agent-systems/infrastructure")
+            print("    aws cloudformation deploy \\")
+            print("      --template-file stack.yaml \\")
+            print("      --stack-name lesson-05-routing \\")
+            print("      --capabilities CAPABILITY_IAM")
+            print("\n  Then re-run this demo.\n")
+            raise SystemExit(1)
+        raise
+
+
 def main():
     print("=" * 70)
     print("  Financial Transaction Router — Module 5 Demo")
     print("  Hybrid Routing: Priority + Rules + LLM + Fallback")
     print("  5 Specialist Agents + 1 Classifier Agent")
     print("=" * 70)
+
+    _verify_audit_table()
 
     results = []
 
