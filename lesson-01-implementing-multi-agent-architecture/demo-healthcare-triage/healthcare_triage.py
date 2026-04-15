@@ -115,6 +115,12 @@ def clean_response(text: str) -> str:
     return cleaned.strip()
 
 
+# Shared dict for capturing tool results directly.
+# Why: LLMs may rephrase or modify tool output in their text response,
+# so we capture the raw tool result here for reliable downstream use.
+_tool_results = {}
+
+
 # NOTE: In production, extract shared helpers like run_agent_with_retry() and
 # clean_response() to a common utils.py module to avoid code duplication.
 def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> str:
@@ -168,10 +174,12 @@ def build_symptom_analyzer() -> Agent:
                     "condition": info["condition"],
                     "severity": info["severity"],
                 })
-        return json.dumps({
+        result = json.dumps({
             "matched_symptoms": matches,
             "total_matches": len(matches),
         }, indent=2)
+        _tool_results["symptoms"] = result  # Capture for coordinator
+        return result
 
     system_prompt = """You are a Symptom Analyzer agent. Your ONLY job is symptom analysis.
 Call the lookup_symptoms tool with the patient's complaint text.
@@ -239,11 +247,13 @@ def build_urgency_classifier() -> Agent:
             urgency = "routine"
             reason = "Low-severity symptoms — suitable for routine appointment"
 
-        return json.dumps({
+        result = json.dumps({
             "urgency": urgency,
             "reason": reason,
             "severity_breakdown": severities,
         }, indent=2)
+        _tool_results["urgency"] = result  # Capture for coordinator
+        return result
 
     system_prompt = """You are an Urgency Classifier agent. Your ONLY job is urgency classification.
 You will receive symptom analysis JSON. Call the classify_urgency tool with that JSON.
@@ -290,7 +300,7 @@ def build_appointment_scheduler() -> Agent:
             })
         assigned_slot = slots[0]
         today = datetime.now().strftime("%Y-%m-%d")
-        return json.dumps({
+        result = json.dumps({
             "status": "booked",
             "patient_id": patient_id,
             "date": today,
@@ -302,6 +312,8 @@ def build_appointment_scheduler() -> Agent:
                 "routine": "Please arrive 10 minutes before your appointment.",
             }.get(urgency_key, "Please arrive on time."),
         }, indent=2)
+        _tool_results["booking"] = result  # Capture for coordinator
+        return result
 
     system_prompt = """You are an Appointment Scheduler agent. Your ONLY job is booking appointments.
 You will receive a patient_id and urgency_level. Call the book_appointment tool with those values.
@@ -330,61 +342,33 @@ def run_triage_pipeline(patient: dict) -> dict:
 
     # STEP 4.1: Symptom Analyzer — extract conditions from complaint
     print("    [1/3] Symptom Analyzer...")
-    symptom_result = run_agent_with_retry(
+    _tool_results.clear()  # Reset between patients to avoid stale data
+    run_agent_with_retry(
         build_symptom_analyzer,
         f"Analyze these symptoms: {patient['complaint']}"
     )
-    # Extract JSON from the agent's response
-    try:
-        symptom_json = json.loads(symptom_result)
-        symptom_str = json.dumps(symptom_json)
-    except (json.JSONDecodeError, TypeError):
-        # Agent may wrap JSON in text — try to extract it
-        import re
-        json_match = re.search(r'\{[\s\S]*\}', str(symptom_result))
-        symptom_str = json_match.group(0) if json_match else str(symptom_result)
-        try:
-            symptom_json = json.loads(symptom_str)
-        except Exception:
-            symptom_json = {"raw": symptom_str}
-    print(f"          Matched {symptom_json.get('total_matches', '?')} symptoms")
+    # Use captured tool result (reliable) instead of parsing LLM text (fragile)
+    symptom_json = json.loads(_tool_results.get("symptoms", '{"total_matches": 0}'))
+    symptom_str = json.dumps(symptom_json)
+    print(f"          Matched {symptom_json.get('total_matches', 0)} symptoms")
 
     # STEP 4.2: Urgency Classifier — determine priority from symptoms
     print("    [2/3] Urgency Classifier...")
-    urgency_result = run_agent_with_retry(
+    run_agent_with_retry(
         build_urgency_classifier,
         f"Classify urgency for this symptom analysis: {symptom_str}"
     )
-    try:
-        urgency_json = json.loads(urgency_result)
-        urgency_str = json.dumps(urgency_json)
-    except (json.JSONDecodeError, TypeError):
-        json_match = re.search(r'\{[\s\S]*\}', str(urgency_result))
-        urgency_str = json_match.group(0) if json_match else str(urgency_result)
-        try:
-            urgency_json = json.loads(urgency_str)
-        except Exception:
-            urgency_json = {"raw": urgency_str}
+    urgency_json = json.loads(_tool_results.get("urgency", '{"urgency": "routine"}'))
     urgency_level = urgency_json.get("urgency", "routine")
     print(f"          Urgency: {urgency_level}")
 
     # STEP 4.3: Appointment Scheduler — book slot based on urgency
     print("    [3/3] Appointment Scheduler...")
-    booking_result = run_agent_with_retry(
+    run_agent_with_retry(
         build_appointment_scheduler,
         f"Book an appointment for patient_id={patient['patient_id']} with urgency_level={urgency_level}"
     )
-    try:
-        booking_json = json.loads(booking_result)
-    except (json.JSONDecodeError, TypeError):
-        json_match = re.search(r'\{[\s\S]*\}', str(booking_result))
-        if json_match:
-            try:
-                booking_json = json.loads(json_match.group(0))
-            except Exception:
-                booking_json = {"raw": str(booking_result)}
-        else:
-            booking_json = {"raw": str(booking_result)}
+    booking_json = json.loads(_tool_results.get("booking", '{"status": "failed"}'))
     print(f"          Slot: {booking_json.get('time_slot', 'N/A')}")
 
     return {
@@ -410,7 +394,7 @@ def main():
     for patient in PATIENT_COMPLAINTS:
         print(f"\n{'─' * 70}")
         print(f"  Patient: {patient['name']} ({patient['patient_id']}, age {patient['age']})")
-        print(f"  Complaint: {patient['complaint'][:80]}...")
+        print(f"  Complaint: {patient['complaint']}")
         print(f"{'─' * 70}")
 
         result = run_triage_pipeline(patient)
