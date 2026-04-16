@@ -61,7 +61,7 @@ logger = logging.getLogger(__name__)
 # CONFIGURATION
 # ─────────────────────────────────────────────────────
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
-MODEL_ID = os.environ.get("MODEL_ID", "anthropic.claude-3-sonnet-20240229-v1:0")
+MODEL_ID = os.environ.get("MODEL_ID", "anthropic.claude-sonnet-4-20250514-v1:0")
 
 # ─────────────────────────────────────────────────────
 # SAMPLE DATA — Patient complaints and available slots

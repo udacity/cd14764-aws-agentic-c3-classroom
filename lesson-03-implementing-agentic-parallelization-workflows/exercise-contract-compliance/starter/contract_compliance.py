@@ -65,7 +65,7 @@ def clean_response(text: str) -> str:
 # ─────────────────────────────────────────────────────
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")                    # Regulatory compliance (fast)
-CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "anthropic.claude-3-sonnet-20240229-v1:0")     # Financial risk + Synthesis (deep)
+CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "anthropic.claude-sonnet-4-20250514-v1:0")     # Financial risk + Synthesis (deep)
 NOVA_PRO_MODEL = os.environ.get("NOVA_PRO_MODEL", "amazon.nova-pro-v1:0")                      # IP protection (balanced)
 
 # ─────────────────────────────────────────────────────

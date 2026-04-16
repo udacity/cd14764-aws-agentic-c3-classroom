@@ -314,7 +314,7 @@ class MetricsDashboard:
 # Criteria: relevance, accuracy, safety, completeness
 # ═══════════════════════════════════════════════════════
 
-EVAL_MODEL = os.environ.get("EVAL_MODEL", "anthropic.claude-3-sonnet-20240229-v1:0")
+EVAL_MODEL = os.environ.get("EVAL_MODEL", "anthropic.claude-sonnet-4-20250514-v1:0")
 
 # Shared state for evaluation results
 _eval_result = {}
