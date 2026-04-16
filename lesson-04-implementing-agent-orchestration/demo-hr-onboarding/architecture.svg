@@ -1,110 +1,67 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 810" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 720 830" xmlns="http://www.w3.org/2000/svg" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
   <defs>
-    <marker id="arrow4" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
-    </marker>
-    <filter id="shadow4">
-      <feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.1"/>
+    <filter id="sh" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
     </filter>
+    <marker id="a" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
+    </marker>
+    <marker id="ah" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
+    </marker>
   </defs>
-
-  <!-- White background for dark mode compatibility -->
-  <rect width="100%" height="100%" fill="white" rx="8"/>
-
-  <!-- Title -->
-  <text x="360" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">Lesson 4: Agent Orchestration</text>
-  <text x="360" y="52" text-anchor="middle" font-size="12" fill="#64748b">Sequential, parallel, and conditional phases orchestrated together</text>
-
-  <!-- Input -->
-  <rect x="240" y="70" width="240" height="44" rx="22" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" filter="url(#shadow4)"/>
-  <text x="360" y="97" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">New Employee Request</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="114" x2="360" y2="148" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow4)"/>
-
-  <!-- PHASE 1: SEQUENTIAL -->
-  <rect x="100" y="150" width="520" height="8" rx="4" fill="#f59e0b" opacity="0.3"/>
-  <text x="115" y="168" font-size="11" font-weight="700" fill="#92400e">PHASE 1: SEQUENTIAL (must succeed in order)</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="168" x2="360" y2="195" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow4)"/>
-
-  <!-- IdentityAgent -->
-  <rect x="150" y="197" width="200" height="66" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow4)"/>
-  <text x="250" y="223" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">IdentityAgent</text>
-  <text x="250" y="241" text-anchor="middle" font-size="10" fill="#3b82f6">Creates account</text>
-  <text x="250" y="255" text-anchor="middle" font-size="10" fill="#3b82f6">(username, password)</text>
-
-  <!-- Connect IdentityAgent to EquipmentAgent -->
-  <line x1="250" y1="263" x2="250" y2="280" stroke="#475569" stroke-width="1.5"/>
-  <line x1="250" y1="280" x2="370" y2="280" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow4)"/>
-  <line x1="470" y1="280" x2="470" y2="299" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow4)"/>
-
-  <!-- EquipmentAgent -->
-  <rect x="370" y="299" width="200" height="66" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow4)"/>
-  <text x="470" y="325" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">EquipmentAgent</text>
-  <text x="470" y="343" text-anchor="middle" font-size="10" fill="#3b82f6">Provisions laptop</text>
-  <text x="470" y="357" text-anchor="middle" font-size="10" fill="#3b82f6">(hardware, OS setup)</text>
-
-  <!-- Arrow down from Phase 1 -->
-  <line x1="360" y1="365" x2="360" y2="400" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow4)"/>
-
-  <!-- PHASE 2: PARALLEL -->
-  <rect x="100" y="402" width="520" height="8" rx="4" fill="#22c55e" opacity="0.3"/>
-  <text x="115" y="420" font-size="11" font-weight="700" fill="#166534">PHASE 2: PARALLEL (independent tasks)</text>
-
-  <!-- Parallel lines from top -->
-  <line x1="360" y1="420" x2="210" y2="420" stroke="#475569" stroke-width="1.5"/>
-  <line x1="210" y1="420" x2="210" y2="449" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow4)"/>
-  <line x1="360" y1="420" x2="510" y2="420" stroke="#475569" stroke-width="1.5"/>
-  <line x1="510" y1="420" x2="510" y2="449" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow4)"/>
-
-  <!-- TrainingAgent -->
-  <rect x="100" y="449" width="220" height="66" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow4)"/>
-  <text x="210" y="475" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">TrainingAgent</text>
-  <text x="210" y="493" text-anchor="middle" font-size="10" fill="#3b82f6">Assigns courses</text>
-  <text x="210" y="507" text-anchor="middle" font-size="10" fill="#3b82f6">(onboarding path)</text>
-
-  <!-- BuddyAgent -->
-  <rect x="400" y="449" width="220" height="66" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow4)"/>
-  <text x="510" y="475" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">BuddyAgent</text>
-  <text x="510" y="493" text-anchor="middle" font-size="10" fill="#3b82f6">Assigns mentor</text>
-  <text x="510" y="507" text-anchor="middle" font-size="10" fill="#3b82f6">(peer support)</text>
-
-  <!-- Converge from parallel -->
-  <line x1="210" y1="515" x2="210" y2="540" stroke="#475569" stroke-width="1.5"/>
-  <line x1="510" y1="515" x2="510" y2="540" stroke="#475569" stroke-width="1.5"/>
-  <line x1="210" y1="540" x2="510" y2="540" stroke="#475569" stroke-width="1.5"/>
-  <circle cx="360" cy="540" r="4" fill="#475569"/>
-  <text x="360" y="557" text-anchor="middle" font-size="10" fill="#94a3b8" font-weight="600">Wait for all</text>
-
-  <!-- Arrow down to Phase 3 -->
-  <line x1="360" y1="560" x2="360" y2="592" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow4)"/>
-
-  <!-- PHASE 3: CONDITIONAL -->
-  <rect x="100" y="594" width="520" height="8" rx="4" fill="#a855f7" opacity="0.3"/>
-  <text x="115" y="612" font-size="11" font-weight="700" fill="#7e22ce">PHASE 3: CONDITIONAL (only if needed)</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="612" x2="360" y2="639" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow4)"/>
-
-  <!-- AccessAgent -->
-  <rect x="225" y="641" width="270" height="56" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow4)"/>
-  <text x="360" y="665" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">AccessAgent</text>
-  <text x="360" y="683" text-anchor="middle" font-size="10" fill="#3b82f6">Grants system access (if role requires)</text>
-
-  <!-- Arrow to output -->
-  <line x1="360" y1="697" x2="360" y2="720" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow4)"/>
-
-  <!-- Output -->
-  <rect x="245" y="722" width="230" height="36" rx="18" fill="#fae8ff" stroke="#a855f7" stroke-width="1.5" filter="url(#shadow4)"/>
-  <text x="360" y="745" text-anchor="middle" font-size="12" font-weight="600" fill="#7e22ce">Onboarding Complete</text>
-
-  <!-- Legend -->
-  <rect x="15" y="778" width="10" height="10" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
-  <text x="30" y="787" font-size="10" fill="#64748b">Agent</text>
-  <rect x="75" y="778" width="10" height="10" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
-  <text x="90" y="787" font-size="10" fill="#64748b">Input</text>
-  <rect x="125" y="778" width="10" height="10" rx="2" fill="#fae8ff" stroke="#a855f7" stroke-width="1"/>
-  <text x="140" y="787" font-size="10" fill="#64748b">Output</text>
+  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">Lesson 4: HR Onboarding Orchestration</text>
+  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#64748b">Sequential chain + parallel branches + conditional routing</text>
+  <rect x="270" y="65" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="white">New Employee</text>
+  <rect x="70" y="139" width="580" height="115" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+  <text x="90" y="159" font-size="10" font-weight="700" fill="#166534">PHASE 1: SEQUENTIAL CHAIN</text>
+  <rect x="100" y="171" width="240" height="46" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="220" y="191" text-anchor="middle" font-size="11" font-weight="700" fill="white">Account Creator</text>
+  <text x="220" y="209" text-anchor="middle" font-size="9" fill="#bfdbfe">create_account()</text>
+  <rect x="390" y="171" width="240" height="46" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="510" y="191" text-anchor="middle" font-size="11" font-weight="700" fill="white">Manager Assigner</text>
+  <text x="510" y="209" text-anchor="middle" font-size="9" fill="#bfdbfe">assign_manager()</text>
+  <text x="360" y="244" text-anchor="middle" font-size="9" fill="#166534">employee_id passes forward</text>
+  <rect x="40" y="290" width="640" height="110" rx="10" fill="#ecfeff" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="60" y="310" font-size="10" font-weight="700" fill="#0891b2">PHASE 2: PARALLEL (ThreadPoolExecutor, max_workers=3)</text>
+  <rect x="65" y="322" width="195" height="44" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="162" y="342" text-anchor="middle" font-size="10" font-weight="700" fill="white">Laptop Provisioner</text>
+  <text x="162" y="360" text-anchor="middle" font-size="9" fill="#bfdbfe">provision_laptop()</text>
+  <rect x="275" y="322" width="195" height="44" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="372" y="342" text-anchor="middle" font-size="10" font-weight="700" fill="white">Email Setup</text>
+  <text x="372" y="360" text-anchor="middle" font-size="9" fill="#bfdbfe">setup_email()</text>
+  <rect x="485" y="322" width="195" height="44" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="582" y="342" text-anchor="middle" font-size="10" font-weight="700" fill="white">Building Access</text>
+  <text x="582" y="360" text-anchor="middle" font-size="9" fill="#bfdbfe">grant_building_access()</text>
+  <text x="360" y="392" text-anchor="middle" font-size="9" font-weight="600" fill="#0891b2">Wait for all 3</text>
+  <rect x="70" y="436" width="580" height="120" rx="10" fill="#fef3c7" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="90" y="456" font-size="10" font-weight="700" fill="#92400e">PHASE 3: CONDITIONAL (department check)</text>
+  <text x="360" y="478" text-anchor="middle" font-size="10" fill="#78350f">if department == "Engineering"</text>
+  <rect x="95" y="488" width="230" height="44" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="210" y="508" text-anchor="middle" font-size="10" font-weight="700" fill="white">Engineering Onboarding</text>
+  <text x="210" y="526" text-anchor="middle" font-size="9" fill="#bfdbfe">onboard_engineer()</text>
+  <text x="360" y="515" text-anchor="middle" font-size="13" font-weight="700" fill="#92400e">OR</text>
+  <rect x="395" y="488" width="230" height="44" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="510" y="508" text-anchor="middle" font-size="10" font-weight="700" fill="white">Sales Onboarding</text>
+  <text x="510" y="526" text-anchor="middle" font-size="9" fill="#bfdbfe">onboard_sales()</text>
+  <rect x="250" y="592" width="220" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="615" text-anchor="middle" font-size="12" font-weight="600" fill="white">Onboarding Complete</text>
+  <text x="360" y="642" text-anchor="middle" font-size="10" fill="#94a3b8">7 workers | All Nova Lite temp 0.0 | Python orchestrator</text>
+  <rect x="185" y="666" width="14" height="14" rx="3" fill="#166534"/>
+  <text x="203" y="677" font-size="10" fill="#64748b">Sequential</text>
+  <rect x="283" y="666" width="14" height="14" rx="3" fill="#06b6d4"/>
+  <text x="301" y="677" font-size="10" fill="#64748b">Parallel</text>
+  <rect x="367" y="666" width="14" height="14" rx="3" fill="#f59e0b"/>
+  <text x="385" y="677" font-size="10" fill="#64748b">Conditional</text>
+  <rect x="472" y="666" width="14" height="14" rx="3" fill="#3b82f6"/>
+  <text x="490" y="677" font-size="10" fill="#64748b">Agent</text>
+  <g id="arrows">
+    <line x1="360" y1="106" x2="360" y2="136" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="340" y1="194" x2="387" y2="194" stroke="#475569" stroke-width="1.5" marker-end="url(#ah)"/>
+    <line x1="360" y1="257" x2="360" y2="287" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="360" y1="403" x2="360" y2="433" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="360" y1="559" x2="360" y2="589" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  </g>
 </svg>

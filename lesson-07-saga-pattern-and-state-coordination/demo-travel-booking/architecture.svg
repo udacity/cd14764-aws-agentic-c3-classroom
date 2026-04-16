@@ -1,128 +1,68 @@
-<svg viewBox="0 0 720 920" xmlns="http://www.w3.org/2000/svg">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 720 860" xmlns="http://www.w3.org/2000/svg" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
   <defs>
-    <filter id="shadow7" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+    <filter id="sh" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
     </filter>
-    <marker id="arrow7" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#22c55e"/>
+    <marker id="a" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
     </marker>
-    <marker id="arrow7-error" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#ef4444"/>
+    <marker id="ah" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
     </marker>
-    <marker id="arrow7-gray" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
-    </marker>
-    <style>
-      text { font-family: 'Segoe UI', system-ui, sans-serif; }
-      .title { font-size: 18px; font-weight: bold; text-anchor: middle; }
-      .subtitle { font-size: 12px; fill: #6b7280; text-anchor: middle; }
-      .label { font-size: 13px; text-anchor: middle; }
-    </style>
   </defs>
-
-  <!-- White background for dark mode compatibility -->
-  <rect width="100%" height="100%" fill="white" rx="8"/>
-
-  <!-- Title -->
-  <text x="360" y="30" class="title">Lesson 7: Saga Pattern - Distributed Transactions</text>
-  <text x="360" y="48" class="subtitle">Multi-step orchestration with compensation for failures</text>
-
-  <!-- Booking Request Input -->
-  <rect x="280" y="70" width="160" height="50" rx="25" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" filter="url(#shadow7)"/>
-  <text x="360" y="100" class="label" fill="#92400e">Booking Request</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="120" x2="360" y2="155" stroke="#475569" stroke-width="2" marker-end="url(#arrow7-gray)"/>
-
-  <!-- Saga Orchestrator -->
-  <rect x="180" y="155" width="360" height="60" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2" filter="url(#shadow7)"/>
-  <text x="360" y="180" class="label" fill="#1e40af" font-weight="bold">Saga Orchestrator</text>
-  <text x="360" y="200" class="label" fill="#1e40af" font-size="10px">State Machine: PENDING → (step1 → step2 → step3 | COMPENSATING)</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="215" x2="360" y2="250" stroke="#475569" stroke-width="2" marker-end="url(#arrow7-gray)"/>
-
-  <!-- FORWARD EXECUTION: Step 1 FlightAgent -->
-  <rect x="60" y="260" width="180" height="80" rx="4" fill="#f0fdf4" stroke="#22c55e" stroke-width="2" filter="url(#shadow7)"/>
-  <text x="150" y="287" class="label" fill="#166534" font-weight="bold">Step 1: FlightAgent</text>
-  <text x="150" y="307" class="label" fill="#166534" font-size="11px">book_flight()</text>
-  <text x="150" y="325" class="label" fill="#166534" font-size="11px">✓ SUCCESS</text>
-
-  <!-- Success arrow right -->
-  <line x1="240" y1="300" x2="278" y2="300" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow7)"/>
-  <text x="260" y="292" class="label" fill="#166534" font-size="10px">✓</text>
-
-  <!-- Step 2: HotelAgent -->
-  <rect x="280" y="260" width="180" height="80" rx="4" fill="#f0fdf4" stroke="#22c55e" stroke-width="2" filter="url(#shadow7)"/>
-  <text x="370" y="287" class="label" fill="#166534" font-weight="bold">Step 2: HotelAgent</text>
-  <text x="370" y="307" class="label" fill="#166534" font-size="11px">book_hotel()</text>
-  <text x="370" y="325" class="label" fill="#166534" font-size="11px">✓ SUCCESS</text>
-
-  <!-- Success arrow right -->
-  <line x1="460" y1="300" x2="498" y2="300" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow7)"/>
-  <text x="480" y="292" class="label" fill="#166534" font-size="10px">✓</text>
-
-  <!-- Step 3: CarAgent (FAILURE) -->
-  <rect x="500" y="260" width="170" height="80" rx="4" fill="#fee2e2" stroke="#ef4444" stroke-width="2" filter="url(#shadow7)"/>
-  <text x="585" y="287" class="label" fill="#991b1b" font-weight="bold">Step 3: CarAgent</text>
-  <text x="585" y="307" class="label" fill="#991b1b" font-size="11px">book_car()</text>
-  <text x="585" y="325" class="label" fill="#991b1b" font-size="11px">✗ FAIL</text>
-
-  <!-- Failure indicator -->
-  <text x="585" y="365" class="label" fill="#991b1b" font-size="11px" font-weight="bold">FAILURE DETECTED</text>
-
-  <!-- Arrow down for failure -->
-  <line x1="360" y1="375" x2="360" y2="410" stroke="#ef4444" stroke-width="2" marker-end="url(#arrow7-error)"/>
-
-  <!-- Compensation Phase Label -->
-  <rect x="200" y="415" width="320" height="40" rx="4" fill="#fae8ff" stroke="#a855f7" stroke-width="2" filter="url(#shadow7)"/>
-  <text x="360" y="440" class="label" fill="#6b21a8" font-weight="bold">COMPENSATE IN REVERSE ORDER</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="455" x2="360" y2="490" stroke="#ef4444" stroke-width="2" marker-end="url(#arrow7-error)"/>
-
-  <!-- Compensation: Cancel Hotel -->
-  <rect x="350" y="500" width="180" height="75" rx="4" fill="#fee2e2" stroke="#ef4444" stroke-width="2" stroke-dasharray="4" filter="url(#shadow7)"/>
-  <text x="440" y="525" class="label" fill="#991b1b" font-weight="bold">Cancel HotelAgent</text>
-  <text x="440" y="545" class="label" fill="#991b1b" font-size="11px">cancel_hotel()</text>
-  <text x="440" y="562" class="label" fill="#991b1b" font-size="11px">✓ COMPENSATED</text>
-
-  <!-- Arrow left to next compensation -->
-  <line x1="350" y1="537" x2="310" y2="537" stroke="#ef4444" stroke-width="2" marker-end="url(#arrow7-error)"/>
-
-  <!-- Compensation: Cancel Flight -->
-  <rect x="120" y="500" width="180" height="75" rx="4" fill="#fee2e2" stroke="#ef4444" stroke-width="2" stroke-dasharray="4" filter="url(#shadow7)"/>
-  <text x="210" y="525" class="label" fill="#991b1b" font-weight="bold">Cancel FlightAgent</text>
-  <text x="210" y="545" class="label" fill="#991b1b" font-size="11px">cancel_flight()</text>
-  <text x="210" y="562" class="label" fill="#991b1b" font-size="11px">✓ COMPENSATED</text>
-
-  <!-- Arrow down to rolled back -->
-  <line x1="210" y1="575" x2="210" y2="610" stroke="#ef4444" stroke-width="2" marker-end="url(#arrow7-error)"/>
-
-  <!-- Transaction Rolled Back -->
-  <rect x="130" y="612" width="160" height="40" rx="4" fill="#fee2e2" stroke="#ef4444" stroke-width="2" filter="url(#shadow7)"/>
-  <text x="210" y="637" class="label" fill="#991b1b" font-size="11px" font-weight="bold">TRANSACTION ROLLED BACK</text>
-
-  <!-- Saga State Machine Box -->
-  <rect x="100" y="690" width="520" height="120" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" filter="url(#shadow7)"/>
-  <text x="360" y="715" class="label" fill="#475569" font-weight="bold">Saga State Machine</text>
-
-  <text x="120" y="738" font-size="10" fill="#475569">States: PENDING → STEP1 → STEP2 → STEP3 → SUCCESS</text>
-  <text x="140" y="755" font-size="10" fill="#475569">or COMPENSATING → ROLLED_BACK (if any fail)</text>
-  <text x="120" y="775" font-size="10" fill="#475569">Events: StepSuccess | StepFailed | CompensationSuccess</text>
-  <text x="120" y="795" font-size="10" fill="#475569">Idempotent compensation ensures safe retry on failures</text>
-
-  <!-- Legend -->
-  <g>
-    <text x="40" y="860" class="subtitle" text-anchor="start" font-weight="bold">Legend:</text>
-
-    <rect x="40" y="875" width="12" height="12" rx="2" fill="#f0fdf4" stroke="#22c55e"/>
-    <text x="58" y="885" font-size="11" fill="#64748b">Forward Execution (green)</text>
-
-    <rect x="280" y="875" width="12" height="12" rx="2" fill="#fee2e2" stroke="#ef4444"/>
-    <text x="298" y="885" font-size="11" fill="#64748b">Compensation/Failure (red)</text>
-
-    <rect x="540" y="875" width="12" height="12" rx="2" fill="#fef3c7" stroke="#f59e0b"/>
-    <text x="558" y="885" font-size="11" fill="#64748b">Input</text>
+  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">Lesson 7: Travel Booking Saga</text>
+  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#64748b">Forward + compensating transactions in reverse</text>
+  <rect x="270" y="65" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="white">Booking Request</text>
+  <rect x="40" y="139" width="640" height="218" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+  <text x="60" y="159" font-size="11" font-weight="700" fill="#166534">FORWARD EXECUTION (sequential)</text>
+  <rect x="70" y="167" width="280" height="42" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="210" y="185" text-anchor="middle" font-size="11" font-weight="700" fill="white">FlightAgent</text>
+  <text x="210" y="203" text-anchor="middle" font-size="9" fill="#bfdbfe">book_flight()</text>
+  <text x="370" y="192" font-size="10" fill="#16a34a">✓</text>
+  <rect x="390" y="171" width="210" height="32" rx="5" fill="#fee2e2" stroke="#fca5a5" stroke-width="1"/>
+  <text x="495" y="192" text-anchor="middle" font-size="9" fill="#991b1b">cancel_flight()</text>
+  <rect x="70" y="227" width="280" height="42" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="210" y="245" text-anchor="middle" font-size="11" font-weight="700" fill="white">HotelAgent</text>
+  <text x="210" y="263" text-anchor="middle" font-size="9" fill="#bfdbfe">book_hotel()</text>
+  <text x="370" y="252" font-size="10" fill="#16a34a">✓</text>
+  <rect x="390" y="231" width="210" height="32" rx="5" fill="#fee2e2" stroke="#fca5a5" stroke-width="1"/>
+  <text x="495" y="252" text-anchor="middle" font-size="9" fill="#991b1b">cancel_hotel()</text>
+  <rect x="70" y="287" width="280" height="42" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="210" y="305" text-anchor="middle" font-size="11" font-weight="700" fill="white">CarAgent</text>
+  <text x="210" y="323" text-anchor="middle" font-size="9" fill="#bfdbfe">book_car()</text>
+  <text x="370" y="312" font-size="10" fill="#16a34a">✓</text>
+  <rect x="390" y="291" width="210" height="32" rx="5" fill="#fee2e2" stroke="#fca5a5" stroke-width="1"/>
+  <text x="495" y="312" text-anchor="middle" font-size="9" fill="#991b1b">cancel_car()</text>
+  <rect x="120" y="371" width="480" height="42" rx="8" fill="#ef4444" filter="url(#sh)"/>
+  <text x="360" y="389" text-anchor="middle" font-size="12" font-weight="700" fill="white">FAILURE DETECTED</text>
+  <text x="360" y="406" text-anchor="middle" font-size="10" fill="#fecaca">Compensate in REVERSE order</text>
+  <rect x="40" y="427" width="640" height="176" rx="10" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5"/>
+  <text x="60" y="447" font-size="11" font-weight="700" fill="#991b1b">COMPENSATION (reverse order)</text>
+  <rect x="140" y="455" width="440" height="32" rx="6" fill="#ef4444"/>
+  <text x="360" y="476" text-anchor="middle" font-size="10" font-weight="600" fill="white">CarAgent: cancel_car()</text>
+  <rect x="140" y="501" width="440" height="32" rx="6" fill="#ef4444"/>
+  <text x="360" y="522" text-anchor="middle" font-size="10" font-weight="600" fill="white">HotelAgent: cancel_hotel()</text>
+  <rect x="140" y="547" width="440" height="32" rx="6" fill="#ef4444"/>
+  <text x="360" y="568" text-anchor="middle" font-size="10" font-weight="600" fill="white">FlightAgent: cancel_flight()</text>
+  <rect x="70" y="621" width="280" height="34" rx="6" fill="#6366f1"/>
+  <text x="210" y="643" text-anchor="middle" font-size="10" font-weight="600" fill="white">Barrier: done == needed</text>
+  <rect x="380" y="621" width="280" height="34" rx="6" fill="#f59e0b"/>
+  <text x="520" y="643" text-anchor="middle" font-size="10" font-weight="600" fill="#422006">DynamoDB: SagaState</text>
+  <rect x="210" y="675" width="300" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="698" text-anchor="middle" font-size="12" font-weight="600" fill="white">Booking Complete / Rolled Back</text>
+  <rect x="202" y="753" width="14" height="14" rx="3" fill="#16a34a"/>
+  <text x="220" y="764" font-size="10" fill="#64748b">Forward</text>
+  <rect x="279" y="753" width="14" height="14" rx="3" fill="#ef4444"/>
+  <text x="297" y="764" font-size="10" fill="#64748b">Compensate</text>
+  <rect x="377" y="753" width="14" height="14" rx="3" fill="#6366f1"/>
+  <text x="395" y="764" font-size="10" fill="#64748b">Barrier</text>
+  <rect x="454" y="753" width="14" height="14" rx="3" fill="#f59e0b"/>
+  <text x="472" y="764" font-size="10" fill="#64748b">State</text>
+  <g id="arrows">
+    <line x1="360" y1="106" x2="360" y2="136" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="210" y1="212" x2="210" y2="224" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="210" y1="272" x2="210" y2="284" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
   </g>
 </svg>

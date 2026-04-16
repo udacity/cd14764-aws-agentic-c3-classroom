@@ -1,198 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 720 880" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 720 680" xmlns="http://www.w3.org/2000/svg" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
   <defs>
-    <filter id="shadow11" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/>
+    <filter id="sh" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
     </filter>
-    <marker id="arrow11" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+    <marker id="a" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
+    </marker>
+    <marker id="ah" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
     </marker>
   </defs>
-
-  <!-- White background for dark mode compatibility -->
-  <rect width="100%" height="100%" fill="white" rx="8"/>
-
-  <!-- Title -->
-  <text x="360" y="35" font-size="18" font-weight="bold" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#1e1e1e">
-    Lesson 11: AgentCore Gateway
-  </text>
-  <text x="360" y="55" font-size="12" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#999999">
-    Gateway as Tool Discovery Layer
-  </text>
-
-  <!-- Supply Chain Agent (top) -->
-  <g filter="url(#shadow11)">
-    <rect x="240" y="80" width="240" height="70" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
-    <text x="360" y="110" font-size="13" font-weight="600" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#1e40af">
-      Supply Chain Agent
-    </text>
-    <text x="360" y="133" font-size="11" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#1e40af">
-      (Nova Lite)
-    </text>
-  </g>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="150" x2="360" y2="180" stroke="#475569" stroke-width="2" marker-end="url(#arrow11)"/>
-
-  <!-- discover_tools annotation -->
-  <g>
-    <text x="360" y="175" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#3b82f6" font-weight="600">
-      discover_tools()
-    </text>
-  </g>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="185" x2="360" y2="210" stroke="#475569" stroke-width="2" marker-end="url(#arrow11)"/>
-
-  <!-- AgentCore Gateway Container -->
-  <g filter="url(#shadow11)">
-    <rect x="80" y="210" width="560" height="340" rx="4" fill="#f0fdf4" stroke="#22c55e" stroke-width="2.5"/>
-
-    <!-- Title -->
-    <text x="360" y="235" font-size="13" font-weight="600" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#166534">
-      AgentCore Gateway (SimulatedGateway)
-    </text>
-
-    <!-- API boxes inside -->
-    <!-- Inventory API -->
-    <g filter="url(#shadow11)">
-      <rect x="110" y="265" width="130" height="100" rx="3" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
-      <text x="175" y="290" font-size="12" font-weight="600" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#166534">
-        Inventory
-      </text>
-      <text x="175" y="310" font-size="12" font-weight="600" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#166534">
-        API
-      </text>
-      <line x1="120" y1="320" x2="230" y2="320" stroke="#22c55e" stroke-width="1"/>
-      <text x="175" y="338" font-size="9" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#166534">
-        Get stock levels,
-      </text>
-      <text x="175" y="353" font-size="9" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#166534">
-        warehouse status
-      </text>
-    </g>
-
-    <!-- Shipping API -->
-    <g filter="url(#shadow11)">
-      <rect x="295" y="265" width="130" height="100" rx="3" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
-      <text x="360" y="290" font-size="12" font-weight="600" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#166534">
-        Shipping
-      </text>
-      <text x="360" y="310" font-size="12" font-weight="600" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#166534">
-        API
-      </text>
-      <line x1="305" y1="320" x2="415" y2="320" stroke="#22c55e" stroke-width="1"/>
-      <text x="360" y="338" font-size="9" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#166534">
-        Track shipments,
-      </text>
-      <text x="360" y="353" font-size="9" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#166534">
-        delivery times
-      </text>
-    </g>
-
-    <!-- Supplier API -->
-    <g filter="url(#shadow11)">
-      <rect x="480" y="265" width="130" height="100" rx="3" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
-      <text x="545" y="290" font-size="12" font-weight="600" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#166534">
-        Supplier
-      </text>
-      <text x="545" y="310" font-size="12" font-weight="600" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#166534">
-        API
-      </text>
-      <line x1="490" y1="320" x2="600" y2="320" stroke="#22c55e" stroke-width="1"/>
-      <text x="545" y="338" font-size="9" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#166534">
-        Supplier info,
-      </text>
-      <text x="545" y="353" font-size="9" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#166534">
-        pricing data
-      </text>
-    </g>
-
-    <!-- Dynamic Addition callout -->
-    <g filter="url(#shadow11)">
-      <rect x="130" y="390" width="500" height="130" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
-      <text x="380" y="415" font-size="12" font-weight="600" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#78350f">
-        Dynamic API Addition
-      </text>
-      <text x="380" y="435" font-size="11" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#78350f">
-        + Quality Inspection API (added dynamically)
-      </text>
-      <line x1="140" y1="443" x2="620" y2="443" stroke="#f59e0b" stroke-width="1"/>
-      <text x="380" y="463" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#78350f">
-        Without modifying agent code!
-      </text>
-      <text x="380" y="480" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#78350f">
-        Gateway automatically discovers and registers
-      </text>
-      <text x="380" y="495" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#78350f">
-        new APIs → No restart required
-      </text>
-      <text x="380" y="510" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#78350f">
-        Agents see new tools immediately
-      </text>
-    </g>
-  </g>
-
-  <!-- Arrow down from gateway -->
-  <line x1="360" y1="550" x2="360" y2="580" stroke="#475569" stroke-width="2" marker-end="url(#arrow11)"/>
-
-  <!-- invoke_tool annotation -->
-  <g>
-    <text x="360" y="575" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#3b82f6" font-weight="600">
-      invoke_tool(api_name, params)
-    </text>
-  </g>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="585" x2="360" y2="610" stroke="#475569" stroke-width="2" marker-end="url(#arrow11)"/>
-
-  <!-- API Response -->
-  <g filter="url(#shadow11)">
-    <rect x="200" y="610" width="320" height="70" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
-    <text x="360" y="635" font-size="12" font-weight="600" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#475569">
-      API Response Data
-    </text>
-    <text x="360" y="657" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#475569">
-      (structured, validated)
-    </text>
-    <text x="360" y="672" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#475569">
-    </text>
-  </g>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="680" x2="360" y2="710" stroke="#475569" stroke-width="2" marker-end="url(#arrow11)"/>
-
-  <!-- Agent formats answer -->
-  <g filter="url(#shadow11)">
-    <rect x="200" y="710" width="320" height="65" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
-    <text x="360" y="735" font-size="11" font-weight="600" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#1e40af">
-      Agent Formats Answer
-    </text>
-    <text x="360" y="760" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" text-anchor="middle" fill="#1e40af">
-      Natural language response to user
-    </text>
-  </g>
-
-  <!-- Legend -->
-  <g>
-    <text x="20" y="835" font-size="11" font-weight="600" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
-      Legend:
-    </text>
-    <rect x="20" y="845" width="12" height="12" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
-    <text x="38" y="854" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
-      Agents
-    </text>
-    <rect x="130" y="845" width="12" height="12" rx="2" fill="#f0fdf4" stroke="#22c55e" stroke-width="1"/>
-    <text x="148" y="854" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
-      Tools
-    </text>
-    <rect x="240" y="845" width="12" height="12" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
-    <text x="258" y="854" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
-      Input/Data
-    </text>
-    <rect x="390" y="845" width="12" height="12" rx="2" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/>
-    <text x="408" y="854" font-size="10" font-family="'Segoe UI', system-ui, sans-serif" fill="#1e1e1e">
-      Infrastructure
-    </text>
+  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">Lesson 11: Supply Chain Gateway</text>
+  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#64748b">Agent discovers Lambda tools via Gateway MCP</text>
+  <rect x="270" y="65" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="white">Supply Chain Query</text>
+  <rect x="160" y="139" width="400" height="48" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="360" y="159" text-anchor="middle" font-size="12" font-weight="700" fill="white">SupplyChain Agent</text>
+  <text x="360" y="179" text-anchor="middle" font-size="10" fill="#bfdbfe">Nova Lite | temp 0.1</text>
+  <rect x="90" y="217" width="540" height="52" rx="8" fill="#6366f1" filter="url(#sh)"/>
+  <text x="360" y="239" text-anchor="middle" font-size="13" font-weight="700" fill="white">Lambda Gateway</text>
+  <text x="360" y="259" text-anchor="middle" font-size="10" fill="#c7d2fe">register → discover → invoke (semantic selection)</text>
+  <rect x="40" y="291" width="201" height="68" rx="8" fill="#f59e0b" filter="url(#sh)"/>
+  <text x="146" y="311" text-anchor="middle" font-size="10" font-weight="700" fill="#422006">Inventory</text>
+  <text x="146" y="329" text-anchor="middle" font-size="9" fill="#713f12">check_inventory()</text>
+  <text x="146" y="347" text-anchor="middle" font-size="8" fill="#92400e">Stock levels</text>
+  <rect x="253" y="291" width="201" height="68" rx="8" fill="#f59e0b" filter="url(#sh)"/>
+  <text x="359" y="311" text-anchor="middle" font-size="10" font-weight="700" fill="#422006">Shipping</text>
+  <text x="359" y="329" text-anchor="middle" font-size="9" fill="#713f12">track_shipment()</text>
+  <text x="359" y="347" text-anchor="middle" font-size="8" fill="#92400e">Delivery status</text>
+  <rect x="466" y="291" width="201" height="68" rx="8" fill="#f59e0b" filter="url(#sh)"/>
+  <text x="572" y="311" text-anchor="middle" font-size="10" font-weight="700" fill="#422006">Supplier</text>
+  <text x="572" y="329" text-anchor="middle" font-size="9" fill="#713f12">lookup_supplier()</text>
+  <text x="572" y="347" text-anchor="middle" font-size="8" fill="#92400e">Supplier info</text>
+  <rect x="90" y="379" width="540" height="48" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="360" y="399" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">+ Dynamic: Quality Inspection</text>
+  <text x="360" y="419" text-anchor="middle" font-size="10" fill="#15803d">Added dynamically — zero code changes</text>
+  <rect x="270" y="471" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="494" text-anchor="middle" font-size="12" font-weight="600" fill="white">Supply Chain Report</text>
+  <rect x="80" y="521" width="560" height="32" rx="8" fill="#fffbeb" stroke="#fbbf24" stroke-width="1"/>
+  <text x="360" y="542" text-anchor="middle" font-size="10" font-weight="600" fill="#92400e">Gateway decouples agents from tools — add/remove without code changes</text>
+  <rect x="230" y="573" width="14" height="14" rx="3" fill="#3b82f6"/>
+  <text x="248" y="584" font-size="10" fill="#64748b">Agent</text>
+  <rect x="293" y="573" width="14" height="14" rx="3" fill="#6366f1"/>
+  <text x="311" y="584" font-size="10" fill="#64748b">Gateway</text>
+  <rect x="370" y="573" width="14" height="14" rx="3" fill="#f59e0b"/>
+  <text x="388" y="584" font-size="10" fill="#64748b">Lambda</text>
+  <rect x="440" y="573" width="14" height="14" rx="3" fill="#10b981"/>
+  <text x="458" y="584" font-size="10" fill="#64748b">I/O</text>
+  <g id="arrows">
+    <line x1="360" y1="106" x2="360" y2="136" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="360" y1="190" x2="360" y2="214" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="360" y1="269" x2="146" y2="288" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
+    <line x1="360" y1="269" x2="359" y2="288" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
+    <line x1="360" y1="269" x2="572" y2="288" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
+    <line x1="360" y1="444" x2="360" y2="468" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
   </g>
 </svg>

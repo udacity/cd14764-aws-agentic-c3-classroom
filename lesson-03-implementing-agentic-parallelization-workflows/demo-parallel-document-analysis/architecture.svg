@@ -1,92 +1,61 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 560" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 720 700" xmlns="http://www.w3.org/2000/svg" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
   <defs>
-    <marker id="arrow3" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
-    </marker>
-    <filter id="shadow3">
-      <feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.1"/>
+    <filter id="sh" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
     </filter>
+    <marker id="a" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
+    </marker>
+    <marker id="ah" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
+    </marker>
   </defs>
-
-  <!-- White background for dark mode compatibility -->
-  <rect width="100%" height="100%" fill="white" rx="8"/>
-
-  <!-- Title -->
-  <text x="360" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">Lesson 3: Parallelization</text>
-  <text x="360" y="52" text-anchor="middle" font-size="12" fill="#64748b">Parallel agents execute simultaneously, then synthesize results</text>
-
-  <!-- Input: 3 Documents -->
-  <rect x="265" y="70" width="190" height="44" rx="22" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" filter="url(#shadow3)"/>
-  <text x="360" y="97" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">Input: 3 Documents</text>
-
-  <!-- Arrow down to ThreadPoolExecutor -->
-  <line x1="360" y1="114" x2="360" y2="148" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
-
-  <!-- ThreadPoolExecutor (Infrastructure) -->
-  <rect x="220" y="150" width="280" height="54" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" filter="url(#shadow3)"/>
-  <text x="360" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="#475569">ThreadPoolExecutor</text>
-  <text x="360" y="194" text-anchor="middle" font-size="11" fill="#64748b">Parallel execution (run simultaneously)</text>
-
-  <!-- Arrow down to three agents -->
-  <line x1="300" y1="204" x2="160" y2="242" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
-  <line x1="360" y1="204" x2="360" y2="242" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
-  <line x1="420" y1="204" x2="560" y2="242" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
-
-  <!-- Left Agent: SecurityAgent -->
-  <rect x="40" y="244" width="240" height="74" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow3)"/>
-  <text x="160" y="270" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">SecurityAgent</text>
-  <text x="160" y="288" text-anchor="middle" font-size="11" fill="#3b82f6">AWS Nova Lite</text>
-  <text x="160" y="302" text-anchor="middle" font-size="11" fill="#3b82f6">temperature 0.0</text>
-  <text x="160" y="316" text-anchor="middle" font-size="9" fill="#1e40af" font-style="italic">Security analysis</text>
-
-  <!-- Middle Agent: PerformanceAgent -->
-  <rect x="240" y="244" width="240" height="74" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow3)"/>
-  <text x="360" y="270" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">PerformanceAgent</text>
-  <text x="360" y="288" text-anchor="middle" font-size="11" fill="#3b82f6">Claude 3 Sonnet</text>
-  <text x="360" y="302" text-anchor="middle" font-size="11" fill="#3b82f6">temperature 0.1</text>
-  <text x="360" y="316" text-anchor="middle" font-size="9" fill="#1e40af" font-style="italic">Performance review</text>
-
-  <!-- Right Agent: CostAgent -->
-  <rect x="440" y="244" width="240" height="74" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow3)"/>
-  <text x="560" y="270" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">CostAgent</text>
-  <text x="560" y="288" text-anchor="middle" font-size="11" fill="#3b82f6">AWS Nova Pro</text>
-  <text x="560" y="302" text-anchor="middle" font-size="11" fill="#3b82f6">temperature 0.1</text>
-  <text x="560" y="316" text-anchor="middle" font-size="9" fill="#1e40af" font-style="italic">Cost analysis</text>
-
-  <!-- Arrows converging down (fan-in) -->
-  <line x1="160" y1="318" x2="160" y2="355" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
-  <line x1="360" y1="318" x2="360" y2="355" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
-  <line x1="560" y1="318" x2="560" y2="355" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
-
-  <!-- Merge point with label -->
-  <line x1="160" y1="355" x2="360" y2="355" stroke="#475569" stroke-width="1.5"/>
-  <line x1="360" y1="355" x2="560" y2="355" stroke="#475569" stroke-width="1.5"/>
-  <circle cx="360" cy="355" r="5" fill="#475569"/>
-  <text x="360" y="375" text-anchor="middle" font-size="10" fill="#94a3b8" font-weight="600">Wait for all</text>
-
-  <!-- Arrow to SynthesisAgent -->
-  <line x1="360" y1="375" x2="360" y2="410" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
-
-  <!-- SynthesisAgent -->
-  <rect x="230" y="412" width="260" height="62" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow3)"/>
-  <text x="360" y="438" text-anchor="middle" font-size="14" font-weight="700" fill="#1e40af">SynthesisAgent</text>
-  <text x="360" y="456" text-anchor="middle" font-size="11" fill="#3b82f6">Claude 3 Sonnet · temperature 0.2</text>
-  <text x="360" y="470" text-anchor="middle" font-size="10" fill="#3b82f6">Combines all findings</text>
-
-  <!-- Arrow to output -->
-  <line x1="360" y1="474" x2="360" y2="505" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow3)"/>
-
-  <!-- Output -->
-  <rect x="245" y="507" width="230" height="36" rx="18" fill="#fae8ff" stroke="#a855f7" stroke-width="1.5" filter="url(#shadow3)"/>
-  <text x="360" y="530" text-anchor="middle" font-size="12" font-weight="600" fill="#7e22ce">Executive Summary</text>
-
-  <!-- Legend -->
-  <rect x="15" y="520" width="10" height="10" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
-  <text x="30" y="529" font-size="10" fill="#64748b">Agent</text>
-  <rect x="75" y="520" width="10" height="10" rx="2" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/>
-  <text x="90" y="529" font-size="10" fill="#64748b">Infrastructure</text>
-  <rect x="195" y="520" width="10" height="10" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
-  <text x="210" y="529" font-size="10" fill="#64748b">Input</text>
-  <rect x="245" y="520" width="10" height="10" rx="2" fill="#fae8ff" stroke="#a855f7" stroke-width="1"/>
-  <text x="260" y="529" font-size="10" fill="#64748b">Output</text>
+  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">Lesson 3: Parallel Document Analysis</text>
+  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#64748b">Specialists run simultaneously, synthesizer combines</text>
+  <rect x="270" y="65" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="white">System Design Document</text>
+  <rect x="50" y="133" width="620" height="170" rx="10" fill="#ecfeff" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="65" y="151" font-size="10" font-weight="700" fill="#0891b2">ThreadPoolExecutor (max_workers=3)</text>
+  <rect x="65" y="163" width="190" height="56" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="160" y="185" text-anchor="middle" font-size="11" font-weight="700" fill="white">Security Reviewer</text>
+  <text x="160" y="205" text-anchor="middle" font-size="9" fill="#bfdbfe">Nova Lite | t=0.0</text>
+  <rect x="77" y="229" width="166" height="26" rx="5" fill="#8b5cf6"/>
+  <text x="160" y="246" text-anchor="middle" font-size="9" font-weight="600" fill="white">review_security()</text>
+  <rect x="265" y="163" width="190" height="56" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="360" y="185" text-anchor="middle" font-size="11" font-weight="700" fill="white">Scalability Reviewer</text>
+  <text x="360" y="205" text-anchor="middle" font-size="9" fill="#bfdbfe">Claude | t=0.1</text>
+  <rect x="277" y="229" width="166" height="26" rx="5" fill="#8b5cf6"/>
+  <text x="360" y="246" text-anchor="middle" font-size="9" font-weight="600" fill="white">review_scalability()</text>
+  <rect x="465" y="163" width="190" height="56" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="560" y="185" text-anchor="middle" font-size="11" font-weight="700" fill="white">Cost Reviewer</text>
+  <text x="560" y="205" text-anchor="middle" font-size="9" fill="#bfdbfe">Nova Pro | t=0.1</text>
+  <rect x="477" y="229" width="166" height="26" rx="5" fill="#8b5cf6"/>
+  <text x="560" y="246" text-anchor="middle" font-size="9" font-weight="600" fill="white">review_cost()</text>
+  <text x="360" y="295" text-anchor="middle" font-size="10" font-weight="600" fill="#0891b2">Wait for all 3</text>
+  <rect x="125" y="339" width="470" height="70" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="135" y="347" width="210" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="240" y="369" text-anchor="middle" font-size="12" font-weight="700" fill="white">Synthesizer</text>
+  <text x="240" y="387" text-anchor="middle" font-size="10" fill="#bfdbfe">Claude Sonnet | temp 0.2</text>
+  <rect x="365" y="355" width="220" height="34" rx="6" fill="#8b5cf6"/>
+  <text x="475" y="377" text-anchor="middle" font-size="11" font-weight="600" fill="white">synthesize_reviews()</text>
+  <rect x="270" y="445" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="468" text-anchor="middle" font-size="12" font-weight="600" fill="white">Launch-Readiness Report</text>
+  <rect x="120" y="495" width="480" height="32" rx="8" fill="#fffbeb" stroke="#fbbf24" stroke-width="1"/>
+  <text x="360" y="516" text-anchor="middle" font-size="10" font-weight="600" fill="#92400e">Latency: max(agent_times) not sum — ~3x speedup</text>
+  <rect x="234" y="547" width="14" height="14" rx="3" fill="#06b6d4"/>
+  <text x="252" y="558" font-size="10" fill="#64748b">Parallel</text>
+  <rect x="318" y="547" width="14" height="14" rx="3" fill="#3b82f6"/>
+  <text x="336" y="558" font-size="10" fill="#64748b">Agent</text>
+  <rect x="381" y="547" width="14" height="14" rx="3" fill="#8b5cf6"/>
+  <text x="399" y="558" font-size="10" fill="#64748b">Tool</text>
+  <rect x="437" y="547" width="14" height="14" rx="3" fill="#10b981"/>
+  <text x="455" y="558" font-size="10" fill="#64748b">I/O</text>
+  <g id="arrows">
+    <line x1="360" y1="106" x2="360" y2="130" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="160" y1="303" x2="360" y2="336" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
+    <line x1="360" y1="303" x2="360" y2="336" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
+    <line x1="560" y1="303" x2="360" y2="336" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
+    <line x1="360" y1="412" x2="360" y2="442" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  </g>
 </svg>

@@ -1,94 +1,55 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 540" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 720 620" xmlns="http://www.w3.org/2000/svg" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
   <defs>
-    <marker id="arrow2" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
-    </marker>
-    <filter id="shadow2">
-      <feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.1"/>
+    <filter id="sh" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
     </filter>
+    <marker id="a" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
+    </marker>
+    <marker id="ah" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
+    </marker>
   </defs>
-
-  <!-- White background for dark mode compatibility -->
-  <rect width="100%" height="100%" fill="white" rx="8"/>
-
-  <!-- Title -->
-  <text x="360" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">Lesson 2: Multi-Model Systems</text>
-  <text x="360" y="52" text-anchor="middle" font-size="12" fill="#64748b">Match model complexity to task — route alerts to specialized agents</text>
-
-  <!-- Input: 5 Alerts -->
-  <rect x="265" y="70" width="190" height="44" rx="22" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" filter="url(#shadow2)"/>
-  <text x="360" y="97" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">Input: 5 Alerts</text>
-
-  <!-- Arrow down to RoutingAgent -->
-  <line x1="360" y1="114" x2="360" y2="148" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow2)"/>
-
-  <!-- RoutingAgent -->
-  <rect x="230" y="150" width="260" height="62" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow2)"/>
-  <text x="360" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="#1e40af">RoutingAgent</text>
-  <text x="360" y="194" text-anchor="middle" font-size="11" fill="#3b82f6">AWS Nova Lite · temperature 0.0</text>
-  <text x="360" y="208" text-anchor="middle" font-size="10" fill="#3b82f6">Fast, cheap classification</text>
-
-  <!-- Arrow down to three agents -->
-  <line x1="300" y1="212" x2="160" y2="250" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow2)"/>
-  <line x1="360" y1="212" x2="360" y2="250" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow2)"/>
-  <line x1="420" y1="212" x2="560" y2="250" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow2)"/>
-
-  <!-- Left Agent: AnalysisAgent (for high severity) -->
-  <rect x="40" y="252" width="240" height="74" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow2)"/>
-  <text x="160" y="278" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">AnalysisAgent</text>
-  <text x="160" y="296" text-anchor="middle" font-size="11" fill="#3b82f6">Claude Sonnet</text>
-  <text x="160" y="310" text-anchor="middle" font-size="11" fill="#3b82f6">temperature 0.1</text>
-  <text x="160" y="324" text-anchor="middle" font-size="9" fill="#1e40af" font-style="italic">Deep reasoning</text>
-
-  <!-- Label: "High severity" -->
-  <text x="160" y="342" text-anchor="middle" font-size="10" fill="#f59e0b" font-weight="600">High severity</text>
-
-  <!-- Middle Agent: StatusAgent -->
-  <rect x="240" y="252" width="240" height="74" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow2)"/>
-  <text x="360" y="278" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">StatusAgent</text>
-  <text x="360" y="296" text-anchor="middle" font-size="11" fill="#3b82f6">AWS Nova Pro</text>
-  <text x="360" y="310" text-anchor="middle" font-size="11" fill="#3b82f6">temperature 0.3</text>
-  <text x="360" y="324" text-anchor="middle" font-size="9" fill="#1e40af" font-style="italic">Customer comms</text>
-
-  <!-- Label: "All alerts" -->
-  <text x="360" y="342" text-anchor="middle" font-size="10" fill="#f59e0b" font-weight="600">All alerts</text>
-
-  <!-- Right Agent: Duplicate of StatusAgent for clarity (also processes all) -->
-  <rect x="440" y="252" width="240" height="74" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow2)"/>
-  <text x="560" y="278" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">AnalysisAgent</text>
-  <text x="560" y="296" text-anchor="middle" font-size="11" fill="#3b82f6">Claude Sonnet</text>
-  <text x="560" y="310" text-anchor="middle" font-size="11" fill="#3b82f6">temperature 0.1</text>
-  <text x="560" y="324" text-anchor="middle" font-size="9" fill="#1e40af" font-style="italic">Deep reasoning</text>
-
-  <!-- Label: "High severity" -->
-  <text x="560" y="342" text-anchor="middle" font-size="10" fill="#f59e0b" font-weight="600">High severity</text>
-
-  <!-- Arrows converging down -->
-  <line x1="160" y1="326" x2="160" y2="365" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow2)"/>
-  <line x1="360" y1="326" x2="360" y2="365" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow2)"/>
-  <line x1="560" y1="326" x2="560" y2="365" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow2)"/>
-
-  <!-- Merge point -->
-  <line x1="160" y1="365" x2="360" y2="365" stroke="#475569" stroke-width="1.5"/>
-  <line x1="360" y1="365" x2="560" y2="365" stroke="#475569" stroke-width="1.5"/>
-  <circle cx="360" cy="365" r="4" fill="#475569"/>
-
-  <!-- Arrow to output -->
-  <line x1="360" y1="365" x2="360" y2="405" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow2)"/>
-
-  <!-- Output -->
-  <rect x="245" y="407" width="230" height="40" rx="18" fill="#fae8ff" stroke="#a855f7" stroke-width="1.5" filter="url(#shadow2)"/>
-  <text x="360" y="433" text-anchor="middle" font-size="12" font-weight="600" fill="#7e22ce">Status Updates + Analysis</text>
-
-  <!-- Key insight box -->
-  <rect x="40" y="455" width="640" height="35" rx="6" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5" opacity="0.7"/>
-  <text x="360" y="477" text-anchor="middle" font-size="11" font-weight="600" fill="#166534">Key Insight: Match model to task complexity — fast/cheap for classification, advanced for reasoning</text>
-
-  <!-- Legend -->
-  <rect x="15" y="507" width="10" height="10" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
-  <text x="30" y="516" font-size="10" fill="#64748b">Agent</text>
-  <rect x="75" y="507" width="10" height="10" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
-  <text x="90" y="516" font-size="10" fill="#64748b">Input</text>
-  <rect x="125" y="507" width="10" height="10" rx="2" fill="#fae8ff" stroke="#a855f7" stroke-width="1"/>
-  <text x="140" y="516" font-size="10" fill="#64748b">Output</text>
+  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">Lesson 2: Multi-Model Incident Response</text>
+  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#64748b">Match model to task — fast routing, deep analysis, balanced comms</text>
+  <rect x="270" y="65" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="white">Infrastructure Alert</text>
+  <rect x="125" y="139" width="470" height="70" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="135" y="147" width="210" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="240" y="169" text-anchor="middle" font-size="12" font-weight="700" fill="white">Alert Router</text>
+  <text x="240" y="187" text-anchor="middle" font-size="10" fill="#bfdbfe">Nova Lite | temp 0.0</text>
+  <rect x="365" y="155" width="220" height="34" rx="6" fill="#8b5cf6"/>
+  <text x="475" y="177" text-anchor="middle" font-size="11" font-weight="600" fill="white">classify_alert()</text>
+  <rect x="125" y="245" width="470" height="70" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="135" y="253" width="210" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="240" y="275" text-anchor="middle" font-size="12" font-weight="700" fill="white">Root Cause Analyzer</text>
+  <text x="240" y="293" text-anchor="middle" font-size="10" fill="#bfdbfe">Claude Sonnet | temp 0.1</text>
+  <rect x="365" y="261" width="220" height="34" rx="6" fill="#8b5cf6"/>
+  <text x="475" y="283" text-anchor="middle" font-size="11" font-weight="600" fill="white">investigate_incident()</text>
+  <rect x="125" y="351" width="470" height="70" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="135" y="359" width="210" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="240" y="381" text-anchor="middle" font-size="12" font-weight="700" fill="white">Status Drafter</text>
+  <text x="240" y="399" text-anchor="middle" font-size="10" fill="#bfdbfe">Nova Pro | temp 0.3</text>
+  <rect x="365" y="367" width="220" height="34" rx="6" fill="#8b5cf6"/>
+  <text x="475" y="389" text-anchor="middle" font-size="11" font-weight="600" fill="white">draft_status_components()</text>
+  <rect x="270" y="457" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="480" text-anchor="middle" font-size="12" font-weight="600" fill="white">Incident Report</text>
+  <rect x="80" y="507" width="560" height="48" rx="8" fill="#fffbeb" stroke="#fbbf24" stroke-width="1"/>
+  <text x="360" y="527" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e">Key: Model-to-Task Matching</text>
+  <text x="360" y="545" text-anchor="middle" font-size="10" fill="#78350f">Nova Lite (fast/cheap) | Claude (deep) | Nova Pro (balanced)</text>
+  <rect x="276" y="575" width="14" height="14" rx="3" fill="#3b82f6"/>
+  <text x="294" y="586" font-size="10" fill="#64748b">Agent</text>
+  <rect x="339" y="575" width="14" height="14" rx="3" fill="#8b5cf6"/>
+  <text x="357" y="586" font-size="10" fill="#64748b">Tool</text>
+  <rect x="395" y="575" width="14" height="14" rx="3" fill="#10b981"/>
+  <text x="413" y="586" font-size="10" fill="#64748b">I/O</text>
+  <g id="arrows">
+    <line x1="360" y1="106" x2="360" y2="136" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="124" font-size="9" fill="#94a3b8">severity</text>
+    <line x1="360" y1="212" x2="360" y2="242" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="230" font-size="9" fill="#94a3b8">root cause</text>
+    <line x1="360" y1="318" x2="360" y2="348" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="360" y1="424" x2="360" y2="454" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  </g>
 </svg>

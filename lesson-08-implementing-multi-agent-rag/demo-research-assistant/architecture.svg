@@ -1,132 +1,56 @@
-<svg viewBox="0 0 720 980" xmlns="http://www.w3.org/2000/svg">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 720 740" xmlns="http://www.w3.org/2000/svg" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
   <defs>
-    <filter id="shadow8" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+    <filter id="sh" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
     </filter>
-    <marker id="arrow8" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+    <marker id="a" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
     </marker>
-    <style>
-      text { font-family: 'Segoe UI', system-ui, sans-serif; }
-      .title { font-size: 18px; font-weight: bold; text-anchor: middle; }
-      .subtitle { font-size: 12px; fill: #6b7280; text-anchor: middle; }
-      .label { font-size: 13px; text-anchor: middle; }
-      .mono { font-family: 'Courier New', monospace; font-size: 10px; }
-    </style>
+    <marker id="ah" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
+    </marker>
   </defs>
-
-  <!-- White background for dark mode compatibility -->
-  <rect width="100%" height="100%" fill="white" rx="8"/>
-
-  <!-- Title -->
-  <text x="360" y="30" class="title">Lesson 8: Multi-Agent RAG Architecture</text>
-  <text x="360" y="48" class="subtitle">Parallel knowledge base retrieval with synthesis</text>
-
-  <!-- Research Query Input -->
-  <rect x="280" y="70" width="160" height="50" rx="25" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" filter="url(#shadow8)"/>
-  <text x="360" y="100" class="label" fill="#92400e">Research Query</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="120" x2="360" y2="155" stroke="#475569" stroke-width="2" marker-end="url(#arrow8)"/>
-
-  <!-- ThreadPoolExecutor Box -->
-  <rect x="200" y="155" width="320" height="60" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2" filter="url(#shadow8)"/>
-  <text x="360" y="180" class="label" fill="#1e40af" font-weight="bold">ThreadPoolExecutor</text>
-  <text x="360" y="200" class="label" fill="#1e40af" font-size="11px">Parallel retrieval workers (Nova Lite instances)</text>
-
-  <!-- Arrow down split -->
-  <line x1="280" y1="215" x2="160" y2="265" stroke="#475569" stroke-width="2" marker-end="url(#arrow8)"/>
-  <line x1="440" y1="215" x2="560" y2="265" stroke="#475569" stroke-width="2" marker-end="url(#arrow8)"/>
-  <text x="360" y="240" class="label" fill="#6b7280" font-size="10px">spawn workers</text>
-
-  <!-- CS Retriever -->
-  <rect x="60" y="265" width="200" height="95" rx="4" fill="#f0fdf4" stroke="#22c55e" stroke-width="2" filter="url(#shadow8)"/>
-  <text x="160" y="290" class="label" fill="#166534" font-weight="bold">CS Retriever</text>
-  <text x="160" y="308" class="label" fill="#166534" font-size="11px">(Nova Lite)</text>
-  <line x1="70" y1="318" x2="250" y2="318" stroke="#94a3b8" stroke-width="1"/>
-  <text x="160" y="336" class="label" fill="#166534" font-size="10px">Query: "machine learning"</text>
-  <text x="160" y="352" class="label" fill="#166534" font-size="10px">Results: [DOC_CS_001, ...]</text>
-
-  <!-- Bio Retriever -->
-  <rect x="460" y="265" width="200" height="95" rx="4" fill="#f0fdf4" stroke="#22c55e" stroke-width="2" filter="url(#shadow8)"/>
-  <text x="560" y="290" class="label" fill="#166534" font-weight="bold">Bio Retriever</text>
-  <text x="560" y="308" class="label" fill="#166534" font-size="11px">(Nova Lite)</text>
-  <line x1="470" y1="318" x2="650" y2="318" stroke="#94a3b8" stroke-width="1"/>
-  <text x="560" y="336" class="label" fill="#166534" font-size="10px">Query: "neural biology"</text>
-  <text x="560" y="352" class="label" fill="#166534" font-size="10px">Results: [DOC_BIO_042, ...]</text>
-
-  <!-- Arrows down to KBs -->
-  <line x1="160" y1="360" x2="160" y2="395" stroke="#475569" stroke-width="2" marker-end="url(#arrow8)"/>
-  <line x1="560" y1="360" x2="560" y2="395" stroke="#475569" stroke-width="2" marker-end="url(#arrow8)"/>
-
-  <!-- CS Papers KB -->
-  <rect x="60" y="395" width="200" height="65" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" filter="url(#shadow8)"/>
-  <text x="160" y="420" class="label" fill="#475569" font-weight="bold">CS Papers KB</text>
-  <text x="160" y="440" class="mono" fill="#475569">Embeddings, chunks,</text>
-  <text x="160" y="453" class="mono" fill="#475569">metadata indices</text>
-
-  <!-- Bio KB -->
-  <rect x="460" y="395" width="200" height="65" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" filter="url(#shadow8)"/>
-  <text x="560" y="420" class="label" fill="#475569" font-weight="bold">Biology KB</text>
-  <text x="560" y="440" class="mono" fill="#475569">Embeddings, chunks,</text>
-  <text x="560" y="453" class="mono" fill="#475569">metadata indices</text>
-
-  <!-- Merge arrows -->
-  <line x1="160" y1="460" x2="160" y2="500" stroke="#475569" stroke-width="2"/>
-  <line x1="560" y1="460" x2="560" y2="500" stroke="#475569" stroke-width="2"/>
-  <line x1="160" y1="500" x2="560" y2="500" stroke="#475569" stroke-width="2"/>
-  <text x="360" y="495" class="label" fill="#6b7280" font-size="10px">merge results</text>
-
-  <!-- Arrow down to aggregation -->
-  <line x1="360" y1="500" x2="360" y2="535" stroke="#475569" stroke-width="2" marker-end="url(#arrow8)"/>
-
-  <!-- Aggregation Step -->
-  <rect x="180" y="535" width="360" height="75" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" filter="url(#shadow8)"/>
-  <text x="360" y="560" class="label" fill="#92400e" font-weight="bold">Aggregation</text>
-  <text x="360" y="580" class="label" fill="#92400e" font-size="11px">Rank by relevance score, BM25, semantic similarity</text>
-  <text x="360" y="597" class="label" fill="#92400e" font-size="11px">Select top-K documents (e.g., top-10)</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="610" x2="360" y2="650" stroke="#475569" stroke-width="2" marker-end="url(#arrow8)"/>
-
-  <!-- Synthesis Agent -->
-  <rect x="180" y="650" width="360" height="80" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2" filter="url(#shadow8)"/>
-  <text x="360" y="678" class="label" fill="#1e40af" font-weight="bold">Synthesis Agent (Nova Pro)</text>
-  <text x="360" y="698" class="label" fill="#1e40af" font-size="11px">Integrate top-K documents, synthesize coherent answer</text>
-  <text x="360" y="718" class="label" fill="#1e40af" font-size="11px">Generate response with [DOC_ID] citations</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="730" x2="360" y2="770" stroke="#475569" stroke-width="2" marker-end="url(#arrow8)"/>
-
-  <!-- Final Output -->
-  <rect x="240" y="770" width="240" height="50" rx="25" fill="#fae8ff" stroke="#a855f7" stroke-width="2" filter="url(#shadow8)"/>
-  <text x="360" y="800" class="label" fill="#6b21a8">Grounded Research Summary</text>
-
-  <!-- Retrieval Process Info Box -->
-  <rect x="30" y="540" width="130" height="90" rx="3" fill="#f9f5ff" stroke="#d8b4fe" stroke-width="1" opacity="0.9"/>
-  <text x="40" y="558" font-size="10" fill="#6b21a8" font-weight="bold">Retrieval Process:</text>
-  <text x="40" y="575" font-size="9" fill="#6b21a8">1. Query embedding</text>
-  <text x="40" y="590" font-size="9" fill="#6b21a8">2. Vector search</text>
-  <text x="40" y="605" font-size="9" fill="#6b21a8">3. Chunk filtering</text>
-  <text x="40" y="620" font-size="9" fill="#6b21a8">4. Parallel workers</text>
-
-  <!-- Legend -->
-  <g>
-    <text x="40" y="880" class="subtitle" text-anchor="start" font-weight="bold">Legend:</text>
-
-    <rect x="40" y="895" width="12" height="12" rx="2" fill="#dbeafe" stroke="#3b82f6"/>
-    <text x="58" y="905" font-size="11" fill="#64748b">Agents</text>
-
-    <rect x="150" y="895" width="12" height="12" rx="2" fill="#f0fdf4" stroke="#22c55e"/>
-    <text x="168" y="905" font-size="11" fill="#64748b">Retrievers</text>
-
-    <rect x="290" y="895" width="12" height="12" rx="2" fill="#f1f5f9" stroke="#94a3b8"/>
-    <text x="308" y="905" font-size="11" fill="#64748b">Infrastructure</text>
-
-    <rect x="440" y="895" width="12" height="12" rx="2" fill="#fef3c7" stroke="#f59e0b"/>
-    <text x="458" y="905" font-size="11" fill="#64748b">Processing</text>
-
-    <rect x="580" y="895" width="12" height="12" rx="2" fill="#fae8ff" stroke="#a855f7"/>
-    <text x="598" y="905" font-size="11" fill="#64748b">Output</text>
+  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">Lesson 8: Multi-Agent RAG Research Assistant</text>
+  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#64748b">Parallel KB retrieval with grounded synthesis</text>
+  <rect x="270" y="65" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="white">Research Query</text>
+  <rect x="25" y="133" width="670" height="190" rx="10" fill="#ecfeff" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="40" y="151" font-size="10" font-weight="700" fill="#0891b2">ThreadPoolExecutor (max_workers=2) — Parallel Retrieval</text>
+  <rect x="45" y="163" width="300" height="48" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="195" y="183" text-anchor="middle" font-size="11" font-weight="700" fill="white">CS Retriever</text>
+  <text x="195" y="203" text-anchor="middle" font-size="9" fill="#bfdbfe">Nova Lite | retrieve_cs_papers()</text>
+  <rect x="55" y="221" width="280" height="30" rx="6" fill="#f59e0b"/>
+  <text x="195" y="241" text-anchor="middle" font-size="10" font-weight="600" fill="#422006">KB: CS Papers</text>
+  <rect x="375" y="163" width="300" height="48" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="525" y="183" text-anchor="middle" font-size="11" font-weight="700" fill="white">Bio Retriever</text>
+  <text x="525" y="203" text-anchor="middle" font-size="9" fill="#bfdbfe">Nova Lite | retrieve_bio_papers()</text>
+  <rect x="385" y="221" width="280" height="30" rx="6" fill="#f59e0b"/>
+  <text x="525" y="241" text-anchor="middle" font-size="10" font-weight="600" fill="#422006">KB: Biology Papers</text>
+  <text x="360" y="315" text-anchor="middle" font-size="9" font-weight="600" fill="#0891b2">Merge results</text>
+  <rect x="120" y="359" width="480" height="42" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="360" y="376" text-anchor="middle" font-size="11" font-weight="600" fill="#1e40af">Aggregation + Deduplication</text>
+  <text x="360" y="394" text-anchor="middle" font-size="9" fill="#1e3a5f">Rank by relevance, select top-K</text>
+  <rect x="110" y="431" width="500" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="360" y="453" text-anchor="middle" font-size="12" font-weight="700" fill="white">Synthesis Agent</text>
+  <text x="360" y="473" text-anchor="middle" font-size="10" fill="#bfdbfe">Nova Pro | temp 0.2 | Grounded [DOC_ID] citations</text>
+  <rect x="190" y="519" width="340" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="542" text-anchor="middle" font-size="12" font-weight="600" fill="white">Grounded Research Summary</text>
+  <rect x="80" y="569" width="560" height="32" rx="8" fill="#fffbeb" stroke="#fbbf24" stroke-width="1"/>
+  <text x="360" y="590" text-anchor="middle" font-size="10" font-weight="600" fill="#92400e">Graceful degradation: if one KB fails, synthesis uses partial results</text>
+  <rect x="213" y="621" width="14" height="14" rx="3" fill="#06b6d4"/>
+  <text x="231" y="632" font-size="10" fill="#64748b">Parallel</text>
+  <rect x="297" y="621" width="14" height="14" rx="3" fill="#3b82f6"/>
+  <text x="315" y="632" font-size="10" fill="#64748b">Agent</text>
+  <rect x="360" y="621" width="14" height="14" rx="3" fill="#f59e0b"/>
+  <text x="378" y="632" font-size="10" fill="#64748b">KB</text>
+  <rect x="402" y="621" width="14" height="14" rx="3" fill="#dbeafe"/>
+  <text x="420" y="632" font-size="10" fill="#64748b">Aggregation</text>
+  <g id="arrows">
+    <line x1="360" y1="106" x2="360" y2="130" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="195" y1="323" x2="360" y2="356" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
+    <line x1="525" y1="323" x2="360" y2="356" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
+    <line x1="360" y1="404" x2="360" y2="428" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="360" y1="486" x2="360" y2="516" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
   </g>
 </svg>

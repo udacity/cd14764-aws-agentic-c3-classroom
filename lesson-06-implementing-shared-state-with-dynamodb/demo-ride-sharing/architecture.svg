@@ -1,118 +1,57 @@
-<svg viewBox="0 0 720 770" xmlns="http://www.w3.org/2000/svg">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 720 700" xmlns="http://www.w3.org/2000/svg" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
   <defs>
-    <filter id="shadow6" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+    <filter id="sh" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
     </filter>
-    <marker id="arrow6" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+    <marker id="a" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
     </marker>
-    <style>
-      text { font-family: 'Segoe UI', system-ui, sans-serif; }
-      .title { font-size: 18px; font-weight: bold; text-anchor: middle; }
-      .subtitle { font-size: 12px; fill: #6b7280; text-anchor: middle; }
-      .label { font-size: 13px; text-anchor: middle; }
-      .mono { font-family: 'Courier New', monospace; font-size: 11px; }
-    </style>
+    <marker id="ah" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
+    </marker>
   </defs>
-
-  <!-- White background for dark mode compatibility -->
-  <rect width="100%" height="100%" fill="white" rx="8"/>
-
-  <!-- Title -->
-  <text x="360" y="30" class="title">Lesson 6: Shared State with Optimistic Locking</text>
-  <text x="360" y="48" class="subtitle">Multi-agent coordination via DynamoDB with version control</text>
-
-  <!-- Trip Request Input -->
-  <rect x="280" y="70" width="160" height="50" rx="25" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" filter="url(#shadow6)"/>
-  <text x="360" y="100" class="label" fill="#92400e">Trip Request</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="120" x2="360" y2="155" stroke="#475569" stroke-width="2" marker-end="url(#arrow6)"/>
-
-  <!-- Central Shared State Box -->
-  <rect x="160" y="155" width="400" height="140" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="3" filter="url(#shadow6)"/>
-  <text x="360" y="180" class="label" fill="#475569" font-weight="bold">Shared State (SimulatedDynamoDB)</text>
-
-  <!-- Table header -->
-  <line x1="170" y1="195" x2="550" y2="195" stroke="#94a3b8" stroke-width="1"/>
-  <text x="210" y="213" class="mono" fill="#475569">trip_id (PK)</text>
-  <text x="310" y="213" class="mono" fill="#475569">version</text>
-  <text x="400" y="213" class="mono" fill="#475569">driver_id</text>
-  <text x="500" y="213" class="mono" fill="#475569">price</text>
-
-  <line x1="170" y1="220" x2="550" y2="220" stroke="#94a3b8" stroke-width="1"/>
-  <text x="200" y="243" class="mono" fill="#475569">trip_123</text>
-  <text x="310" y="243" class="mono" fill="#475569">v3</text>
-  <text x="400" y="243" class="mono" fill="#475569">drv_456</text>
-  <text x="500" y="243" class="mono" fill="#475569">$45.50</text>
-
-  <!-- Optimistic Locking badge -->
-  <rect x="300" y="260" width="120" height="25" rx="3" fill="#fee2e2" stroke="#ef4444" stroke-width="1"/>
-  <text x="360" y="277" class="label" fill="#991b1b" font-size="11px">Optimistic Locking</text>
-
-  <!-- Read arrows: state to agents (solid) -->
-  <line x1="228" y1="295" x2="118" y2="350" stroke="#475569" stroke-width="2" marker-end="url(#arrow6)"/>
-  <line x1="350" y1="295" x2="350" y2="350" stroke="#475569" stroke-width="2" marker-end="url(#arrow6)"/>
-  <line x1="472" y1="295" x2="582" y2="350" stroke="#475569" stroke-width="2" marker-end="url(#arrow6)"/>
-
-  <!-- Three Agents -->
-  <!-- DriverMatch Agent -->
-  <rect x="60" y="350" width="140" height="60" rx="4" fill="#f0fdf4" stroke="#22c55e" stroke-width="2" filter="url(#shadow6)"/>
-  <text x="130" y="375" class="label" fill="#166534" font-weight="bold">DriverMatch</text>
-  <text x="130" y="395" class="label" fill="#166534" font-size="11px">Agent</text>
-
-  <!-- Pricing Agent -->
-  <rect x="290" y="350" width="140" height="60" rx="4" fill="#f0fdf4" stroke="#22c55e" stroke-width="2" filter="url(#shadow6)"/>
-  <text x="360" y="375" class="label" fill="#166534" font-weight="bold">Pricing</text>
-  <text x="360" y="395" class="label" fill="#166534" font-size="11px">Agent</text>
-
-  <!-- ETA Agent -->
-  <rect x="520" y="350" width="140" height="60" rx="4" fill="#f0fdf4" stroke="#22c55e" stroke-width="2" filter="url(#shadow6)"/>
-  <text x="590" y="375" class="label" fill="#166534" font-weight="bold">ETA</text>
-  <text x="590" y="395" class="label" fill="#166534" font-size="11px">Agent</text>
-
-  <!-- Write arrows: agents back to state (dashed) -->
-  <line x1="142" y1="350" x2="252" y2="295" stroke="#475569" stroke-width="2" stroke-dasharray="8,4" marker-end="url(#arrow6)"/>
-  <line x1="370" y1="350" x2="370" y2="295" stroke="#475569" stroke-width="2" stroke-dasharray="8,4" marker-end="url(#arrow6)"/>
-  <line x1="598" y1="350" x2="488" y2="295" stroke="#475569" stroke-width="2" stroke-dasharray="8,4" marker-end="url(#arrow6)"/>
-
-  <!-- Agent Operation labels -->
-  <text x="130" y="430" class="label" fill="#475569" font-size="10px">read/write</text>
-  <text x="360" y="430" class="label" fill="#475569" font-size="10px">read/write</text>
-  <text x="590" y="430" class="label" fill="#475569" font-size="10px">read/write</text>
-
-  <!-- Coordination info -->
-  <rect x="140" y="460" width="440" height="70" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" filter="url(#shadow6)"/>
-  <text x="360" y="483" class="label" fill="#92400e" font-weight="bold">Version-Based Conflict Resolution</text>
-  <text x="360" y="503" class="label" fill="#92400e" font-size="11px">Each agent reads version, modifies data, and writes back</text>
-  <text x="360" y="520" class="label" fill="#92400e" font-size="11px">Failed version match = retry with exponential backoff</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="530" x2="360" y2="565" stroke="#475569" stroke-width="2" marker-end="url(#arrow6)"/>
-
-  <!-- AgentCore Memory Box -->
-  <rect x="180" y="565" width="360" height="80" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" filter="url(#shadow6)"/>
-  <text x="360" y="590" class="label" fill="#475569" font-weight="bold">AgentCore Memory</text>
-  <text x="360" y="610" class="label" fill="#475569" font-size="11px">Cross-session agent preferences, conversation history,</text>
-  <text x="360" y="627" class="label" fill="#475569" font-size="11px">learned customer context, and decision audit trails</text>
-
-  <!-- Legend -->
-  <g>
-    <text x="40" y="700" class="subtitle" text-anchor="start" font-weight="bold">Legend:</text>
-
-    <rect x="40" y="715" width="12" height="12" rx="2" fill="#f1f5f9" stroke="#94a3b8"/>
-    <text x="58" y="725" font-size="11" fill="#64748b">Infrastructure/State</text>
-
-    <rect x="230" y="715" width="12" height="12" rx="2" fill="#f0fdf4" stroke="#22c55e"/>
-    <text x="248" y="725" font-size="11" fill="#64748b">Agents</text>
-
-    <rect x="340" y="715" width="12" height="12" rx="2" fill="#fef3c7" stroke="#f59e0b"/>
-    <text x="358" y="725" font-size="11" fill="#64748b">Data/Operations</text>
-
-    <line x1="40" y1="745" x2="70" y2="745" stroke="#475569" stroke-width="2" marker-end="url(#arrow6)"/>
-    <text x="85" y="749" font-size="11" fill="#64748b">Read (solid)</text>
-
-    <line x1="240" y1="745" x2="270" y2="745" stroke="#475569" stroke-width="2" stroke-dasharray="8,4" marker-end="url(#arrow6)"/>
-    <text x="285" y="749" font-size="11" fill="#64748b">Write (dashed)</text>
+  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">Lesson 6: Ride-Sharing Shared State</text>
+  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#64748b">Optimistic locking + AgentCore Memory</text>
+  <rect x="270" y="65" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="white">Trip Request</text>
+  <rect x="120" y="133" width="480" height="72" rx="8" fill="#f59e0b" filter="url(#sh)"/>
+  <text x="360" y="155" text-anchor="middle" font-size="13" font-weight="700" fill="#422006">DynamoDB: TripState</text>
+  <text x="360" y="175" text-anchor="middle" font-size="9" fill="#713f12">trip_id (PK) | version | driver | fare | eta | ttl</text>
+  <text x="360" y="193" text-anchor="middle" font-size="9" font-weight="600" fill="#713f12">Optimistic Locking (version + conditional writes)</text>
+  <text x="158" y="221" font-size="8" fill="#94a3b8">r/w</text>
+  <rect x="40" y="233" width="198" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="146" y="255" text-anchor="middle" font-size="10" font-weight="700" fill="white">DriverMatch</text>
+  <text x="146" y="273" text-anchor="middle" font-size="9" fill="#bfdbfe">match_driver()</text>
+  <text x="371" y="221" font-size="8" fill="#94a3b8">r/w</text>
+  <rect x="253" y="233" width="198" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="359" y="255" text-anchor="middle" font-size="10" font-weight="700" fill="white">Pricing</text>
+  <text x="359" y="273" text-anchor="middle" font-size="9" fill="#bfdbfe">calculate_fare()</text>
+  <text x="584" y="221" font-size="8" fill="#94a3b8">r/w</text>
+  <rect x="466" y="233" width="198" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="572" y="255" text-anchor="middle" font-size="10" font-weight="700" fill="white">ETA</text>
+  <text x="572" y="273" text-anchor="middle" font-size="9" fill="#bfdbfe">calculate_eta()</text>
+  <rect x="80" y="305" width="560" height="48" rx="8" fill="#fef2f2" stroke="#fca5a5" stroke-width="1"/>
+  <text x="360" y="325" text-anchor="middle" font-size="11" font-weight="700" fill="#991b1b">Version Conflict Resolution</text>
+  <text x="360" y="343" text-anchor="middle" font-size="10" fill="#7f1d1d">ConditionalCheckFailedException → re-read + backoff</text>
+  <rect x="120" y="377" width="480" height="44" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="360" y="395" text-anchor="middle" font-size="11" font-weight="600" fill="#1e40af">AgentCore Memory (SESSION_SUMMARY)</text>
+  <text x="360" y="413" text-anchor="middle" font-size="9" fill="#1e3a5f">Rider preferences (preferred driver, destinations)</text>
+  <rect x="210" y="457" width="300" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="480" text-anchor="middle" font-size="12" font-weight="600" fill="white">Trip Confirmed</text>
+  <rect x="209" y="535" width="14" height="14" rx="3" fill="#f59e0b"/>
+  <text x="227" y="546" font-size="10" fill="#64748b">DynamoDB</text>
+  <rect x="293" y="535" width="14" height="14" rx="3" fill="#3b82f6"/>
+  <text x="311" y="546" font-size="10" fill="#64748b">Agent</text>
+  <rect x="356" y="535" width="14" height="14" rx="3" fill="#ef4444"/>
+  <text x="374" y="546" font-size="10" fill="#64748b">Conflict</text>
+  <rect x="440" y="535" width="14" height="14" rx="3" fill="#dbeafe"/>
+  <text x="458" y="546" font-size="10" fill="#64748b">Memory</text>
+  <g id="arrows">
+    <line x1="360" y1="106" x2="360" y2="130" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="146" y1="208" x2="146" y2="230" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="359" y1="208" x2="359" y2="230" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="572" y1="208" x2="572" y2="230" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="360" y1="424" x2="360" y2="454" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
   </g>
 </svg>

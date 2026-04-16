@@ -1,121 +1,63 @@
-<svg viewBox="0 0 720 980" xmlns="http://www.w3.org/2000/svg">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 720 800" xmlns="http://www.w3.org/2000/svg" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
   <defs>
-    <filter id="shadow9" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/>
+    <filter id="sh" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
     </filter>
-    <marker id="arrow9" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+    <marker id="a" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
     </marker>
-    <style>
-      text { font-family: 'Segoe UI', system-ui, sans-serif; }
-      .title { font-size: 18px; font-weight: bold; text-anchor: middle; }
-      .subtitle { font-size: 12px; fill: #999999; text-anchor: middle; }
-      .label { font-size: 13px; text-anchor: middle; }
-      .small { font-size: 11px; text-anchor: middle; }
-      .tiny { font-size: 9px; text-anchor: middle; }
-    </style>
+    <marker id="ah" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
+    </marker>
   </defs>
-
-  <!-- White background for dark mode compatibility -->
-  <rect width="100%" height="100%" fill="white" rx="8"/>
-
-  <!-- Title -->
-  <text x="360" y="35" class="title" fill="#1e1e1e">Lesson 9: Guardrails and Evaluation</text>
-  <text x="360" y="55" class="subtitle">6-Layer Governance Pipeline</text>
-
-  <!-- Layer 0: Patient Input -->
-  <rect x="260" y="80" width="200" height="50" rx="25" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" filter="url(#shadow9)"/>
-  <text x="360" y="110" class="label" fill="#78350f" font-weight="500">Patient Input</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="130" x2="360" y2="160" stroke="#475569" stroke-width="2" marker-end="url(#arrow9)"/>
-
-  <!-- Layer 1: Kill Switch -->
-  <rect x="200" y="160" width="320" height="60" rx="4" fill="#fee2e2" stroke="#ef4444" stroke-width="2" filter="url(#shadow9)"/>
-  <text x="360" y="185" class="label" fill="#991b1b" font-weight="600">Layer 1: Kill Switch Check</text>
-  <text x="360" y="207" class="small" fill="#991b1b">if triggered → reject immediately</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="220" x2="360" y2="250" stroke="#475569" stroke-width="2" marker-end="url(#arrow9)"/>
-
-  <!-- Layer 2: Rate Limiter -->
-  <rect x="200" y="250" width="320" height="60" rx="4" fill="#fee2e2" stroke="#ef4444" stroke-width="2" filter="url(#shadow9)"/>
-  <text x="360" y="275" class="label" fill="#991b1b" font-weight="600">Layer 2: Rate Limiter (Token Bucket)</text>
-  <text x="360" y="297" class="small" fill="#991b1b">100 requests/second max</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="310" x2="360" y2="340" stroke="#475569" stroke-width="2" marker-end="url(#arrow9)"/>
-
-  <!-- Layer 3: INPUT Guardrail -->
-  <rect x="160" y="340" width="400" height="130" rx="4" fill="#fee2e2" stroke="#ef4444" stroke-width="2" filter="url(#shadow9)"/>
-  <text x="360" y="362" class="label" fill="#991b1b" font-weight="600">Layer 3: INPUT Guardrail</text>
-  <text x="360" y="382" class="small" fill="#991b1b">4 Security Policies:</text>
-
-  <!-- Policy boxes inside -->
-  <rect x="175" y="395" width="80" height="55" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="1" filter="url(#shadow9)"/>
-  <text x="215" y="413" font-size="10" font-weight="500" text-anchor="middle" fill="#78350f">Content</text>
-  <text x="215" y="427" class="tiny" fill="#78350f">(violence,</text>
-  <text x="215" y="440" class="tiny" fill="#78350f">self-harm)</text>
-
-  <rect x="270" y="395" width="80" height="55" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="1" filter="url(#shadow9)"/>
-  <text x="310" y="413" font-size="10" font-weight="500" text-anchor="middle" fill="#78350f">PII</text>
-  <text x="310" y="427" class="tiny" fill="#78350f">(block SSN,</text>
-  <text x="310" y="440" class="tiny" fill="#78350f">anonymize)</text>
-
-  <rect x="365" y="395" width="80" height="55" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="1" filter="url(#shadow9)"/>
-  <text x="405" y="413" font-size="10" font-weight="500" text-anchor="middle" fill="#78350f">Topic</text>
-  <text x="405" y="427" class="tiny" fill="#78350f">(legal,</text>
-  <text x="405" y="440" class="tiny" fill="#78350f">prescriptions)</text>
-
-  <rect x="460" y="395" width="80" height="55" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="1" filter="url(#shadow9)"/>
-  <text x="500" y="413" font-size="10" font-weight="500" text-anchor="middle" fill="#78350f">Word</text>
-  <text x="500" y="427" class="tiny" fill="#78350f">(profanity)</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="470" x2="360" y2="500" stroke="#475569" stroke-width="2" marker-end="url(#arrow9)"/>
-
-  <!-- Layer 4: Healthcare Agent -->
-  <rect x="200" y="500" width="320" height="60" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2" filter="url(#shadow9)"/>
-  <text x="360" y="525" class="label" fill="#1e40af" font-weight="600">Layer 4: Healthcare Agent</text>
-  <text x="360" y="547" class="small" fill="#1e40af">(Nova Lite)</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="560" x2="360" y2="590" stroke="#475569" stroke-width="2" marker-end="url(#arrow9)"/>
-
-  <!-- Layer 5: OUTPUT Guardrail -->
-  <rect x="160" y="590" width="400" height="75" rx="4" fill="#fee2e2" stroke="#ef4444" stroke-width="2" filter="url(#shadow9)"/>
-  <text x="360" y="615" class="label" fill="#991b1b" font-weight="600">Layer 5: OUTPUT Guardrail</text>
-  <text x="360" y="637" class="small" fill="#991b1b">Same 4 policies applied to response</text>
-  <text x="360" y="655" class="small" fill="#991b1b">(prevent sensitive data leakage)</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="665" x2="360" y2="695" stroke="#475569" stroke-width="2" marker-end="url(#arrow9)"/>
-
-  <!-- Layer 6: Metrics Dashboard -->
-  <rect x="160" y="695" width="400" height="75" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" filter="url(#shadow9)"/>
-  <text x="360" y="720" class="label" fill="#475569" font-weight="600">Layer 6: Metrics Dashboard</text>
-  <text x="360" y="740" class="small" fill="#475569">+ Audit Log and Compliance Tracking</text>
-  <text x="360" y="758" class="small" fill="#475569">Monitor guardrail violations and policy hits</text>
-
-  <!-- Arrow down -->
-  <line x1="360" y1="770" x2="360" y2="800" stroke="#475569" stroke-width="2" marker-end="url(#arrow9)"/>
-
-  <!-- Final output -->
-  <rect x="260" y="800" width="200" height="50" rx="25" fill="#fae8ff" stroke="#a855f7" stroke-width="2" filter="url(#shadow9)"/>
-  <text x="360" y="830" class="label" fill="#6b21a8" font-weight="500">Safe Response</text>
-
-  <!-- Legend -->
-  <g>
-    <text x="20" y="910" font-size="11" font-weight="600" fill="#1e1e1e">Legend:</text>
-    <rect x="20" y="925" width="12" height="12" rx="2" fill="#fee2e2" stroke="#ef4444" stroke-width="1"/>
-    <text x="38" y="935" font-size="10" fill="#1e1e1e">Guardrail/Block</text>
-    <rect x="180" y="925" width="12" height="12" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
-    <text x="198" y="935" font-size="10" fill="#1e1e1e">Agent</text>
-    <rect x="280" y="925" width="12" height="12" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
-    <text x="298" y="935" font-size="10" fill="#1e1e1e">Input/Policy</text>
-    <rect x="420" y="925" width="12" height="12" rx="2" fill="#fae8ff" stroke="#a855f7" stroke-width="1"/>
-    <text x="438" y="935" font-size="10" fill="#1e1e1e">Output</text>
-    <rect x="560" y="925" width="12" height="12" rx="2" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/>
-    <text x="578" y="935" font-size="10" fill="#1e1e1e">Monitoring</text>
+  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">Lesson 9: Healthcare Agent Guardrails</text>
+  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#64748b">6-layer governance pipeline with model evaluation</text>
+  <rect x="270" y="65" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="white">Patient Input</text>
+  <rect x="140" y="133" width="440" height="44" rx="8" fill="#ef4444" filter="url(#sh)"/>
+  <text x="360" y="152" text-anchor="middle" font-size="11" font-weight="700" fill="white">Kill Switch Check</text>
+  <text x="360" y="170" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.85)">Threshold: 3 violations / 5 min</text>
+  <rect x="140" y="207" width="440" height="44" rx="8" fill="#f59e0b" filter="url(#sh)"/>
+  <text x="360" y="226" text-anchor="middle" font-size="11" font-weight="700" fill="white">Rate Limiter</text>
+  <text x="360" y="244" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.85)">Token bucket: 100 req/sec, 200 burst</text>
+  <rect x="55" y="281" width="610" height="72" rx="8" fill="#6366f1" filter="url(#sh)"/>
+  <text x="360" y="301" text-anchor="middle" font-size="11" font-weight="700" fill="white">INPUT Guardrail (Bedrock API)</text>
+  <rect x="75" y="311" width="132" height="28" rx="5" fill="rgba(255,255,255,0.15)"/>
+  <text x="141" y="329" text-anchor="middle" font-size="9" font-weight="600" fill="white">Content</text>
+  <rect x="217" y="311" width="132" height="28" rx="5" fill="rgba(255,255,255,0.15)"/>
+  <text x="283" y="329" text-anchor="middle" font-size="9" font-weight="600" fill="white">PII</text>
+  <rect x="359" y="311" width="132" height="28" rx="5" fill="rgba(255,255,255,0.15)"/>
+  <text x="425" y="329" text-anchor="middle" font-size="9" font-weight="600" fill="white">Topic</text>
+  <rect x="501" y="311" width="132" height="28" rx="5" fill="rgba(255,255,255,0.15)"/>
+  <text x="567" y="329" text-anchor="middle" font-size="9" font-weight="600" fill="white">Word</text>
+  <rect x="140" y="383" width="440" height="48" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="360" y="403" text-anchor="middle" font-size="12" font-weight="700" fill="white">Healthcare Agent</text>
+  <text x="360" y="423" text-anchor="middle" font-size="10" fill="#bfdbfe">Nova Lite | lookup_symptoms()</text>
+  <rect x="140" y="461" width="440" height="38" rx="8" fill="#6366f1" filter="url(#sh)"/>
+  <text x="360" y="485" text-anchor="middle" font-size="11" font-weight="700" fill="white">OUTPUT Guardrail (same policies)</text>
+  <rect x="140" y="529" width="440" height="38" rx="8" fill="#8b5cf6" filter="url(#sh)"/>
+  <text x="360" y="553" text-anchor="middle" font-size="11" font-weight="700" fill="white">Model Evaluation (LLM-as-Judge: Claude Sonnet)</text>
+  <rect x="140" y="597" width="440" height="34" rx="8" fill="#f59e0b"/>
+  <text x="360" y="619" text-anchor="middle" font-size="10" font-weight="600" fill="#422006">CloudWatch Dashboard + Audit Log</text>
+  <rect x="270" y="661" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="684" text-anchor="middle" font-size="12" font-weight="600" fill="white">Safe Response</text>
+  <rect x="181" y="739" width="14" height="14" rx="3" fill="#ef4444"/>
+  <text x="199" y="750" font-size="10" fill="#64748b">Kill Switch</text>
+  <rect x="286" y="739" width="14" height="14" rx="3" fill="#6366f1"/>
+  <text x="304" y="750" font-size="10" fill="#64748b">Guardrail</text>
+  <rect x="377" y="739" width="14" height="14" rx="3" fill="#3b82f6"/>
+  <text x="395" y="750" font-size="10" fill="#64748b">Agent</text>
+  <rect x="440" y="739" width="14" height="14" rx="3" fill="#f59e0b"/>
+  <text x="458" y="750" font-size="10" fill="#64748b">Monitoring</text>
+  <g id="arrows">
+    <line x1="360" y1="106" x2="360" y2="130" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="360" y1="180" x2="360" y2="204" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="360" y1="254" x2="360" y2="278" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="360" y1="356" x2="360" y2="380" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="360" y1="434" x2="360" y2="458" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="360" y1="502" x2="360" y2="526" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="360" y1="570" x2="360" y2="594" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="360" y1="634" x2="360" y2="658" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
   </g>
 </svg>
