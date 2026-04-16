@@ -598,7 +598,7 @@ def main():
         print(f"    Result: {result_data.get('action', '?')} — {result_data.get('status', '?')}")
         print(f"    Route: {routing['latency_ms']:.0f}ms | Execute: {exec_time:.1f}s | Total: {total_time:.1f}s")
 
-        # ── Step 3: Log to audit trail (simulated DynamoDB) ──
+        # ── Step 3: Log to audit trail (DynamoDB) ──
         log_routing_decision(
             request_id=req_id,
             input_text=req["text"],
