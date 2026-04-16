@@ -11,8 +11,8 @@
       <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
     </marker>
   </defs>
-  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">Lesson 1: Multi-Agent Healthcare Triage</text>
-  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#64748b">3-agent coordinator with sequential handoff</text>
+  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">Lesson 1: Multi-Agent Healthcare Triage</text>
+  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#cbd5e1">3-agent coordinator with sequential handoff</text>
   <rect x="270" y="65" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
   <text x="360" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="white">Patient Complaint</text>
   <rect x="160" y="139" width="400" height="50" rx="8" fill="#6366f1" filter="url(#sh)"/>
@@ -20,38 +20,38 @@
   <text x="360" y="179" text-anchor="middle" font-size="10" fill="#c7d2fe">Orchestrates 3 workers via run_triage_pipeline()</text>
   <rect x="125" y="225" width="470" height="70" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
   <rect x="135" y="233" width="210" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="240" y="255" text-anchor="middle" font-size="12" font-weight="700" fill="white">Symptom Analyzer</text>
+  <text x="240" y="255" text-anchor="middle" font-size="12" font-weight="700" fill="white">Symptom Analyzer Agent</text>
   <text x="240" y="273" text-anchor="middle" font-size="10" fill="#bfdbfe">Claude Sonnet | temp 0.0</text>
   <rect x="365" y="241" width="220" height="34" rx="6" fill="#8b5cf6"/>
   <text x="475" y="263" text-anchor="middle" font-size="11" font-weight="600" fill="white">lookup_symptoms()</text>
   <rect x="125" y="331" width="470" height="70" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
   <rect x="135" y="339" width="210" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="240" y="361" text-anchor="middle" font-size="12" font-weight="700" fill="white">Urgency Classifier</text>
+  <text x="240" y="361" text-anchor="middle" font-size="12" font-weight="700" fill="white">Urgency Classifier Agent</text>
   <text x="240" y="379" text-anchor="middle" font-size="10" fill="#bfdbfe">Claude Sonnet | temp 0.0</text>
   <rect x="365" y="347" width="220" height="34" rx="6" fill="#8b5cf6"/>
   <text x="475" y="369" text-anchor="middle" font-size="11" font-weight="600" fill="white">classify_urgency()</text>
   <rect x="125" y="437" width="470" height="70" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
   <rect x="135" y="445" width="210" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="240" y="467" text-anchor="middle" font-size="12" font-weight="700" fill="white">Appointment Scheduler</text>
+  <text x="240" y="467" text-anchor="middle" font-size="12" font-weight="700" fill="white">Appointment Scheduler Agent</text>
   <text x="240" y="485" text-anchor="middle" font-size="10" fill="#bfdbfe">Claude Sonnet | temp 0.0</text>
   <rect x="365" y="453" width="220" height="34" rx="6" fill="#8b5cf6"/>
   <text x="475" y="475" text-anchor="middle" font-size="11" font-weight="600" fill="white">book_appointment()</text>
   <rect x="270" y="543" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
   <text x="360" y="566" text-anchor="middle" font-size="12" font-weight="600" fill="white">Triage Result</text>
   <rect x="192" y="621" width="14" height="14" rx="3" fill="#6366f1"/>
-  <text x="210" y="632" font-size="10" fill="#64748b">Coordinator</text>
+  <text x="210" y="632" font-size="10" fill="#e2e8f0">Coordinator</text>
   <rect x="297" y="621" width="14" height="14" rx="3" fill="#3b82f6"/>
-  <text x="315" y="632" font-size="10" fill="#64748b">Agent</text>
+  <text x="315" y="632" font-size="10" fill="#e2e8f0">Agent</text>
   <rect x="360" y="621" width="14" height="14" rx="3" fill="#8b5cf6"/>
-  <text x="378" y="632" font-size="10" fill="#64748b">Tool</text>
+  <text x="378" y="632" font-size="10" fill="#e2e8f0">Tool</text>
   <rect x="416" y="621" width="14" height="14" rx="3" fill="#10b981"/>
-  <text x="434" y="632" font-size="10" fill="#64748b">Input/Output</text>
+  <text x="434" y="632" font-size="10" fill="#e2e8f0">Input/Output</text>
   <g id="arrows">
     <line x1="360" y1="106" x2="360" y2="136" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
     <line x1="360" y1="192" x2="360" y2="222" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="374" y="210" font-size="9" fill="#94a3b8">symptom JSON</text>
+    <text x="374" y="210" font-size="9" fill="#cbd5e1">symptom JSON</text>
     <line x1="360" y1="298" x2="360" y2="328" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="374" y="316" font-size="9" fill="#94a3b8">urgency level</text>
+    <text x="374" y="316" font-size="9" fill="#cbd5e1">urgency level</text>
     <line x1="360" y1="404" x2="360" y2="434" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
     <line x1="360" y1="510" x2="360" y2="540" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
   </g>

@@ -11,52 +11,52 @@
       <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
     </marker>
   </defs>
-  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">Lesson 4: HR Onboarding Orchestration</text>
-  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#64748b">Sequential chain + parallel branches + conditional routing</text>
+  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">Lesson 4: HR Onboarding Orchestration</text>
+  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#cbd5e1">Sequential chain + parallel branches + conditional routing</text>
   <rect x="270" y="65" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
   <text x="360" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="white">New Employee</text>
   <rect x="70" y="139" width="580" height="115" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
   <text x="90" y="159" font-size="10" font-weight="700" fill="#166534">PHASE 1: SEQUENTIAL CHAIN</text>
   <rect x="100" y="171" width="240" height="46" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="220" y="191" text-anchor="middle" font-size="11" font-weight="700" fill="white">Account Creator</text>
+  <text x="220" y="191" text-anchor="middle" font-size="11" font-weight="700" fill="white">Account Creator Agent</text>
   <text x="220" y="209" text-anchor="middle" font-size="9" fill="#bfdbfe">create_account()</text>
   <rect x="390" y="171" width="240" height="46" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="510" y="191" text-anchor="middle" font-size="11" font-weight="700" fill="white">Manager Assigner</text>
+  <text x="510" y="191" text-anchor="middle" font-size="11" font-weight="700" fill="white">Manager Assigner Agent</text>
   <text x="510" y="209" text-anchor="middle" font-size="9" fill="#bfdbfe">assign_manager()</text>
   <text x="360" y="244" text-anchor="middle" font-size="9" fill="#166534">employee_id passes forward</text>
   <rect x="40" y="290" width="640" height="110" rx="10" fill="#ecfeff" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="6,3"/>
   <text x="60" y="310" font-size="10" font-weight="700" fill="#0891b2">PHASE 2: PARALLEL (ThreadPoolExecutor, max_workers=3)</text>
   <rect x="65" y="322" width="195" height="44" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="162" y="342" text-anchor="middle" font-size="10" font-weight="700" fill="white">Laptop Provisioner</text>
+  <text x="162" y="342" text-anchor="middle" font-size="10" font-weight="700" fill="white">Laptop Provisioner Agent</text>
   <text x="162" y="360" text-anchor="middle" font-size="9" fill="#bfdbfe">provision_laptop()</text>
   <rect x="275" y="322" width="195" height="44" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="372" y="342" text-anchor="middle" font-size="10" font-weight="700" fill="white">Email Setup</text>
+  <text x="372" y="342" text-anchor="middle" font-size="10" font-weight="700" fill="white">Email Setup Agent</text>
   <text x="372" y="360" text-anchor="middle" font-size="9" fill="#bfdbfe">setup_email()</text>
   <rect x="485" y="322" width="195" height="44" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="582" y="342" text-anchor="middle" font-size="10" font-weight="700" fill="white">Building Access</text>
+  <text x="582" y="342" text-anchor="middle" font-size="10" font-weight="700" fill="white">Building Access Agent</text>
   <text x="582" y="360" text-anchor="middle" font-size="9" fill="#bfdbfe">grant_building_access()</text>
   <text x="360" y="392" text-anchor="middle" font-size="9" font-weight="600" fill="#0891b2">Wait for all 3</text>
   <rect x="70" y="436" width="580" height="120" rx="10" fill="#fef3c7" stroke="#fbbf24" stroke-width="1.5"/>
   <text x="90" y="456" font-size="10" font-weight="700" fill="#92400e">PHASE 3: CONDITIONAL (department check)</text>
   <text x="360" y="478" text-anchor="middle" font-size="10" fill="#78350f">if department == "Engineering"</text>
   <rect x="95" y="488" width="230" height="44" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="210" y="508" text-anchor="middle" font-size="10" font-weight="700" fill="white">Engineering Onboarding</text>
+  <text x="210" y="508" text-anchor="middle" font-size="10" font-weight="700" fill="white">Engineering Onboarding Agent</text>
   <text x="210" y="526" text-anchor="middle" font-size="9" fill="#bfdbfe">onboard_engineer()</text>
   <text x="360" y="515" text-anchor="middle" font-size="13" font-weight="700" fill="#92400e">OR</text>
   <rect x="395" y="488" width="230" height="44" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="510" y="508" text-anchor="middle" font-size="10" font-weight="700" fill="white">Sales Onboarding</text>
+  <text x="510" y="508" text-anchor="middle" font-size="10" font-weight="700" fill="white">Sales Onboarding Agent</text>
   <text x="510" y="526" text-anchor="middle" font-size="9" fill="#bfdbfe">onboard_sales()</text>
   <rect x="250" y="592" width="220" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
   <text x="360" y="615" text-anchor="middle" font-size="12" font-weight="600" fill="white">Onboarding Complete</text>
-  <text x="360" y="642" text-anchor="middle" font-size="10" fill="#94a3b8">7 workers | All Nova Lite temp 0.0 | Python orchestrator</text>
+  <text x="360" y="642" text-anchor="middle" font-size="10" fill="#cbd5e1">7 workers | All Nova Lite temp 0.0 | Python orchestrator</text>
   <rect x="185" y="666" width="14" height="14" rx="3" fill="#166534"/>
-  <text x="203" y="677" font-size="10" fill="#64748b">Sequential</text>
+  <text x="203" y="677" font-size="10" fill="#e2e8f0">Sequential</text>
   <rect x="283" y="666" width="14" height="14" rx="3" fill="#06b6d4"/>
-  <text x="301" y="677" font-size="10" fill="#64748b">Parallel</text>
+  <text x="301" y="677" font-size="10" fill="#e2e8f0">Parallel</text>
   <rect x="367" y="666" width="14" height="14" rx="3" fill="#f59e0b"/>
-  <text x="385" y="677" font-size="10" fill="#64748b">Conditional</text>
+  <text x="385" y="677" font-size="10" fill="#e2e8f0">Conditional</text>
   <rect x="472" y="666" width="14" height="14" rx="3" fill="#3b82f6"/>
-  <text x="490" y="677" font-size="10" fill="#64748b">Agent</text>
+  <text x="490" y="677" font-size="10" fill="#e2e8f0">Agent</text>
   <g id="arrows">
     <line x1="360" y1="106" x2="360" y2="136" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
     <line x1="340" y1="194" x2="387" y2="194" stroke="#475569" stroke-width="1.5" marker-end="url(#ah)"/>

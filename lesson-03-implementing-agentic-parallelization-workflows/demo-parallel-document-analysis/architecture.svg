@@ -11,31 +11,31 @@
       <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
     </marker>
   </defs>
-  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">Lesson 3: Parallel Document Analysis</text>
-  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#64748b">Specialists run simultaneously, synthesizer combines</text>
+  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">Lesson 3: Parallel Document Analysis</text>
+  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#cbd5e1">Specialists run simultaneously, synthesizer combines</text>
   <rect x="270" y="65" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
   <text x="360" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="white">System Design Document</text>
   <rect x="50" y="133" width="620" height="170" rx="10" fill="#ecfeff" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="6,3"/>
   <text x="65" y="151" font-size="10" font-weight="700" fill="#0891b2">ThreadPoolExecutor (max_workers=3)</text>
   <rect x="65" y="163" width="190" height="56" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="160" y="185" text-anchor="middle" font-size="11" font-weight="700" fill="white">Security Reviewer</text>
+  <text x="160" y="185" text-anchor="middle" font-size="11" font-weight="700" fill="white">Security Reviewer Agent</text>
   <text x="160" y="205" text-anchor="middle" font-size="9" fill="#bfdbfe">Nova Lite | t=0.0</text>
   <rect x="77" y="229" width="166" height="26" rx="5" fill="#8b5cf6"/>
   <text x="160" y="246" text-anchor="middle" font-size="9" font-weight="600" fill="white">review_security()</text>
   <rect x="265" y="163" width="190" height="56" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="360" y="185" text-anchor="middle" font-size="11" font-weight="700" fill="white">Scalability Reviewer</text>
+  <text x="360" y="185" text-anchor="middle" font-size="11" font-weight="700" fill="white">Scalability Reviewer Agent</text>
   <text x="360" y="205" text-anchor="middle" font-size="9" fill="#bfdbfe">Claude | t=0.1</text>
   <rect x="277" y="229" width="166" height="26" rx="5" fill="#8b5cf6"/>
   <text x="360" y="246" text-anchor="middle" font-size="9" font-weight="600" fill="white">review_scalability()</text>
   <rect x="465" y="163" width="190" height="56" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="560" y="185" text-anchor="middle" font-size="11" font-weight="700" fill="white">Cost Reviewer</text>
+  <text x="560" y="185" text-anchor="middle" font-size="11" font-weight="700" fill="white">Cost Reviewer Agent</text>
   <text x="560" y="205" text-anchor="middle" font-size="9" fill="#bfdbfe">Nova Pro | t=0.1</text>
   <rect x="477" y="229" width="166" height="26" rx="5" fill="#8b5cf6"/>
   <text x="560" y="246" text-anchor="middle" font-size="9" font-weight="600" fill="white">review_cost()</text>
   <text x="360" y="295" text-anchor="middle" font-size="10" font-weight="600" fill="#0891b2">Wait for all 3</text>
   <rect x="125" y="339" width="470" height="70" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
   <rect x="135" y="347" width="210" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="240" y="369" text-anchor="middle" font-size="12" font-weight="700" fill="white">Synthesizer</text>
+  <text x="240" y="369" text-anchor="middle" font-size="12" font-weight="700" fill="white">Synthesizer Agent</text>
   <text x="240" y="387" text-anchor="middle" font-size="10" fill="#bfdbfe">Claude Sonnet | temp 0.2</text>
   <rect x="365" y="355" width="220" height="34" rx="6" fill="#8b5cf6"/>
   <text x="475" y="377" text-anchor="middle" font-size="11" font-weight="600" fill="white">synthesize_reviews()</text>
@@ -44,13 +44,13 @@
   <rect x="120" y="495" width="480" height="32" rx="8" fill="#fffbeb" stroke="#fbbf24" stroke-width="1"/>
   <text x="360" y="516" text-anchor="middle" font-size="10" font-weight="600" fill="#92400e">Latency: max(agent_times) not sum — ~3x speedup</text>
   <rect x="234" y="547" width="14" height="14" rx="3" fill="#06b6d4"/>
-  <text x="252" y="558" font-size="10" fill="#64748b">Parallel</text>
+  <text x="252" y="558" font-size="10" fill="#e2e8f0">Parallel</text>
   <rect x="318" y="547" width="14" height="14" rx="3" fill="#3b82f6"/>
-  <text x="336" y="558" font-size="10" fill="#64748b">Agent</text>
+  <text x="336" y="558" font-size="10" fill="#e2e8f0">Agent</text>
   <rect x="381" y="547" width="14" height="14" rx="3" fill="#8b5cf6"/>
-  <text x="399" y="558" font-size="10" fill="#64748b">Tool</text>
+  <text x="399" y="558" font-size="10" fill="#e2e8f0">Tool</text>
   <rect x="437" y="547" width="14" height="14" rx="3" fill="#10b981"/>
-  <text x="455" y="558" font-size="10" fill="#64748b">I/O</text>
+  <text x="455" y="558" font-size="10" fill="#e2e8f0">I/O</text>
   <g id="arrows">
     <line x1="360" y1="106" x2="360" y2="130" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
     <line x1="160" y1="303" x2="360" y2="336" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>

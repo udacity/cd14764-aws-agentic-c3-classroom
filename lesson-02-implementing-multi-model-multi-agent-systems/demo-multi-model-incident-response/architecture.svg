@@ -11,25 +11,25 @@
       <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
     </marker>
   </defs>
-  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">Lesson 2: Multi-Model Incident Response</text>
-  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#64748b">Match model to task — fast routing, deep analysis, balanced comms</text>
+  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">Lesson 2: Multi-Model Incident Response</text>
+  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#cbd5e1">Match model to task — fast routing, deep analysis, balanced comms</text>
   <rect x="270" y="65" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
   <text x="360" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="white">Infrastructure Alert</text>
   <rect x="125" y="139" width="470" height="70" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
   <rect x="135" y="147" width="210" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="240" y="169" text-anchor="middle" font-size="12" font-weight="700" fill="white">Alert Router</text>
+  <text x="240" y="169" text-anchor="middle" font-size="12" font-weight="700" fill="white">Alert Router Agent</text>
   <text x="240" y="187" text-anchor="middle" font-size="10" fill="#bfdbfe">Nova Lite | temp 0.0</text>
   <rect x="365" y="155" width="220" height="34" rx="6" fill="#8b5cf6"/>
   <text x="475" y="177" text-anchor="middle" font-size="11" font-weight="600" fill="white">classify_alert()</text>
   <rect x="125" y="245" width="470" height="70" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
   <rect x="135" y="253" width="210" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="240" y="275" text-anchor="middle" font-size="12" font-weight="700" fill="white">Root Cause Analyzer</text>
+  <text x="240" y="275" text-anchor="middle" font-size="12" font-weight="700" fill="white">Root Cause Analyzer Agent</text>
   <text x="240" y="293" text-anchor="middle" font-size="10" fill="#bfdbfe">Claude Sonnet | temp 0.1</text>
   <rect x="365" y="261" width="220" height="34" rx="6" fill="#8b5cf6"/>
   <text x="475" y="283" text-anchor="middle" font-size="11" font-weight="600" fill="white">investigate_incident()</text>
   <rect x="125" y="351" width="470" height="70" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
   <rect x="135" y="359" width="210" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="240" y="381" text-anchor="middle" font-size="12" font-weight="700" fill="white">Status Drafter</text>
+  <text x="240" y="381" text-anchor="middle" font-size="12" font-weight="700" fill="white">Status Drafter Agent</text>
   <text x="240" y="399" text-anchor="middle" font-size="10" fill="#bfdbfe">Nova Pro | temp 0.3</text>
   <rect x="365" y="367" width="220" height="34" rx="6" fill="#8b5cf6"/>
   <text x="475" y="389" text-anchor="middle" font-size="11" font-weight="600" fill="white">draft_status_components()</text>
@@ -39,16 +39,16 @@
   <text x="360" y="527" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e">Key: Model-to-Task Matching</text>
   <text x="360" y="545" text-anchor="middle" font-size="10" fill="#78350f">Nova Lite (fast/cheap) | Claude (deep) | Nova Pro (balanced)</text>
   <rect x="276" y="575" width="14" height="14" rx="3" fill="#3b82f6"/>
-  <text x="294" y="586" font-size="10" fill="#64748b">Agent</text>
+  <text x="294" y="586" font-size="10" fill="#e2e8f0">Agent</text>
   <rect x="339" y="575" width="14" height="14" rx="3" fill="#8b5cf6"/>
-  <text x="357" y="586" font-size="10" fill="#64748b">Tool</text>
+  <text x="357" y="586" font-size="10" fill="#e2e8f0">Tool</text>
   <rect x="395" y="575" width="14" height="14" rx="3" fill="#10b981"/>
-  <text x="413" y="586" font-size="10" fill="#64748b">I/O</text>
+  <text x="413" y="586" font-size="10" fill="#e2e8f0">I/O</text>
   <g id="arrows">
     <line x1="360" y1="106" x2="360" y2="136" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="374" y="124" font-size="9" fill="#94a3b8">severity</text>
+    <text x="374" y="124" font-size="9" fill="#cbd5e1">severity</text>
     <line x1="360" y1="212" x2="360" y2="242" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="374" y="230" font-size="9" fill="#94a3b8">root cause</text>
+    <text x="374" y="230" font-size="9" fill="#cbd5e1">root cause</text>
     <line x1="360" y1="318" x2="360" y2="348" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
     <line x1="360" y1="424" x2="360" y2="454" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
   </g>

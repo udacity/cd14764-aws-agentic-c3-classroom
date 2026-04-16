@@ -11,8 +11,8 @@
       <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
     </marker>
   </defs>
-  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">Exercise 10: VectraBank Production Architecture</text>
-  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#64748b">Financial services: VPC + stricter monitoring</text>
+  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">Exercise 10: VectraBank Production Architecture</text>
+  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#cbd5e1">Financial services: VPC + stricter monitoring</text>
   <rect x="40" y="60" width="640" height="215" rx="10" fill="#6366f1" filter="url(#sh)"/>
   <text x="360" y="82" text-anchor="middle" font-size="13" font-weight="700" fill="white">AgentCore Runtime</text>
   <text x="360" y="102" text-anchor="middle" font-size="10" fill="#c7d2fe">Network: VPC (private) | Protocol: MCP | Guardrail: ENABLED</text>
@@ -28,7 +28,7 @@
   <rect x="80" y="232" width="560" height="30" rx="6" fill="rgba(255,255,255,0.15)"/>
   <text x="220" y="252" text-anchor="middle" font-size="11" font-weight="600" fill="white">FinancialAdvisor</text>
   <text x="500" y="252" text-anchor="middle" font-size="10" fill="#c7d2fe">Claude Sonnet | t=0.1</text>
-  <text x="50" y="299" font-size="11" font-weight="700" fill="#0f172a">Deployment Pipeline</text>
+  <text x="50" y="299" font-size="11" font-weight="700" fill="#ffffff">Deployment Pipeline</text>
   <rect x="65" y="315" width="90" height="30" rx="6" fill="#3b82f6"/>
   <text x="110" y="335" text-anchor="middle" font-size="8" font-weight="600" fill="white">Build</text>
   <text x="159" y="335" font-size="11" fill="#334155">→</text>
@@ -46,7 +46,7 @@
   <text x="551" y="335" font-size="11" fill="#334155">→</text>
   <rect x="555" y="315" width="90" height="30" rx="6" fill="#3b82f6"/>
   <text x="600" y="335" text-anchor="middle" font-size="8" font-weight="600" fill="white">Smoke Test</text>
-  <text x="50" y="369" font-size="11" font-weight="700" fill="#0f172a">Monitoring</text>
+  <text x="50" y="369" font-size="11" font-weight="700" fill="#ffffff">Monitoring</text>
   <rect x="65" y="385" width="186" height="50" rx="6" fill="#f59e0b"/>
   <text x="158" y="405" text-anchor="middle" font-size="10" font-weight="600" fill="#422006">CloudWatch</text>
   <text x="158" y="425" text-anchor="middle" font-size="8" fill="#713f12">Dashboard, 6 widgets</text>
@@ -59,11 +59,11 @@
   <rect x="90" y="457" width="540" height="36" rx="8" fill="#fffbeb" stroke="#fbbf24" stroke-width="1"/>
   <text x="360" y="480" text-anchor="middle" font-size="11" font-weight="600" fill="#92400e">Estimated: ~$3,200/month @ 10K req/day</text>
   <rect x="230" y="515" width="14" height="14" rx="3" fill="#6366f1"/>
-  <text x="248" y="526" font-size="10" fill="#64748b">Runtime</text>
+  <text x="248" y="526" font-size="10" fill="#e2e8f0">Runtime</text>
   <rect x="307" y="515" width="14" height="14" rx="3" fill="#3b82f6"/>
-  <text x="325" y="526" font-size="10" fill="#64748b">Pipeline</text>
+  <text x="325" y="526" font-size="10" fill="#e2e8f0">Pipeline</text>
   <rect x="391" y="515" width="14" height="14" rx="3" fill="#f59e0b"/>
-  <text x="409" y="526" font-size="10" fill="#64748b">Monitoring</text>
+  <text x="409" y="526" font-size="10" fill="#e2e8f0">Monitoring</text>
   <g id="arrows">
   </g>
 </svg>

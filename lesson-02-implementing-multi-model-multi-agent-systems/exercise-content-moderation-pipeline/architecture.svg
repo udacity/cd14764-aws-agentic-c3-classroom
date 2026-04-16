@@ -11,8 +11,8 @@
       <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
     </marker>
   </defs>
-  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">Exercise 2: Content Moderation Pipeline</text>
-  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#64748b">Multi-model with conditional escalation (80/20 pattern)</text>
+  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">Exercise 2: Content Moderation Pipeline</text>
+  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#cbd5e1">Multi-model with conditional escalation (80/20 pattern)</text>
   <rect x="270" y="65" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
   <text x="360" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="white">Social Media Post</text>
   <rect x="125" y="139" width="470" height="70" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
@@ -30,7 +30,7 @@
   <text x="240" y="315" text-anchor="middle" font-size="10" fill="#bfdbfe">Claude Sonnet | temp 0.1</text>
   <rect x="365" y="283" width="220" height="34" rx="6" fill="#8b5cf6"/>
   <text x="475" y="305" text-anchor="middle" font-size="11" font-weight="600" fill="white">deep_review_post()</text>
-  <text x="360" y="347" text-anchor="middle" font-size="9" fill="#94a3b8">Only borderline posts reach Claude (~20%)</text>
+  <text x="360" y="347" text-anchor="middle" font-size="9" fill="#cbd5e1">Only borderline posts reach Claude (~20%)</text>
   <rect x="125" y="391" width="470" height="70" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
   <rect x="135" y="399" width="210" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
   <text x="240" y="421" text-anchor="middle" font-size="12" font-weight="700" fill="white">Notice Agent</text>
@@ -42,11 +42,11 @@
   <rect x="80" y="547" width="560" height="36" rx="8" fill="#fffbeb" stroke="#fbbf24" stroke-width="1"/>
   <text x="360" y="570" text-anchor="middle" font-size="10" font-weight="600" fill="#92400e">80/20: Nova Lite all; Claude ~20% borderline → 60-80% savings</text>
   <rect x="276" y="603" width="14" height="14" rx="3" fill="#3b82f6"/>
-  <text x="294" y="614" font-size="10" fill="#64748b">Agent</text>
+  <text x="294" y="614" font-size="10" fill="#e2e8f0">Agent</text>
   <rect x="339" y="603" width="14" height="14" rx="3" fill="#8b5cf6"/>
-  <text x="357" y="614" font-size="10" fill="#64748b">Tool</text>
+  <text x="357" y="614" font-size="10" fill="#e2e8f0">Tool</text>
   <rect x="395" y="603" width="14" height="14" rx="3" fill="#10b981"/>
-  <text x="413" y="614" font-size="10" fill="#64748b">I/O</text>
+  <text x="413" y="614" font-size="10" fill="#e2e8f0">I/O</text>
   <g id="arrows">
     <line x1="360" y1="106" x2="360" y2="136" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
     <line x1="360" y1="234" x2="360" y2="264" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
