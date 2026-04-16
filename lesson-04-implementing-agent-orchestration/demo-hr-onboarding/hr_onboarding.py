@@ -85,7 +85,7 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
 
 # Configuration
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
-CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "anthropic.claude-sonnet-4-20250514-v1:0")     # Orchestrator (reasoning)
+CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "us.anthropic.claude-sonnet-4-20250514-v1:0")     # Orchestrator (reasoning)
 NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")                    # Workers (fast execution)
 
 # Sample employees

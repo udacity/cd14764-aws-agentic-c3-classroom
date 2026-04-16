@@ -103,7 +103,7 @@ AGENT_DEFINITIONS = [
     },
     {
         "name": "ClaimsAnalyzer",
-        "model": "anthropic.claude-sonnet-4-20250514-v1:0",
+        "model": "us.anthropic.claude-sonnet-4-20250514-v1:0",
         "temperature": 0.1,
         "role": "Deep analysis of complex claims (fraud detection, coverage gaps)",
         "tools": ["analyze_claim", "check_fraud_indicators", "retrieve_policy"],
@@ -253,7 +253,7 @@ MONITORING_STRATEGY = {
 MODEL_PRICING = {
     "amazon.nova-lite-v1:0": {"input": 0.00006, "output": 0.00024},
     "amazon.nova-pro-v1:0": {"input": 0.0008, "output": 0.0032},
-    "anthropic.claude-sonnet-4-20250514-v1:0": {"input": 0.003, "output": 0.015},
+    "us.anthropic.claude-sonnet-4-20250514-v1:0": {"input": 0.003, "output": 0.015},
 }
 
 
