@@ -1,5 +1,9 @@
 # Exercise: Parallel Contract Compliance — Starter
 
+## Architecture
+
+![Architecture Diagram](../architecture.svg)
+
 ## File
 - `contract_compliance.py` — Starter code with 12 TODOs to complete
 

@@ -1,5 +1,9 @@
 # Exercise Starter: Multi-Strategy Router for Telecom Customer Tickets
 
+## Architecture
+
+![Architecture Diagram](../architecture.svg)
+
 ## Overview
 Build a hybrid routing system for telecom support tickets following the same pattern from the demo (financial_router.py).
 

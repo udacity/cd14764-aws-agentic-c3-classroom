@@ -1,5 +1,9 @@
 # Exercise Starter: Trading Compliance Guardrails
 
+## Architecture
+
+![Architecture Diagram](../architecture.svg)
+
 ## Overview
 Build the governance stack for a financial trading compliance agent following the demo pattern (healthcare_guardrails.py). Implement 4 guardrail policy types, a kill switch, rate limiting, and audit logging. Add guardrail versioning and output guardrail scanning.
 

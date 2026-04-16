@@ -1,5 +1,9 @@
 # Exercise Solution: Multi-Agent RAG for Clinical Literature
 
+## Architecture
+
+![Architecture Diagram](../architecture.svg)
+
 ## Overview
 This exercise implements a clinical decision support RAG system with two specialized retrievers (Drug Interactions and Clinical Guidelines). Same parallel retrieval pattern as the demo, with three additions: passage deduplication, structured clinical output, and graceful degradation when a Knowledge Base is unavailable.
 

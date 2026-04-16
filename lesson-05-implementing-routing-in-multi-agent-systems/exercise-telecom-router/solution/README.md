@@ -1,5 +1,9 @@
 # Exercise Solution: Multi-Strategy Router for Telecom Customer Tickets
 
+## Architecture
+
+![Architecture Diagram](../architecture.svg)
+
 ## Overview
 This exercise builds a hybrid routing system for telecom customer support using the same four-strategy pattern from the demo, applied to a different domain with 20 tickets.
 

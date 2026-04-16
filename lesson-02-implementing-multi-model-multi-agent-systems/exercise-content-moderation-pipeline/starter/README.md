@@ -1,5 +1,9 @@
 # Exercise Starter: Content Moderation Pipeline
 
+## Architecture
+
+![Architecture Diagram](../architecture.svg)
+
 This folder contains the starter code for the Module 2 exercise.
 
 ## File

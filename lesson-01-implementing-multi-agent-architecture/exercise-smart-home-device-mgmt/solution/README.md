@@ -1,5 +1,9 @@
 # Exercise Solution: Smart Home Device Management
 
+## Architecture
+
+![Architecture Diagram](../architecture.svg)
+
 This folder contains the working solution for the Module 1 exercise.
 
 ## File

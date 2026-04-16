@@ -1,5 +1,9 @@
 # Exercise Starter: Smart Home Device Management
 
+## Architecture
+
+![Architecture Diagram](../architecture.svg)
+
 This folder contains the starter code for the Module 1 exercise.
 
 ## File

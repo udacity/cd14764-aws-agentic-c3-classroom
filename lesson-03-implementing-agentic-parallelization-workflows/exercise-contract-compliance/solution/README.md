@@ -1,5 +1,9 @@
 # Exercise: Parallel Contract Compliance — Solution
 
+## Architecture
+
+![Architecture Diagram](../architecture.svg)
+
 ## File
 - `contract_compliance.py` — Complete parallel contract compliance system
 

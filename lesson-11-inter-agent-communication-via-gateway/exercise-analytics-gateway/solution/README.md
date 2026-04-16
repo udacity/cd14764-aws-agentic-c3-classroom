@@ -1,5 +1,9 @@
 # Exercise Solution: Analytics Gateway
 
+## Architecture
+
+![Architecture Diagram](../architecture.svg)
+
 ## Overview
 This exercise implements an analytics agent connected to utility services through AgentCore Gateway. Same pattern as the demo with mixed target types: 2 Lambda functions and 1 REST API.
 
