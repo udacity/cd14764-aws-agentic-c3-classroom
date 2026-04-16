@@ -56,8 +56,12 @@
   <text x="469" y="657" font-size="10" fill="#e2e8f0">Agent</text>
   <g id="arrows">
     <line x1="360" y1="106" x2="360" y2="136" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="124" font-size="9" fill="#cbd5e1">package_id</text>
     <line x1="360" y1="237" x2="360" y2="267" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="255" font-size="9" fill="#cbd5e1">valid address</text>
     <line x1="360" y1="383" x2="360" y2="413" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="401" font-size="9" fill="#cbd5e1">label + insurance + carrier</text>
     <line x1="360" y1="539" x2="360" y2="569" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="557" font-size="9" fill="#cbd5e1">shipping config</text>
   </g>
 </svg>

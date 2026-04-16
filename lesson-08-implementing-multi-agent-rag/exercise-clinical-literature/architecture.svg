@@ -48,9 +48,14 @@
   <text x="420" y="632" font-size="10" fill="#e2e8f0">Aggregation</text>
   <g id="arrows">
     <line x1="360" y1="106" x2="360" y2="130" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="120" font-size="9" fill="#cbd5e1">clinical query</text>
     <line x1="195" y1="323" x2="360" y2="356" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
+    <text x="210" y="340" font-size="9" fill="#cbd5e1">drug passages</text>
     <line x1="525" y1="323" x2="360" y2="356" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
+    <text x="440" y="334" font-size="9" fill="#cbd5e1">guideline passages</text>
     <line x1="360" y1="404" x2="360" y2="428" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="418" font-size="9" fill="#cbd5e1">deduped top-K</text>
     <line x1="360" y1="486" x2="360" y2="516" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="504" font-size="9" fill="#cbd5e1">clinical report</text>
   </g>
 </svg>

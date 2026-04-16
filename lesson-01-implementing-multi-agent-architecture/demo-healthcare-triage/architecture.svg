@@ -49,10 +49,12 @@
   <g id="arrows">
     <line x1="360" y1="106" x2="360" y2="136" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
     <line x1="360" y1="192" x2="360" y2="222" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="374" y="210" font-size="9" fill="#cbd5e1">symptom JSON</text>
+    <text x="374" y="210" font-size="9" fill="#cbd5e1">complaint text</text>
     <line x1="360" y1="298" x2="360" y2="328" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="374" y="316" font-size="9" fill="#cbd5e1">urgency level</text>
+    <text x="374" y="316" font-size="9" fill="#cbd5e1">symptom JSON</text>
     <line x1="360" y1="404" x2="360" y2="434" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="422" font-size="9" fill="#cbd5e1">urgency + patient_id</text>
     <line x1="360" y1="510" x2="360" y2="540" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="528" font-size="9" fill="#cbd5e1">booking JSON</text>
   </g>
 </svg>

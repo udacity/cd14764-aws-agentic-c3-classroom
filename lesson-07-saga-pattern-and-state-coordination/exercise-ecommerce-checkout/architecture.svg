@@ -62,7 +62,10 @@
   <text x="472" y="764" font-size="10" fill="#e2e8f0">State</text>
   <g id="arrows">
     <line x1="360" y1="106" x2="360" y2="136" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="124" font-size="9" fill="#cbd5e1">checkout order</text>
     <line x1="210" y1="212" x2="210" y2="224" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="220" y="220" font-size="9" fill="#cbd5e1">forward_ref</text>
     <line x1="210" y1="272" x2="210" y2="284" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="220" y="280" font-size="9" fill="#cbd5e1">forward_ref</text>
   </g>
 </svg>

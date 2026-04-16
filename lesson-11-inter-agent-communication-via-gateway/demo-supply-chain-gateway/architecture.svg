@@ -50,10 +50,16 @@
   <text x="458" y="584" font-size="10" fill="#e2e8f0">I/O</text>
   <g id="arrows">
     <line x1="360" y1="106" x2="360" y2="136" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="124" font-size="9" fill="#cbd5e1">NL query</text>
     <line x1="360" y1="190" x2="360" y2="214" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="204" font-size="9" fill="#cbd5e1">tool invocation</text>
     <line x1="360" y1="269" x2="146" y2="288" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
+    <text x="190" y="282" font-size="9" fill="#cbd5e1">inventory req</text>
     <line x1="360" y1="269" x2="359" y2="288" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
+    <text x="370" y="282" font-size="9" fill="#cbd5e1">shipping req</text>
     <line x1="360" y1="269" x2="572" y2="288" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
+    <text x="490" y="282" font-size="9" fill="#cbd5e1">supplier req</text>
     <line x1="360" y1="444" x2="360" y2="468" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="458" font-size="9" fill="#cbd5e1">aggregated results</text>
   </g>
 </svg>

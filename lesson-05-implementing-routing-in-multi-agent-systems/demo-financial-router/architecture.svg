@@ -51,9 +51,14 @@
   <text x="465" y="620" font-size="10" fill="#e2e8f0">Infra</text>
   <g id="arrows">
     <line x1="360" y1="106" x2="360" y2="130" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="120" font-size="9" fill="#cbd5e1">request</text>
     <line x1="360" y1="188" x2="360" y2="212" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="202" font-size="9" fill="#cbd5e1">not priority</text>
     <line x1="360" y1="270" x2="360" y2="294" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="284" font-size="9" fill="#cbd5e1">no keyword match</text>
     <line x1="360" y1="352" x2="360" y2="376" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="366" font-size="9" fill="#cbd5e1">low confidence</text>
     <line x1="360" y1="434" x2="360" y2="458" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="448" font-size="9" fill="#cbd5e1">request_id + agent</text>
   </g>
 </svg>

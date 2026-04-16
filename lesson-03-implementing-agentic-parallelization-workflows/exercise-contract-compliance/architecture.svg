@@ -53,9 +53,14 @@
   <text x="455" y="558" font-size="10" fill="#e2e8f0">I/O</text>
   <g id="arrows">
     <line x1="360" y1="106" x2="360" y2="130" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="120" font-size="9" fill="#cbd5e1">contract_id</text>
     <line x1="160" y1="303" x2="360" y2="336" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
+    <text x="195" y="316" font-size="9" fill="#cbd5e1">regulatory findings</text>
     <line x1="360" y1="303" x2="360" y2="336" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
+    <text x="370" y="316" font-size="9" fill="#cbd5e1">financial findings</text>
     <line x1="560" y1="303" x2="360" y2="336" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
+    <text x="478" y="300" font-size="9" fill="#cbd5e1">IP findings</text>
     <line x1="360" y1="412" x2="360" y2="442" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="430" font-size="9" fill="#cbd5e1">compliance verdict</text>
   </g>
 </svg>

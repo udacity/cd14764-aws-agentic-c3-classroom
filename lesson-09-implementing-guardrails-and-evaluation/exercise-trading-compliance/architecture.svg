@@ -52,12 +52,20 @@
   <text x="458" y="750" font-size="10" fill="#e2e8f0">Monitoring</text>
   <g id="arrows">
     <line x1="360" y1="106" x2="360" y2="130" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="120" font-size="9" fill="#cbd5e1">trading query</text>
     <line x1="360" y1="180" x2="360" y2="204" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="194" font-size="9" fill="#cbd5e1">allowed</text>
     <line x1="360" y1="254" x2="360" y2="278" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="268" font-size="9" fill="#cbd5e1">within limit</text>
     <line x1="360" y1="356" x2="360" y2="380" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="370" font-size="9" fill="#cbd5e1">compliant input</text>
     <line x1="360" y1="434" x2="360" y2="458" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="448" font-size="9" fill="#cbd5e1">agent response</text>
     <line x1="360" y1="502" x2="360" y2="526" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="516" font-size="9" fill="#cbd5e1">safe output</text>
     <line x1="360" y1="570" x2="360" y2="594" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="584" font-size="9" fill="#cbd5e1">input + response</text>
     <line x1="360" y1="634" x2="360" y2="658" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="648" font-size="9" fill="#cbd5e1">eval scores</text>
   </g>
 </svg>

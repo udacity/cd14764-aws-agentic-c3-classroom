@@ -50,6 +50,8 @@
     <line x1="360" y1="212" x2="360" y2="242" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
     <text x="374" y="230" font-size="9" fill="#cbd5e1">root cause</text>
     <line x1="360" y1="318" x2="360" y2="348" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="336" font-size="9" fill="#cbd5e1">incident context</text>
     <line x1="360" y1="424" x2="360" y2="454" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="374" y="442" font-size="9" fill="#cbd5e1">status update</text>
   </g>
 </svg>
