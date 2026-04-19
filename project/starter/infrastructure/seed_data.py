@@ -20,7 +20,18 @@ s3 = boto3.client('s3', region_name=os.environ.get('AWS_REGION', 'us-east-1'))
 
 PROJECT_NAME = os.environ.get('PROJECT_NAME', 'udacity-agentcore')
 ACCOUNT_ID = boto3.client('sts').get_caller_identity()['Account']
-POLICY_BUCKET = f"{PROJECT_NAME}-policy-docs-{ACCOUNT_ID}"
+
+cf_client = boto3.client('cloudformation', region_name='us-east-1')
+try:
+    stack_info = cf_client.describe_stacks(StackName="udacity-agentcore")
+    stack_id = stack_info['Stacks'][0]['StackId']
+    full_uuid = stack_id.split('/')[-1]
+    short_uuid = full_uuid.split('-')[0]
+except Exception as e:
+    print(f"Warning: Could not fetch stack UUID. Check your AWS credentials. Error: {e}")
+    stack_uuid = "unknown"
+
+POLICY_BUCKET = f"{PROJECT_NAME}-policy-docs-{ACCOUNT_ID}-{short_uuid}"
 
 # ─────────────────────────────────────────────
 # MOCK CUSTOMER DATA
