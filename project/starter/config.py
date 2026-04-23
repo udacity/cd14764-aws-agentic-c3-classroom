@@ -30,10 +30,10 @@ ACCOUNT_ID   = boto3.client('sts', region_name=AWS_REGION).get_caller_identity()
 # FOUNDATION MODELS
 # ─────────────────────────────────────────────
 # Orchestrator agent: Claude 3 Haiku - fast, cost-efficient routing decisions
-ORCHESTRATOR_MODEL_ID = "anthropic.claude-3-haiku-20240307-v1:0"
+ORCHESTRATOR_MODEL_ID = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
 
 # Worker agents: Claude 3 Sonnet - more capable for reasoning and generation
-WORKER_MODEL_ID = "anthropic.claude-3-sonnet-20240229-v1:0"
+WORKER_MODEL_ID = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
 
 # ─────────────────────────────────────────────
 # CLOUDFORMATION EXPORTS LOADER
