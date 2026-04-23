@@ -11,6 +11,7 @@
       <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
     </marker>
   </defs>
+  <rect width="720" height="720" rx="12" fill="#1e293b"/>
   <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">Exercise 10: VectraBank Production Architecture</text>
   <text x="360" y="50" text-anchor="middle" font-size="11" fill="#cbd5e1">Financial services: VPC + stricter monitoring</text>
   <rect x="40" y="60" width="640" height="215" rx="10" fill="#6366f1" filter="url(#sh)"/>

@@ -11,6 +11,7 @@
       <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
     </marker>
   </defs>
+  <rect width="720" height="700" rx="12" fill="#1e293b"/>
   <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">Lesson 3: Parallel Document Analysis</text>
   <text x="360" y="50" text-anchor="middle" font-size="11" fill="#cbd5e1">Specialists run simultaneously, synthesizer combines</text>
   <rect x="270" y="65" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
