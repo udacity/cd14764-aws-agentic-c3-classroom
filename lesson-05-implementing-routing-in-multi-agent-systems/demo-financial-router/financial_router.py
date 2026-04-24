@@ -431,7 +431,7 @@ Do NOT add any other commentary."""
             "request_id": request_id,
             "action": "account_lookup",
             "balance": 15420.50,
-            "last_statement": "2025-03-01",
+            "last_statement": "2026-03-01",
             "status": "active",
         }
         worker_response["result"] = result

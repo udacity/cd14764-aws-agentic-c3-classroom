@@ -58,17 +58,17 @@ DEVICE_REGISTRY = {
 SENSOR_READINGS = [
     {
         "device_id": "DEV-001",
-        "timestamp": "2025-01-15T14:30:00Z",
+        "timestamp": "2026-01-15T14:30:00Z",
         "readings": {"temperature": 92.5, "humidity": 35, "connectivity": 85, "battery": 100},
     },
     {
         "device_id": "DEV-002",
-        "timestamp": "2025-01-15T14:30:00Z",
+        "timestamp": "2026-01-15T14:30:00Z",
         "readings": {"temperature": 68.0, "humidity": 45, "connectivity": 12, "battery": 72},
     },
     {
         "device_id": "DEV-003",
-        "timestamp": "2025-01-15T14:30:00Z",
+        "timestamp": "2026-01-15T14:30:00Z",
         "readings": {"temperature": 55.0, "humidity": 60, "connectivity": 90, "battery": 7},
     },
 ]

@@ -95,7 +95,7 @@ DOCUMENTS = [
             "ML recommendation service on SageMaker endpoint",
         ],
         "expected_load": "50,000 concurrent users, 500 req/sec peak",
-        "launch_date": "2025-04-01",
+        "launch_date": "2026-04-01",
     },
     {
         "id": "DOC-002",
@@ -109,7 +109,7 @@ DOCUMENTS = [
             "S3 for employee document uploads",
         ],
         "expected_load": "500 concurrent users, 20 req/sec peak",
-        "launch_date": "2025-04-15",
+        "launch_date": "2026-04-15",
     },
 ]
 

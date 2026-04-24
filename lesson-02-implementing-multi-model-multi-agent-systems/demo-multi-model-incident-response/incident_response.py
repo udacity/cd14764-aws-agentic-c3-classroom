@@ -59,7 +59,7 @@ INCIDENTS = [
     {
         "id": "INC-001",
         "source": "CloudWatch",
-        "timestamp": "2025-01-15T03:22:00Z",
+        "timestamp": "2026-01-15T03:22:00Z",
         "message": "CRITICAL: CPU utilization at 98% on prod-web-01. Memory at 94%. Response time 12s. 47 5xx errors in last 5 min.",
         "affected_service": "web-frontend",
         "region": "us-east-1",
@@ -67,7 +67,7 @@ INCIDENTS = [
     {
         "id": "INC-002",
         "source": "CloudWatch",
-        "timestamp": "2025-01-15T08:15:00Z",
+        "timestamp": "2026-01-15T08:15:00Z",
         "message": "WARNING: Disk usage at 82% on db-replica-03. Growth rate 2GB/day. Estimated full in 9 days.",
         "affected_service": "database",
         "region": "us-east-1",
@@ -75,7 +75,7 @@ INCIDENTS = [
     {
         "id": "INC-003",
         "source": "CodePipeline",
-        "timestamp": "2025-01-15T14:00:00Z",
+        "timestamp": "2026-01-15T14:00:00Z",
         "message": "INFO: Deployment v2.4.1 to staging completed. All health checks passed. 0 errors in canary.",
         "affected_service": "deployment",
         "region": "us-east-1",
