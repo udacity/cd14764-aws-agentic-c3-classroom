@@ -138,13 +138,13 @@ def _get_dynamodb_resource():
             RoleArn=role_arn,
             RoleSessionName="routing-audit"
         )["Credentials"]
-        return boto3.resource(
-            "dynamodb",
-            region_name=AWS_REGION,
+        session = boto3.Session(
             aws_access_key_id=creds["AccessKeyId"],
             aws_secret_access_key=creds["SecretAccessKey"],
             aws_session_token=creds["SessionToken"],
+            region_name=AWS_REGION,
         )
+        return session.resource("dynamodb")
     except Exception as e:
         print(f"  [DEBUG] Role assumption failed: {e}")
         return boto3.resource("dynamodb", region_name=AWS_REGION)
