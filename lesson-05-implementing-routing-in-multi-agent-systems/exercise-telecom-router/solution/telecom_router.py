@@ -137,15 +137,22 @@ TICKETS = [
 
 # DynamoDB audit table (real AWS resource — created by CloudFormation)
 ROUTING_AUDIT_TABLE = os.environ.get("ROUTING_AUDIT_TABLE", "lesson-05-routing-routing-audit")
-DYNAMODB_ROLE_ARN = os.environ.get("DYNAMODB_ROLE_ARN", "")
+DYNAMODB_ROLE_NAME = os.environ.get("DYNAMODB_ROLE_NAME", "lesson-05-routing-dynamodb-role")
 
 
 def _get_dynamodb_resource():
-    """Get DynamoDB resource, assuming the CF-created role if configured."""
-    if DYNAMODB_ROLE_ARN:
+    """Get DynamoDB resource, assuming the CF-created role for access.
+
+    The CloudFormation stack creates a dedicated IAM role with DynamoDB
+    permissions. This function auto-discovers the role ARN from the
+    account ID and assumes it — no manual ARN configuration needed.
+    """
+    try:
         sts = boto3.client("sts", region_name=AWS_REGION)
+        account_id = sts.get_caller_identity()["Account"]
+        role_arn = f"arn:aws:iam::{account_id}:role/{DYNAMODB_ROLE_NAME}"
         creds = sts.assume_role(
-            RoleArn=DYNAMODB_ROLE_ARN,
+            RoleArn=role_arn,
             RoleSessionName="routing-audit"
         )["Credentials"]
         return boto3.resource(
@@ -155,7 +162,9 @@ def _get_dynamodb_resource():
             aws_secret_access_key=creds["SecretAccessKey"],
             aws_session_token=creds["SessionToken"],
         )
-    return boto3.resource("dynamodb", region_name=AWS_REGION)
+    except Exception:
+        # Fall back to default credentials if role assumption fails
+        return boto3.resource("dynamodb", region_name=AWS_REGION)
 
 
 dynamodb = _get_dynamodb_resource()
