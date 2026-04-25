@@ -137,7 +137,28 @@ TICKETS = [
 
 # DynamoDB audit table (real AWS resource — created by CloudFormation)
 ROUTING_AUDIT_TABLE = os.environ.get("ROUTING_AUDIT_TABLE", "lesson-05-routing-routing-audit")
-dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
+DYNAMODB_ROLE_ARN = os.environ.get("DYNAMODB_ROLE_ARN", "")
+
+
+def _get_dynamodb_resource():
+    """Get DynamoDB resource, assuming the CF-created role if configured."""
+    if DYNAMODB_ROLE_ARN:
+        sts = boto3.client("sts", region_name=AWS_REGION)
+        creds = sts.assume_role(
+            RoleArn=DYNAMODB_ROLE_ARN,
+            RoleSessionName="routing-audit"
+        )["Credentials"]
+        return boto3.resource(
+            "dynamodb",
+            region_name=AWS_REGION,
+            aws_access_key_id=creds["AccessKeyId"],
+            aws_secret_access_key=creds["SecretAccessKey"],
+            aws_session_token=creds["SessionToken"],
+        )
+    return boto3.resource("dynamodb", region_name=AWS_REGION)
+
+
+dynamodb = _get_dynamodb_resource()
 audit_table = dynamodb.Table(ROUTING_AUDIT_TABLE)
 
 

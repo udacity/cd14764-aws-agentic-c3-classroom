@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
   Lesson 5: Implementing Routing in Multi-Agent Systems
-  Creates a DynamoDB table for routing audit logs.
+  Creates a DynamoDB table for routing audit logs and an IAM role for access.
 
 Parameters:
   ProjectName:
@@ -28,27 +28,38 @@ Resources:
         AttributeName: ttl
         Enabled: true
 
-  RoutingAuditPolicy:
-    Type: AWS::IAM::ManagedPolicy
+  DynamoDBAccessRole:
+    Type: AWS::IAM::Role
     Properties:
-      ManagedPolicyName: !Sub ${ProjectName}-dynamodb-access
-      Description: Allow access to the routing audit DynamoDB table
-      PolicyDocument:
+      RoleName: !Sub ${ProjectName}-dynamodb-role
+      AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
           - Effect: Allow
-            Action:
-              - dynamodb:DescribeTable
-              - dynamodb:PutItem
-              - dynamodb:GetItem
-              - dynamodb:Scan
-              - dynamodb:Query
-            Resource: !GetAtt RoutingAuditTable.Arn
-      Roles:
-        - voclabs
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:DescribeTable
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:Scan
+                  - dynamodb:Query
+                Resource: !GetAtt RoutingAuditTable.Arn
 
 Outputs:
   RoutingAuditTableName:
     Value: !Ref RoutingAuditTable
     Export:
       Name: !Sub ${ProjectName}-RoutingAuditTable
+  DynamoDBAccessRoleArn:
+    Value: !GetAtt DynamoDBAccessRole.Arn
+    Description: Set DYNAMODB_ROLE_ARN to this value before running the scripts
+    Export:
+      Name: !Sub ${ProjectName}-DynamoDBAccessRoleArn
