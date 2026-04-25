@@ -28,6 +28,25 @@ Resources:
         AttributeName: ttl
         Enabled: true
 
+  RoutingAuditPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub ${ProjectName}-dynamodb-access
+      Description: Allow access to the routing audit DynamoDB table
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:DescribeTable
+              - dynamodb:PutItem
+              - dynamodb:GetItem
+              - dynamodb:Scan
+              - dynamodb:Query
+            Resource: !GetAtt RoutingAuditTable.Arn
+      Roles:
+        - voclabs
+
 Outputs:
   RoutingAuditTableName:
     Value: !Ref RoutingAuditTable
