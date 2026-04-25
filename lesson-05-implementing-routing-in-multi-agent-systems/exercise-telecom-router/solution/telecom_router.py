@@ -45,8 +45,6 @@ import re
 import time
 import logging
 import os
-import boto3
-from botocore.exceptions import ClientError
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 from strands import Agent, tool
@@ -135,50 +133,18 @@ TICKETS = [
      "expected_agent": "GeneralSupportAgent", "expected_method": "fallback"},
 ]
 
-# DynamoDB audit table (real AWS resource — created by CloudFormation)
-ROUTING_AUDIT_TABLE = os.environ.get("ROUTING_AUDIT_TABLE", "lesson-05-routing-routing-audit")
-DYNAMODB_ROLE_NAME = os.environ.get("DYNAMODB_ROLE_NAME", "lesson-05-routing-dynamodb-role")
-
-
-def _get_dynamodb_resource():
-    """Get DynamoDB resource, assuming the CF-created role for access.
-
-    The CloudFormation stack creates a dedicated IAM role with DynamoDB
-    permissions. This function auto-discovers the role ARN from the
-    account ID and assumes it — no manual ARN configuration needed.
-    """
-    try:
-        sts = boto3.client("sts", region_name=AWS_REGION)
-        account_id = sts.get_caller_identity()["Account"]
-        role_arn = f"arn:aws:iam::{account_id}:role/{DYNAMODB_ROLE_NAME}"
-        creds = sts.assume_role(
-            RoleArn=role_arn,
-            RoleSessionName="routing-audit"
-        )["Credentials"]
-        session = boto3.Session(
-            aws_access_key_id=creds["AccessKeyId"],
-            aws_secret_access_key=creds["SecretAccessKey"],
-            aws_session_token=creds["SessionToken"],
-            region_name=AWS_REGION,
-        )
-        return session.resource("dynamodb")
-    except Exception as e:
-        print(f"  [DEBUG] Role assumption failed: {e}")
-        return boto3.resource("dynamodb", region_name=AWS_REGION)
-
-
-dynamodb = _get_dynamodb_resource()
-audit_table = dynamodb.Table(ROUTING_AUDIT_TABLE)
+# Audit log — JSON file that records every routing decision
+AUDIT_LOG_FILE = os.path.join(os.path.dirname(__file__), "routing_audit.json")
+audit_entries: list[dict] = []
 
 
 def log_routing_decision(ticket_id: str, input_text: str, method: str,
                          target_agent: str, confidence: float, latency_ms: float):
     """
-    Log a routing decision to DynamoDB.
+    Log a routing decision to the audit log.
 
-    Table schema (from CloudFormation):
-      PK: request_id (S)  |  SK: timestamp (S)
-      Attributes: input_text, routing_method, target_agent, confidence, latency_ms
+    Each entry captures: request_id, timestamp, input_text, routing_method,
+    target_agent, confidence, and latency_ms.
     """
     entry = {
         "request_id": ticket_id,
@@ -186,11 +152,17 @@ def log_routing_decision(ticket_id: str, input_text: str, method: str,
         "input_text": input_text[:80],
         "routing_method": method,
         "target_agent": target_agent,
-        "confidence": str(confidence),
-        "latency_ms": str(round(latency_ms, 1)),
-        "ttl": int(time.time()) + 86400,  # Auto-delete after 24 hours
+        "confidence": round(confidence, 2),
+        "latency_ms": round(latency_ms, 1),
     }
-    audit_table.put_item(Item=entry)
+    audit_entries.append(entry)
+
+
+def _save_audit_log():
+    """Persist audit entries to a JSON file."""
+    with open(AUDIT_LOG_FILE, "w") as f:
+        json.dump(audit_entries, f, indent=2)
+    print(f"  Audit log saved to: {AUDIT_LOG_FILE}")
 
 
 # Shared state
@@ -537,33 +509,6 @@ AGENT_BUILDERS = {
 
 # Main — Process all 20 tickets
 
-def _verify_audit_table():
-    """Fail fast with a clear message if the CloudFormation stack wasn't deployed.
-
-    Every routing decision is logged to DynamoDB, so if the table is missing
-    we surface a helpful error *before* the first ticket runs rather than a
-    cryptic ResourceNotFoundException mid-loop.
-    """
-    try:
-        audit_table.load()
-    except ClientError as e:
-        if e.response["Error"]["Code"] == "ResourceNotFoundException":
-            print("\n" + "=" * 70)
-            print("  SETUP REQUIRED: DynamoDB audit table not found")
-            print("=" * 70)
-            print(f"  Expected table: {ROUTING_AUDIT_TABLE}")
-            print(f"  Region:         {AWS_REGION}")
-            print("\n  Deploy the CloudFormation stack that creates it:")
-            print("    cd lesson-05-implementing-routing-in-multi-agent-systems/infrastructure")
-            print("    aws cloudformation deploy \\")
-            print("      --template-file stack.yaml \\")
-            print("      --stack-name lesson-05-routing \\")
-            print("      --capabilities CAPABILITY_IAM")
-            print("\n  Then re-run this exercise.\n")
-            raise SystemExit(1)
-        raise
-
-
 def main():
     print("=" * 70)
     print("  Telecom Customer Ticket Router — Module 5 Exercise")
@@ -571,8 +516,6 @@ def main():
     print("  4 Specialist Agents + 1 Classifier Agent")
     print("  20 Tickets (8 billing, 6 technical, 2 cancellation, 4 ambiguous)")
     print("=" * 70)
-
-    _verify_audit_table()
 
     results = []
 
@@ -670,15 +613,14 @@ def main():
         if a in agents:
             print(f"    {a:<22} {agents[a]} tickets")
 
-    # ── Audit Log Summary (DynamoDB) ─────────────────────
-    scan_result = audit_table.scan()
-    audit_entries = scan_result.get("Items", [])
-    print(f"\n  Audit Log: {len(audit_entries)} entries logged (DynamoDB: {ROUTING_AUDIT_TABLE})")
+    # ── Audit Log Summary ─────────────────────────────────
+    print(f"\n  Audit Log: {len(audit_entries)} entries logged")
     rule_count = sum(1 for e in audit_entries if e.get("routing_method") == "rule")
     llm_count = sum(1 for e in audit_entries if e.get("routing_method") == "llm")
     priority_count = sum(1 for e in audit_entries if e.get("routing_method") == "priority")
     fallback_count = sum(1 for e in audit_entries if e.get("routing_method") == "fallback")
     print(f"    Rule: {rule_count} | LLM: {llm_count} | Priority: {priority_count} | Fallback: {fallback_count}")
+    _save_audit_log()
 
     print(f"\n  Key Insight: Same hybrid routing pattern as demo, different domain:")
     print(f"  - Rules handle billing (40%) + technical (30%) = 70% of volume")
