@@ -83,18 +83,17 @@
   <text x="244" y="378" font-size="9" fill="#cbd5e1">low confidence</text>
 
   <!-- Arrow: LLM tier to Classifier Agent -->
-  <line x1="400" y1="323" x2="500" y2="323" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ap)"/>
+  <line x1="400" y1="323" x2="478" y2="323" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ap)"/>
 
   <!-- Classifier Agent box -->
-  <rect x="500" y="340" width="140" height="44" rx="6" fill="#8b5cf6" filter="url(#sh)"/>
-  <text x="570" y="358" text-anchor="middle" font-size="10" font-weight="600" fill="white">Classifier Agent</text>
-  <text x="570" y="374" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.75)">Nova Lite | conf &#x2265; 0.6</text>
+  <rect x="480" y="302" width="150" height="44" rx="6" fill="#8b5cf6" filter="url(#sh)"/>
+  <text x="555" y="320" text-anchor="middle" font-size="10" font-weight="600" fill="white">Classifier Agent</text>
+  <text x="555" y="336" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.75)">Nova Lite | conf &#x2265; 0.6</text>
 
   <!-- Arrow: Classifier to specialists (up) -->
-  <line x1="690" y1="340" x2="690" y2="328" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5,3"/>
-  <line x1="640" y1="355" x2="690" y2="340" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5,3"/>
-  <text x="700" y="338" font-size="8" fill="#c4b5fd">&#x2191; routes to</text>
-  <text x="700" y="348" font-size="8" fill="#c4b5fd">specialist</text>
+  <line x1="630" y1="318" x2="690" y2="300" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="700" y="306" font-size="8" fill="#c4b5fd">&#x2191; routes to</text>
+  <text x="700" y="316" font-size="8" fill="#c4b5fd">specialist</text>
 
   <!-- Tier 4: Fallback -->
   <rect x="60" y="399" width="340" height="52" rx="8" fill="#64748b" filter="url(#sh)"/>
