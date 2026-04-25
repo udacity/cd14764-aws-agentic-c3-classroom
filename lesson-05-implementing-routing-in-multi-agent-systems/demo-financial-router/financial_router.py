@@ -48,6 +48,7 @@ import re
 import time
 import logging
 import os
+import boto3
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 from strands import Agent, tool
@@ -116,15 +117,32 @@ REQUESTS = [
      "amount": 0, "expected_agent": "GeneralSupportAgent", "expected_method": "fallback"},
 ]
 
-# Audit log — JSON file that records every routing decision
-AUDIT_LOG_FILE = os.path.join(os.path.dirname(__file__), "routing_audit.json")
-audit_entries: list[dict] = []
+# ── DynamoDB Audit Log ───────────────────────────────────────────────────────
+# Every routing decision is logged to DynamoDB for compliance auditing.
+# Table created by CloudFormation (infrastructure/stack.yaml).
+ROUTING_AUDIT_TABLE = os.environ.get("ROUTING_AUDIT_TABLE", "lesson-05-routing-routing-audit")
+
+dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
+audit_table = dynamodb.Table(ROUTING_AUDIT_TABLE)
+
+
+def _verify_audit_table():
+    """Verify the DynamoDB audit table exists and is accessible."""
+    try:
+        status = audit_table.table_status
+        print(f"  ✓ DynamoDB audit table: {ROUTING_AUDIT_TABLE} ({status})")
+    except Exception as e:
+        print(f"  ✗ Cannot access DynamoDB table '{ROUTING_AUDIT_TABLE}': {e}")
+        print(f"    Deploy infrastructure first: aws cloudformation deploy "
+              f"--template-file infrastructure/stack.yaml "
+              f"--stack-name lesson-05-routing --capabilities CAPABILITY_NAMED_IAM")
+        raise SystemExit(1)
 
 
 def log_routing_decision(request_id: str, input_text: str, method: str,
                          target_agent: str, confidence: float, latency_ms: float):
     """
-    Log a routing decision to the audit log.
+    Log a routing decision to DynamoDB.
 
     Each entry captures: request_id, timestamp, input_text, routing_method,
     target_agent, confidence, and latency_ms.
@@ -135,17 +153,11 @@ def log_routing_decision(request_id: str, input_text: str, method: str,
         "input_text": input_text[:80],
         "routing_method": method,
         "target_agent": target_agent,
-        "confidence": round(confidence, 2),
-        "latency_ms": round(latency_ms, 1),
+        "confidence": str(round(confidence, 2)),
+        "latency_ms": str(round(latency_ms, 1)),
+        "ttl": int(time.time()) + 86400,  # Auto-delete after 24 hours
     }
-    audit_entries.append(entry)
-
-
-def _save_audit_log():
-    """Persist audit entries to a JSON file."""
-    with open(AUDIT_LOG_FILE, "w") as f:
-        json.dump(audit_entries, f, indent=2)
-    print(f"  Audit log saved to: {AUDIT_LOG_FILE}")
+    audit_table.put_item(Item=entry)
 
 
 # Shared state for LLM classifier results
@@ -535,6 +547,8 @@ def main():
     print("  5 Specialist Agents + 1 Classifier Agent")
     print("=" * 70)
 
+    _verify_audit_table()
+
     results = []
 
     for req in REQUESTS:
@@ -630,15 +644,16 @@ def main():
     for a, count in sorted(agents.items()):
         print(f"    {a:<22} {count} requests")
 
-    # ── Audit Log ────────────────────────────────────────
-    print(f"\n  Audit Log ({len(audit_entries)} entries):")
+    # ── Audit Log (read back from DynamoDB) ────────────────
+    scan_result = audit_table.scan()
+    audit_items = sorted(scan_result.get("Items", []), key=lambda x: x["request_id"])
+    print(f"\n  DynamoDB Audit Log ({len(audit_items)} entries — table: {ROUTING_AUDIT_TABLE}):")
     print(f"  {'ID':<10} {'Method':<10} {'Agent':<22} {'Confidence':<12} {'Latency':<10}")
     print(f"  {'─' * 65}")
-    for entry in audit_entries:
+    for entry in audit_items:
         print(f"  {entry['request_id']:<10} {entry['routing_method']:<10} "
-              f"{entry['target_agent']:<22} {entry['confidence']:<12.2f} "
-              f"{entry['latency_ms']:<10.1f}ms")
-    _save_audit_log()
+              f"{entry['target_agent']:<22} {entry['confidence']:<12} "
+              f"{entry['latency_ms']}ms")
 
     print(f"\n  Key Insight: Hybrid routing is the production standard:")
     print(f"  1. PRIORITY — business-critical overrides run first (2 requests)")

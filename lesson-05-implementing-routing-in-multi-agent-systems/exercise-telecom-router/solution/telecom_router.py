@@ -45,6 +45,7 @@ import re
 import time
 import logging
 import os
+import boto3
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 from strands import Agent, tool
@@ -133,15 +134,32 @@ TICKETS = [
      "expected_agent": "GeneralSupportAgent", "expected_method": "fallback"},
 ]
 
-# Audit log — JSON file that records every routing decision
-AUDIT_LOG_FILE = os.path.join(os.path.dirname(__file__), "routing_audit.json")
-audit_entries: list[dict] = []
+# ── DynamoDB Audit Log ───────────────────────────────────────────────────────
+# Every routing decision is logged to DynamoDB for compliance auditing.
+# Table created by CloudFormation (infrastructure/stack.yaml).
+ROUTING_AUDIT_TABLE = os.environ.get("ROUTING_AUDIT_TABLE", "lesson-05-routing-routing-audit")
+
+dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
+audit_table = dynamodb.Table(ROUTING_AUDIT_TABLE)
+
+
+def _verify_audit_table():
+    """Verify the DynamoDB audit table exists and is accessible."""
+    try:
+        status = audit_table.table_status
+        print(f"  ✓ DynamoDB audit table: {ROUTING_AUDIT_TABLE} ({status})")
+    except Exception as e:
+        print(f"  ✗ Cannot access DynamoDB table '{ROUTING_AUDIT_TABLE}': {e}")
+        print(f"    Deploy infrastructure first: aws cloudformation deploy "
+              f"--template-file infrastructure/stack.yaml "
+              f"--stack-name lesson-05-routing --capabilities CAPABILITY_NAMED_IAM")
+        raise SystemExit(1)
 
 
 def log_routing_decision(ticket_id: str, input_text: str, method: str,
                          target_agent: str, confidence: float, latency_ms: float):
     """
-    Log a routing decision to the audit log.
+    Log a routing decision to DynamoDB.
 
     Each entry captures: request_id, timestamp, input_text, routing_method,
     target_agent, confidence, and latency_ms.
@@ -152,17 +170,11 @@ def log_routing_decision(ticket_id: str, input_text: str, method: str,
         "input_text": input_text[:80],
         "routing_method": method,
         "target_agent": target_agent,
-        "confidence": round(confidence, 2),
-        "latency_ms": round(latency_ms, 1),
+        "confidence": str(round(confidence, 2)),
+        "latency_ms": str(round(latency_ms, 1)),
+        "ttl": int(time.time()) + 86400,  # Auto-delete after 24 hours
     }
-    audit_entries.append(entry)
-
-
-def _save_audit_log():
-    """Persist audit entries to a JSON file."""
-    with open(AUDIT_LOG_FILE, "w") as f:
-        json.dump(audit_entries, f, indent=2)
-    print(f"  Audit log saved to: {AUDIT_LOG_FILE}")
+    audit_table.put_item(Item=entry)
 
 
 # Shared state
@@ -517,6 +529,8 @@ def main():
     print("  20 Tickets (8 billing, 6 technical, 2 cancellation, 4 ambiguous)")
     print("=" * 70)
 
+    _verify_audit_table()
+
     results = []
 
     for ticket in TICKETS:
@@ -613,14 +627,15 @@ def main():
         if a in agents:
             print(f"    {a:<22} {agents[a]} tickets")
 
-    # ── Audit Log Summary ─────────────────────────────────
-    print(f"\n  Audit Log: {len(audit_entries)} entries logged")
-    rule_count = sum(1 for e in audit_entries if e.get("routing_method") == "rule")
-    llm_count = sum(1 for e in audit_entries if e.get("routing_method") == "llm")
-    priority_count = sum(1 for e in audit_entries if e.get("routing_method") == "priority")
-    fallback_count = sum(1 for e in audit_entries if e.get("routing_method") == "fallback")
+    # ── Audit Log (read back from DynamoDB) ────────────────
+    scan_result = audit_table.scan()
+    audit_items = sorted(scan_result.get("Items", []), key=lambda x: x["request_id"])
+    print(f"\n  DynamoDB Audit Log ({len(audit_items)} entries):")
+    rule_count = sum(1 for e in audit_items if e.get("routing_method") == "rule")
+    llm_count = sum(1 for e in audit_items if e.get("routing_method") == "llm")
+    priority_count = sum(1 for e in audit_items if e.get("routing_method") == "priority")
+    fallback_count = sum(1 for e in audit_items if e.get("routing_method") == "fallback")
     print(f"    Rule: {rule_count} | LLM: {llm_count} | Priority: {priority_count} | Fallback: {fallback_count}")
-    _save_audit_log()
 
     print(f"\n  Key Insight: Same hybrid routing pattern as demo, different domain:")
     print(f"  - Rules handle billing (40%) + technical (30%) = 70% of volume")

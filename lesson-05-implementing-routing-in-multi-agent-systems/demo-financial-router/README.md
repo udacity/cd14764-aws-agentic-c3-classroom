@@ -12,7 +12,7 @@ This demo builds a hybrid routing system that combines four routing strategies: 
 - **Rule-based routing:** Keyword matching → PaymentsAgent / FraudAgent / AccountAgent
 - **LLM classification:** Nova Lite classifies ambiguous requests with confidence scores
 - **Fallback:** Confidence < 0.6 → GeneralSupportAgent (flagged for human review)
-- **Audit log:** Every routing decision logged (simulated DynamoDB)
+- **Audit log:** Every routing decision logged to DynamoDB (routing_audit table)
 
 ## Models
 - All agents: Amazon Nova Lite (routing needs speed, not depth)
