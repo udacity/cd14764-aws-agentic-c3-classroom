@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 780 720" xmlns="http://www.w3.org/2000/svg" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
+<svg viewBox="0 0 780 650" xmlns="http://www.w3.org/2000/svg" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
   <defs>
     <filter id="sh" x="-4%" y="-4%" width="108%" height="116%">
       <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
@@ -21,7 +21,7 @@
     </marker>
   </defs>
 
-  <rect width="780" height="720" rx="12" fill="#1e293b"/>
+  <rect width="780" height="650" rx="12" fill="#1e293b"/>
 
   <!-- Title -->
   <text x="390" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">Lesson 5: Financial Transaction Router</text>
@@ -62,15 +62,15 @@
   <rect x="620" y="211" width="140" height="30" rx="6" fill="#3b82f6" filter="url(#sh)"/>
   <text x="690" y="230" text-anchor="middle" font-size="10" font-weight="600" fill="white">Payments Agent</text>
 
-  <line x1="400" y1="241" x2="540" y2="265" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ab)"/>
+  <line x1="400" y1="241" x2="540" y2="265" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="540" y1="265" x2="620" y2="268" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ab)"/>
   <rect x="620" y="253" width="140" height="30" rx="6" fill="#3b82f6" filter="url(#sh)"/>
   <text x="690" y="272" text-anchor="middle" font-size="10" font-weight="600" fill="white">Fraud Agent</text>
-  <line x1="540" y1="268" x2="620" y2="268" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3"/>
 
-  <line x1="400" y1="255" x2="540" y2="307" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ab)"/>
+  <line x1="400" y1="255" x2="540" y2="305" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="540" y1="305" x2="620" y2="310" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ab)"/>
   <rect x="620" y="295" width="140" height="30" rx="6" fill="#3b82f6" filter="url(#sh)"/>
   <text x="690" y="314" text-anchor="middle" font-size="10" font-weight="600" fill="white">Account Agent</text>
-  <line x1="540" y1="310" x2="620" y2="310" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3"/>
 
   <!-- Labels for rule routing -->
   <text x="480" y="220" font-size="9" fill="#93c5fd">&#x201C;wire&#x201D; &#x201C;transfer&#x201D;</text>
@@ -80,52 +80,61 @@
   <!-- Tier 3: LLM Classification -->
   <rect x="60" y="297" width="340" height="52" rx="8" fill="#8b5cf6" filter="url(#sh)"/>
   <text x="230" y="319" text-anchor="middle" font-size="12" font-weight="700" fill="white">Tier 3: LLM CLASSIFICATION</text>
-  <text x="230" y="337" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">Nova Lite classifier (confidence &#x2265; 0.6)</text>
+  <text x="230" y="337" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">Ambiguous requests (no keyword match)</text>
 
   <!-- Arrow: LLM pass-through -->
-  <line x1="230" y1="352" x2="230" y2="376" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-  <text x="244" y="368" font-size="9" fill="#cbd5e1">low confidence</text>
+  <line x1="230" y1="352" x2="230" y2="396" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="244" y="378" font-size="9" fill="#cbd5e1">low confidence</text>
 
-  <!-- Arrow: LLM to specialist (routes to any of the 3 above) -->
-  <line x1="400" y1="323" x2="540" y2="370" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ap)"/>
-  <text x="540" y="385" font-size="9" fill="#c4b5fd">Routes to best-match</text>
-  <text x="540" y="397" font-size="9" fill="#c4b5fd">specialist above</text>
+  <!-- Arrow: LLM tier to Classifier Agent -->
+  <line x1="400" y1="323" x2="500" y2="323" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ap)"/>
+
+  <!-- Classifier Agent box -->
+  <rect x="500" y="340" width="140" height="44" rx="6" fill="#8b5cf6" filter="url(#sh)"/>
+  <text x="570" y="358" text-anchor="middle" font-size="10" font-weight="600" fill="white">Classifier Agent</text>
+  <text x="570" y="374" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.75)">Nova Lite | conf &#x2265; 0.6</text>
+
+  <!-- Arrow: Classifier to specialists (up) -->
+  <line x1="690" y1="340" x2="690" y2="328" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="640" y1="355" x2="690" y2="340" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="700" y="338" font-size="8" fill="#c4b5fd">&#x2191; routes to</text>
+  <text x="700" y="348" font-size="8" fill="#c4b5fd">specialist</text>
 
   <!-- Tier 4: Fallback -->
-  <rect x="60" y="379" width="340" height="52" rx="8" fill="#64748b" filter="url(#sh)"/>
-  <text x="230" y="401" text-anchor="middle" font-size="12" font-weight="700" fill="white">Tier 4: FALLBACK</text>
-  <text x="230" y="419" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">Safety net for unclassifiable requests</text>
+  <rect x="60" y="399" width="340" height="52" rx="8" fill="#64748b" filter="url(#sh)"/>
+  <text x="230" y="421" text-anchor="middle" font-size="12" font-weight="700" fill="white">Tier 4: FALLBACK</text>
+  <text x="230" y="439" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">Safety net for unclassifiable requests</text>
 
   <!-- Arrow: Fallback to General -->
-  <line x1="400" y1="405" x2="620" y2="405" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ag)"/>
-  <rect x="620" y="391" width="140" height="30" rx="6" fill="#64748b" filter="url(#sh)"/>
-  <text x="690" y="410" text-anchor="middle" font-size="10" font-weight="600" fill="white">General Agent</text>
-  <text x="690" y="430" text-anchor="middle" font-size="9" fill="#94a3b8">+ human review flag</text>
+  <line x1="400" y1="425" x2="620" y2="425" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ag)"/>
+  <rect x="620" y="411" width="140" height="30" rx="6" fill="#64748b" filter="url(#sh)"/>
+  <text x="690" y="430" text-anchor="middle" font-size="10" font-weight="600" fill="white">General Agent</text>
+  <text x="690" y="450" text-anchor="middle" font-size="9" fill="#94a3b8">+ human review flag</text>
 
   <!-- All agents arrow down to result -->
-  <line x1="690" y1="325" x2="690" y2="460" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
-  <line x1="690" y1="460" x2="390" y2="460" stroke="#475569" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#a)"/>
+  <line x1="690" y1="175" x2="690" y2="480" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="690" y1="480" x2="390" y2="480" stroke="#475569" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#a)"/>
 
   <!-- Result / Response -->
-  <rect x="270" y="450" width="180" height="34" rx="17" fill="#10b981" filter="url(#sh)"/>
-  <text x="360" y="471" text-anchor="middle" font-size="11" font-weight="600" fill="white">Agent Response</text>
+  <rect x="270" y="470" width="180" height="34" rx="17" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="491" text-anchor="middle" font-size="11" font-weight="600" fill="white">Agent Response</text>
 
   <!-- DynamoDB Audit Log -->
-  <line x1="360" y1="487" x2="360" y2="515" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-  <text x="374" y="505" font-size="9" fill="#cbd5e1">log decision</text>
-  <rect x="220" y="518" width="320" height="36" rx="6" fill="#f59e0b" filter="url(#sh)"/>
-  <text x="380" y="541" text-anchor="middle" font-size="11" font-weight="600" fill="#422006">DynamoDB Audit Log</text>
-  <text x="380" y="567" text-anchor="middle" font-size="9" fill="#fbbf24">request_id | method | agent | confidence | latency</text>
+  <line x1="360" y1="507" x2="360" y2="535" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="374" y="525" font-size="9" fill="#cbd5e1">log decision</text>
+  <rect x="220" y="538" width="320" height="36" rx="6" fill="#f59e0b" filter="url(#sh)"/>
+  <text x="380" y="561" text-anchor="middle" font-size="11" font-weight="600" fill="#422006">DynamoDB Audit Log</text>
+  <text x="380" y="585" text-anchor="middle" font-size="9" fill="#fbbf24">request_id | method | agent | confidence | latency</text>
 
   <!-- Legend -->
-  <rect x="170" y="595" width="14" height="14" rx="3" fill="#6366f1"/>
-  <text x="188" y="606" font-size="10" fill="#e2e8f0">Priority</text>
-  <rect x="260" y="595" width="14" height="14" rx="3" fill="#3b82f6"/>
-  <text x="278" y="606" font-size="10" fill="#e2e8f0">Rule-Based</text>
-  <rect x="370" y="595" width="14" height="14" rx="3" fill="#8b5cf6"/>
-  <text x="388" y="606" font-size="10" fill="#e2e8f0">LLM</text>
-  <rect x="430" y="595" width="14" height="14" rx="3" fill="#64748b"/>
-  <text x="448" y="606" font-size="10" fill="#e2e8f0">Fallback</text>
-  <rect x="520" y="595" width="14" height="14" rx="3" fill="#f59e0b"/>
-  <text x="538" y="606" font-size="10" fill="#e2e8f0">Infrastructure</text>
+  <rect x="170" y="620" width="14" height="14" rx="3" fill="#6366f1"/>
+  <text x="188" y="631" font-size="10" fill="#e2e8f0">Priority</text>
+  <rect x="260" y="620" width="14" height="14" rx="3" fill="#3b82f6"/>
+  <text x="278" y="631" font-size="10" fill="#e2e8f0">Rule-Based</text>
+  <rect x="370" y="620" width="14" height="14" rx="3" fill="#8b5cf6"/>
+  <text x="388" y="631" font-size="10" fill="#e2e8f0">LLM / Classifier</text>
+  <rect x="490" y="620" width="14" height="14" rx="3" fill="#64748b"/>
+  <text x="508" y="631" font-size="10" fill="#e2e8f0">Fallback</text>
+  <rect x="580" y="620" width="14" height="14" rx="3" fill="#f59e0b"/>
+  <text x="598" y="631" font-size="10" fill="#e2e8f0">Infrastructure</text>
 </svg>
