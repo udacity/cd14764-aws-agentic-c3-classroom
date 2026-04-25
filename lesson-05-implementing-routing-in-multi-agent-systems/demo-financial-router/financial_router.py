@@ -145,8 +145,8 @@ def _get_dynamodb_resource():
             aws_secret_access_key=creds["SecretAccessKey"],
             aws_session_token=creds["SessionToken"],
         )
-    except Exception:
-        # Fall back to default credentials if role assumption fails
+    except Exception as e:
+        print(f"  [DEBUG] Role assumption failed: {e}")
         return boto3.resource("dynamodb", region_name=AWS_REGION)
 
 
