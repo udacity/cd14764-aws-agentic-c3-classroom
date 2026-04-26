@@ -89,7 +89,7 @@ def to_dynamo(obj):
 
 def from_dynamo(obj):
     """Convert DynamoDB types back to Python (Decimal→float)."""
-    return json.loads(json.dumps(obj, default=str))
+    return json.loads(json.dumps(obj, default=float))
 
 
 def clean_response(text: str) -> str:
