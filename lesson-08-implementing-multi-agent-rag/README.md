@@ -20,7 +20,13 @@ aws cloudformation deploy \
 
 Note the `KBSourceBucketName` output — you'll use it as the data source for every KB.
 
-**2. Upload source documents** into the bucket under these prefixes:
+**2. Seed documents into S3:**
+
+```bash
+python seed_documents.py
+```
+
+This script reads the KB IDs from the CloudFormation outputs automatically and uploads all 24 source documents (6 per KB) to the correct S3 prefixes. No manual file creation needed.
 
 | Demo KB            | S3 prefix              |
 |--------------------|------------------------|
