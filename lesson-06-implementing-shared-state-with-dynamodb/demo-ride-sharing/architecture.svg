@@ -49,11 +49,14 @@
     <line x1="360" y1="106" x2="360" y2="130" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
     <text x="374" y="120" font-size="9" fill="#cbd5e1">trip request</text>
     <line x1="146" y1="208" x2="146" y2="230" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="146" y="204" text-anchor="middle" font-size="9" fill="#cbd5e1">read/write driver</text>
+    <rect x="98" y="211" width="96" height="14" rx="3" fill="#1e293b"/>
+    <text x="146" y="221" text-anchor="middle" font-size="9" fill="#cbd5e1">read/write driver</text>
     <line x1="359" y1="208" x2="359" y2="230" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="359" y="204" text-anchor="middle" font-size="9" fill="#cbd5e1">read/write fare</text>
+    <rect x="317" y="211" width="84" height="14" rx="3" fill="#1e293b"/>
+    <text x="359" y="221" text-anchor="middle" font-size="9" fill="#cbd5e1">read/write fare</text>
     <line x1="572" y1="208" x2="572" y2="230" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="572" y="204" text-anchor="middle" font-size="9" fill="#cbd5e1">read/write ETA</text>
+    <rect x="532" y="211" width="80" height="14" rx="3" fill="#1e293b"/>
+    <text x="572" y="221" text-anchor="middle" font-size="9" fill="#cbd5e1">read/write ETA</text>
     <line x1="360" y1="424" x2="360" y2="454" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
     <text x="374" y="442" font-size="9" fill="#cbd5e1">confirmed trip</text>
   </g>

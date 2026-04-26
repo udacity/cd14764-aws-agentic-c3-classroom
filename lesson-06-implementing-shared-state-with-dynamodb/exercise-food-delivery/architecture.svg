@@ -52,13 +52,17 @@
     <line x1="360" y1="106" x2="360" y2="130" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
     <text x="374" y="120" font-size="9" fill="#cbd5e1">food order</text>
     <line x1="120" y1="208" x2="120" y2="230" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="120" y="204" text-anchor="middle" font-size="9" fill="#cbd5e1">confirm/reject</text>
+    <rect x="79" y="211" width="82" height="14" rx="3" fill="#1e293b"/>
+    <text x="120" y="221" text-anchor="middle" font-size="9" fill="#cbd5e1">confirm/reject</text>
     <line x1="280" y1="208" x2="280" y2="230" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="280" y="204" text-anchor="middle" font-size="9" fill="#cbd5e1">assign driver</text>
+    <rect x="243" y="211" width="74" height="14" rx="3" fill="#1e293b"/>
+    <text x="280" y="221" text-anchor="middle" font-size="9" fill="#cbd5e1">assign driver</text>
     <line x1="440" y1="208" x2="440" y2="230" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="440" y="204" text-anchor="middle" font-size="9" fill="#cbd5e1">calc price</text>
+    <rect x="411" y="211" width="58" height="14" rx="3" fill="#1e293b"/>
+    <text x="440" y="221" text-anchor="middle" font-size="9" fill="#cbd5e1">calc price</text>
     <line x1="600" y1="208" x2="600" y2="230" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="600" y="204" text-anchor="middle" font-size="9" fill="#cbd5e1">track status</text>
+    <rect x="563" y="211" width="74" height="14" rx="3" fill="#1e293b"/>
+    <text x="600" y="221" text-anchor="middle" font-size="9" fill="#cbd5e1">track status</text>
     <line x1="360" y1="424" x2="360" y2="454" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
     <text x="374" y="442" font-size="9" fill="#cbd5e1">confirmed order</text>
   </g>
