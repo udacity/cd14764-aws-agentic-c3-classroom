@@ -20,19 +20,15 @@
   <text x="360" y="155" text-anchor="middle" font-size="13" font-weight="700" fill="#422006">DynamoDB: OrderState</text>
   <text x="360" y="175" text-anchor="middle" font-size="9" fill="#713f12">order_id (PK) | version | restaurant | driver | total_price | status | ttl</text>
   <text x="360" y="193" text-anchor="middle" font-size="9" font-weight="600" fill="#713f12">Optimistic Locking (version + conditional writes)</text>
-  <text x="132" y="221" font-size="8" fill="#cbd5e1">r/w</text>
   <rect x="40" y="233" width="145" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
   <text x="120" y="255" text-anchor="middle" font-size="10" font-weight="700" fill="white">Restaurant Agent</text>
   <text x="120" y="273" text-anchor="middle" font-size="9" fill="#bfdbfe">confirm_order()</text>
-  <text x="292" y="221" font-size="8" fill="#cbd5e1">r/w</text>
   <rect x="200" y="233" width="145" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
   <text x="280" y="255" text-anchor="middle" font-size="10" font-weight="700" fill="white">Driver Agent</text>
   <text x="280" y="273" text-anchor="middle" font-size="9" fill="#bfdbfe">assign_driver()</text>
-  <text x="452" y="221" font-size="8" fill="#cbd5e1">r/w</text>
   <rect x="360" y="233" width="145" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
   <text x="440" y="255" text-anchor="middle" font-size="10" font-weight="700" fill="white">Price Agent</text>
   <text x="440" y="273" text-anchor="middle" font-size="9" fill="#bfdbfe">calculate_price()</text>
-  <text x="612" y="221" font-size="8" fill="#cbd5e1">r/w</text>
   <rect x="520" y="233" width="145" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
   <text x="600" y="255" text-anchor="middle" font-size="10" font-weight="700" fill="white">Status Agent</text>
   <text x="600" y="273" text-anchor="middle" font-size="9" fill="#bfdbfe">update_status()</text>
@@ -56,13 +52,13 @@
     <line x1="360" y1="106" x2="360" y2="130" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
     <text x="374" y="120" font-size="9" fill="#cbd5e1">food order</text>
     <line x1="120" y1="208" x2="120" y2="230" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="60" y="222" font-size="9" fill="#cbd5e1">confirm/reject</text>
+    <text x="120" y="204" text-anchor="middle" font-size="9" fill="#cbd5e1">confirm/reject</text>
     <line x1="280" y1="208" x2="280" y2="230" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="220" y="222" font-size="9" fill="#cbd5e1">assign driver</text>
+    <text x="280" y="204" text-anchor="middle" font-size="9" fill="#cbd5e1">assign driver</text>
     <line x1="440" y1="208" x2="440" y2="230" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="454" y="222" font-size="9" fill="#cbd5e1">calc price</text>
+    <text x="440" y="204" text-anchor="middle" font-size="9" fill="#cbd5e1">calc price</text>
     <line x1="600" y1="208" x2="600" y2="230" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="614" y="222" font-size="9" fill="#cbd5e1">track status</text>
+    <text x="600" y="204" text-anchor="middle" font-size="9" fill="#cbd5e1">track status</text>
     <line x1="360" y1="424" x2="360" y2="454" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
     <text x="374" y="442" font-size="9" fill="#cbd5e1">confirmed order</text>
   </g>

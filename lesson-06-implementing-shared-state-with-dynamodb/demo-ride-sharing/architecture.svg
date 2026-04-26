@@ -20,15 +20,12 @@
   <text x="360" y="155" text-anchor="middle" font-size="13" font-weight="700" fill="#422006">DynamoDB: TripState</text>
   <text x="360" y="175" text-anchor="middle" font-size="9" fill="#713f12">trip_id (PK) | version | driver | fare | eta | ttl</text>
   <text x="360" y="193" text-anchor="middle" font-size="9" font-weight="600" fill="#713f12">Optimistic Locking (version + conditional writes)</text>
-  <text x="158" y="221" font-size="8" fill="#cbd5e1">r/w</text>
   <rect x="40" y="233" width="198" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
   <text x="146" y="255" text-anchor="middle" font-size="10" font-weight="700" fill="white">DriverMatch Agent</text>
   <text x="146" y="273" text-anchor="middle" font-size="9" fill="#bfdbfe">match_driver()</text>
-  <text x="371" y="221" font-size="8" fill="#cbd5e1">r/w</text>
   <rect x="253" y="233" width="198" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
   <text x="359" y="255" text-anchor="middle" font-size="10" font-weight="700" fill="white">Pricing Agent</text>
   <text x="359" y="273" text-anchor="middle" font-size="9" fill="#bfdbfe">calculate_fare()</text>
-  <text x="584" y="221" font-size="8" fill="#cbd5e1">r/w</text>
   <rect x="466" y="233" width="198" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
   <text x="572" y="255" text-anchor="middle" font-size="10" font-weight="700" fill="white">ETA Agent</text>
   <text x="572" y="273" text-anchor="middle" font-size="9" fill="#bfdbfe">calculate_eta()</text>
@@ -52,11 +49,11 @@
     <line x1="360" y1="106" x2="360" y2="130" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
     <text x="374" y="120" font-size="9" fill="#cbd5e1">trip request</text>
     <line x1="146" y1="208" x2="146" y2="230" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="82" y="222" font-size="9" fill="#cbd5e1">read/write driver</text>
+    <text x="146" y="204" text-anchor="middle" font-size="9" fill="#cbd5e1">read/write driver</text>
     <line x1="359" y1="208" x2="359" y2="230" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="373" y="222" font-size="9" fill="#cbd5e1">read/write fare</text>
+    <text x="359" y="204" text-anchor="middle" font-size="9" fill="#cbd5e1">read/write fare</text>
     <line x1="572" y1="208" x2="572" y2="230" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="586" y="222" font-size="9" fill="#cbd5e1">read/write ETA</text>
+    <text x="572" y="204" text-anchor="middle" font-size="9" fill="#cbd5e1">read/write ETA</text>
     <line x1="360" y1="424" x2="360" y2="454" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
     <text x="374" y="442" font-size="9" fill="#cbd5e1">confirmed trip</text>
   </g>
