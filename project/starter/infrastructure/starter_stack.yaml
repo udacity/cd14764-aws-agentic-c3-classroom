@@ -79,7 +79,9 @@ Resources:
   PolicyDocumentsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub ${ProjectName}-policy-docs-${AWS::AccountId}
+      BucketName: !Sub 
+        - '${ProjectName}-policy-docs-${AWS::AccountId}-${ShortUUID}'
+        - ShortUUID: !Select [0, !Split ['-', !Select [2, !Split ['/', !Ref 'AWS::StackId']]]]
       VersioningConfiguration:
         Status: Enabled
       BucketEncryption:
@@ -93,7 +95,9 @@ Resources:
   VectorStoreBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub ${ProjectName}-vectors-${AWS::AccountId}
+      BucketName: !Sub 
+        - '${ProjectName}-vectors-${AWS::AccountId}-${ShortUUID}'
+        - ShortUUID: !Select [0, !Split ['-', !Select [2, !Split ['/', !Ref 'AWS::StackId']]]]
       VersioningConfiguration:
         Status: Enabled
       BucketEncryption:
