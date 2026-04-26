@@ -14,7 +14,12 @@ Requires AWS credentials with S3 write access.
 """
 
 import boto3
+import os
 import sys
+from dotenv import load_dotenv
+
+load_dotenv()
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 
 # ── Document Content ──────────────────────────────────────────────────────────
 # These are the exact documents that should be indexed in each Knowledge Base.
@@ -309,7 +314,7 @@ STACK_NAME = "lesson-08-rag"
 
 def get_bucket_name() -> str:
     """Look up the S3 bucket name from the CloudFormation stack output."""
-    cf = boto3.client("cloudformation")
+    cf = boto3.client("cloudformation", region_name=AWS_REGION)
     try:
         resp = cf.describe_stacks(StackName=STACK_NAME)
         outputs = resp["Stacks"][0].get("Outputs", [])
@@ -336,7 +341,7 @@ def doc_to_text(doc: dict) -> str:
 
 
 def seed(bucket: str):
-    s3 = boto3.client("s3")
+    s3 = boto3.client("s3", region_name=AWS_REGION)
     total = 0
     for docs, prefix in UPLOADS:
         for doc in docs:
