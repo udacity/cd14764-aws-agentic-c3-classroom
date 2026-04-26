@@ -73,9 +73,15 @@ def to_dynamo(obj):
     return json.loads(json.dumps(obj), parse_float=Decimal)
 
 
+def _dynamo_default(o):
+    """Convert Decimal to int if whole number, float otherwise."""
+    if isinstance(o, Decimal):
+        return int(o) if o == int(o) else float(o)
+    raise TypeError(f"Object of type {type(o)} is not JSON serializable")
+
 def from_dynamo(obj):
-    """Convert DynamoDB types back to Python (Decimal→float)."""
-    return json.loads(json.dumps(obj, default=str))
+    """Convert DynamoDB types back to Python (Decimal→int or float)."""
+    return json.loads(json.dumps(obj, default=_dynamo_default))
 
 
 def clean_response(text: str) -> str:
