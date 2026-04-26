@@ -263,16 +263,20 @@ def retrieve_from_kb(kb_id: str, query: str, kb_name: str,
             f"CS_KB_ID / BIO_KB_ID in your .env file before re-running."
         )
 
+    # RETRIEVE: call Bedrock's retrieve() API — this is the vector search.
+    # It embeds the query, searches the KB's vector index, and returns
+    # the top-K most semantically similar chunks with relevance scores.
     response = bedrock_agent_runtime.retrieve(
         knowledgeBaseId=kb_id,
-        retrievalQuery={"text": query},
+        retrievalQuery={"text": query},          # natural language query
         retrievalConfiguration={
             "vectorSearchConfiguration": {
-                "numberOfResults": top_k,
+                "numberOfResults": top_k,         # how many chunks to return
             }
         },
     )
 
+    # PARSE: extract content, score, and S3 source URI from each result
     results = []
     for i, result in enumerate(response.get("retrievalResults", [])):
         content = result.get("content", {}).get("text", "")
@@ -405,32 +409,32 @@ Do NOT add any other commentary."""
 
 # STEP 4: RESULT AGGREGATION — Combine, dedupe, and rank retrieved passages
 def aggregate_results(cs_passages: list, bio_passages: list, top_k: int = TOP_K) -> list[dict]:
-    """Combine passages from both KBs, deduplicate, rank by score, select top-K.
+    """
+    THE KEY PATTERN: Merge, deduplicate, and rank passages from both KBs.
+
+    Three steps:
+      1. MERGE   — combine CS and Bio passages into one pool
+      2. DEDUP   — keep only the highest-scoring copy per doc_id
+                   (same chunk can appear from both KBs if corpora overlap)
+      3. RANK    — sort by relevance score, return top-K for synthesis
 
     Why deduplicate?
-        When two retrievers query overlapping corpora — or when a single doc
-        is chunked twice during indexing — the same passage can come back
-        from both sides with slightly different scores. Without dedup the
-        top-K window fills up with near-duplicates and the synthesis agent
-        sees the same evidence twice (but counted as two independent sources),
-        which inflates apparent groundedness.
-
-    Strategy used here:
-        Group by doc_id and keep the highest-scoring instance. This is the
-        cheapest dedup that catches "same chunk indexed twice." The exercise
-        extends this to NEAR-duplicate detection (e.g., normalized text hash
-        or embedding cosine similarity) for cases where two different
-        passages restate the same fact.
+        Without dedup, the synthesis agent sees the same evidence twice
+        counted as two independent sources — inflating apparent groundedness.
+        The exercise extends this to near-duplicate detection (text hash /
+        embedding similarity) for cases where two passages restate the same fact.
     """
+    # STEP 1 — MERGE: pool all passages from both retrievers
     all_passages = cs_passages + bio_passages
 
-    # Dedupe by doc_id, keeping the highest-scoring copy of each.
+    # STEP 2 — DEDUP: for each doc_id, keep the highest-scoring copy only
     best_by_id: dict[str, dict] = {}
     for p in all_passages:
         existing = best_by_id.get(p["doc_id"])
         if existing is None or p["score"] > existing["score"]:
             best_by_id[p["doc_id"]] = p
 
+    # STEP 3 — RANK: sort descending by score and return top-K
     deduped = list(best_by_id.values())
     deduped.sort(key=lambda x: x["score"], reverse=True)
     return deduped[:top_k]
@@ -481,7 +485,21 @@ Provide a grounded research summary with citations."""
 
 # STEP 6: RAG ORCHESTRATOR — Parallel retrieval + aggregation + synthesis
 def run_rag_query(query_data: dict):
-    """Execute a full RAG pipeline for a research query."""
+    """
+    THE KEY PATTERN: The Multi-Agent RAG Orchestrator.
+
+    Four stages run in sequence:
+      1. RETRIEVE (parallel) — CS and Bio retriever agents run simultaneously
+                               each querying their own Knowledge Base
+      2. AGGREGATE           — merge passages, deduplicate, rank by score
+      3. SYNTHESIZE          — synthesis agent reads top-K passages and
+                               produces a grounded answer with citations
+      4. DEGRADE GRACEFULLY  — if one KB fails, synthesis uses partial results
+                               rather than failing the whole query
+
+    Key insight: retrieval is parallel (fast), synthesis is sequential (needs
+    all evidence first). This split is the standard multi-agent RAG pattern.
+    """
     query = query_data["query"]
 
     retrieval_results["cs"] = []

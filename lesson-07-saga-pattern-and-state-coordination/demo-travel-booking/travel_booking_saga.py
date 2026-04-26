@@ -152,9 +152,15 @@ def to_dynamo(obj):
     return json.loads(json.dumps(obj), parse_float=Decimal)
 
 
+def _dynamo_default(o):
+    """Convert Decimal to int if whole number, float otherwise."""
+    if isinstance(o, Decimal):
+        return int(o) if o == int(o) else float(o)
+    raise TypeError(f"Object of type {type(o)} is not JSON serializable")
+
 def from_dynamo(obj):
-    """Convert DynamoDB types back to Python (Decimal→float)."""
-    return json.loads(json.dumps(obj, default=str))
+    """Convert DynamoDB types back to Python (Decimal→int or float)."""
+    return json.loads(json.dumps(obj, default=_dynamo_default))
 
 
 # DynamoDB saga state table (real AWS resource — created by CloudFormation)
@@ -195,7 +201,14 @@ def update_step(saga_id: str, step_index: int, updates: dict) -> dict:
 
 
 def acquire_lock(saga_id: str) -> bool:
-    """Acquire distributed lock (conditional write: only if locked==False)."""
+    """
+    Acquire a distributed lock using DynamoDB conditional write.
+
+    Only one compensator can hold the lock at a time.
+    ConditionExpression: "locked = False" — if already True, the write
+    fails with ConditionalCheckFailedException and we return False.
+    This prevents two compensators from stepping on each other.
+    """
     try:
         saga_table.update_item(
             Key={"saga_id": saga_id},
@@ -546,12 +559,20 @@ Do NOT add any other commentary."""
 
 def run_saga(package: dict):
     """
-    Execute a full saga for a travel booking package.
+    THE KEY PATTERN: The Saga Orchestrator.
 
-    Forward execution:
-        Flight → Hotel → Car (sequential)
-    Compensation on failure:
-        Reverse order — compensate completed steps only
+    A saga is a sequence of steps where EACH step has two actions:
+      - Forward action  → do the work (book flight, hotel, car)
+      - Compensating action → undo it if something later fails
+
+    Execution flow:
+      1. FORWARD: run steps sequentially (Flight → Hotel → Car)
+      2. On failure: trigger COMPENSATION in reverse order
+         (only compensate steps that already completed)
+      3. Use a barrier counter to know when ALL compensations are done
+
+    Key insight: unlike a database transaction, a saga has NO global lock.
+    Each step commits independently — compensation is how we "undo".
     """
     saga_id = package["saga_id"]
     fail_at = package.get("simulate_failure")

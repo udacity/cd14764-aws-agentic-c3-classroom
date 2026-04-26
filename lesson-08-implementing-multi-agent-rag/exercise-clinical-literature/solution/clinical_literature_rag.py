@@ -276,16 +276,20 @@ def retrieve_from_kb(kb_id: str, query: str, kb_name: str,
             f"before re-running."
         )
 
+    # RETRIEVE: call Bedrock's retrieve() API — this is the vector search.
+    # It embeds the query, searches the KB's vector index, and returns
+    # the top-K most semantically similar chunks with relevance scores.
     response = bedrock_agent_runtime.retrieve(
         knowledgeBaseId=kb_id,
-        retrievalQuery={"text": query},
+        retrievalQuery={"text": query},          # natural language query
         retrievalConfiguration={
             "vectorSearchConfiguration": {
-                "numberOfResults": top_k,
+                "numberOfResults": top_k,         # how many chunks to return
             }
         },
     )
 
+    # PARSE: extract content, score, and S3 source URI from each result
     results = []
     for i, result in enumerate(response.get("retrievalResults", [])):
         content = result.get("content", {}).get("text", "")
@@ -417,9 +421,25 @@ def deduplicate_passages(passages: list[dict], similarity_threshold: float = 0.8
 
 def aggregate_results(drug_passages: list, guideline_passages: list,
                       top_k: int = TOP_K) -> list[dict]:
-    """Combine, deduplicate, rank, and select top-K passages."""
+    """
+    THE KEY PATTERN: Merge, deduplicate, and rank passages from both KBs.
+
+    Three steps:
+      1. MERGE   — combine Drug Interactions and Clinical Guidelines passages
+      2. DEDUP   — remove near-duplicates (extended vs. demo's doc_id dedup)
+      3. RANK    — sort by relevance score, return top-K for synthesis
+
+    The exercise extends the demo's dedup with deduplicate_passages(),
+    which catches near-duplicates (same fact, different wording) that
+    doc_id dedup alone would miss.
+    """
+    # STEP 1 — MERGE: pool all passages from both retrievers
     all_passages = drug_passages + guideline_passages
+
+    # STEP 2 — DEDUP: remove near-duplicates (extended pattern vs. demo)
     all_passages = deduplicate_passages(all_passages)
+
+    # STEP 3 — RANK: sort descending by score and return top-K
     all_passages.sort(key=lambda x: x["score"], reverse=True)
     return all_passages[:top_k]
 
@@ -470,7 +490,22 @@ Provide a structured clinical summary."""
 
 # RAG ORCHESTRATOR
 def run_clinical_rag(query_data: dict):
-    """Execute a full RAG pipeline for a clinical query."""
+    """
+    THE KEY PATTERN: The Multi-Agent Clinical RAG Orchestrator.
+
+    Same four-stage pattern as the demo's run_rag_query():
+      1. RETRIEVE (parallel) — Drug Interactions and Guidelines retrievers
+                               run simultaneously, each querying their KB
+      2. AGGREGATE           — merge passages, deduplicate, rank by score
+      3. SYNTHESIZE          — clinical synthesis agent produces structured
+                               output (Drug Interactions / Guidelines /
+                               Integrated Recommendation sections)
+      4. DEGRADE GRACEFULLY  — if one KB fails, synthesis uses partial
+                               results with a confidence disclaimer
+
+    Key difference from demo: stricter synthesis schema (3 named sections)
+    and near-duplicate dedup — both appropriate for clinical risk tolerance.
+    """
     query = query_data["query"]
     fail_at = query_data.get("simulate_failure")
 

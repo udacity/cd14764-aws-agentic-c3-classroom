@@ -167,36 +167,58 @@ def create_order(order_data: dict) -> dict:
 
 
 def update_order(order_id: str, updates: dict, max_retries: int = 3) -> dict:
-    """STEP 2: Update order state with optimistic locking + retry.
-    Pattern: read → modify → conditional put (version must match)."""
+    """
+    THE KEY PATTERN: Optimistic locking with retry.
+
+    Same pattern as the demo's update_trip() — every agent calls this to
+    write its piece of the shared order record.
+    Three steps: READ the current version → MODIFY locally → WRITE with a
+    version condition. If another agent wrote first, DynamoDB rejects the
+    write and we retry from step 1 with the fresh version.
+    """
     for attempt in range(max_retries):
+
+        # STEP 1 — READ: fetch the current record and capture its version.
+        # This version number is our "lock token" — we must return it when writing.
         response = order_table.get_item(Key={"order_id": order_id})
         current = response.get("Item")
         if not current:
             raise KeyError(f"Order {order_id} not found")
-        expected_version = int(current["version"])
+        expected_version = int(current["version"])   # e.g. version = 2
 
-        # Apply updates locally
+        # STEP 2 — MODIFY: apply the agent's updates locally and bump the version.
+        # Nothing is written to DynamoDB yet — this is all in memory.
         current.update(to_dynamo(updates))
-        current["version"] = expected_version + 1
+        current["version"] = expected_version + 1    # e.g. version 2 → 3
         current["updated_at"] = datetime.now(timezone.utc).isoformat()
 
         try:
+            # STEP 3 — WRITE: put the updated record back with a condition.
+            # ConditionExpression = "version = :expected_ver" is the atomic check:
+            #   DynamoDB compares the stored version to our expected_version.
+            #   If they match  → write succeeds (we still have the latest version).
+            #   If they differ → ConditionalCheckFailedException (another agent wrote first).
             order_table.put_item(
                 Item=current,
                 ConditionExpression="version = :expected_ver",
                 ExpressionAttributeValues={":expected_ver": expected_version},
             )
+            # SUCCESS: write went through — log it and return the updated record.
             _write_log.append({"op": "update_item", "pk": order_id,
                 "version": f"{expected_version} → {expected_version + 1}",
                 "fields": list(updates.keys()), "timestamp": time.time()})
             return from_dynamo(current)
+
         except ClientError as e:
             if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                # CONFLICT: another agent incremented the version between our READ and WRITE.
+                # Our expected_version is now stale — we can't write safely.
+                # Solution: log the conflict, wait briefly, then loop back to STEP 1
+                # to re-read the record and get the new current version.
                 _write_log.append({"op": "CONFLICT", "pk": order_id,
                     "expected": expected_version, "timestamp": time.time()})
                 if attempt < max_retries - 1:
-                    wait = 0.1 * (2 ** attempt)
+                    wait = 0.1 * (2 ** attempt)   # exponential backoff: 0.1s, 0.2s, 0.4s
                     print(f"      [Conflict] Version conflict — retrying in {wait:.1f}s (attempt {attempt + 1})")
                     time.sleep(wait)
                 else:
