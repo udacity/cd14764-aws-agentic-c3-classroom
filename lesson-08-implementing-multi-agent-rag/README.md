@@ -8,6 +8,8 @@ The lesson uses **real Amazon Bedrock Knowledge Bases** backed by S3 Vectors. Yo
 
 Bedrock Knowledge Bases cannot be created via CloudFormation today, so they are the one manual step in this lesson. Budget about 10 minutes the first time.
 
+> **Region note:** Bedrock Knowledge Bases require **us-west-2** (Oregon) or **us-east-1** (N. Virginia). us-west-1 is not supported. All commands below use us-west-2.
+
 **1. Deploy the S3 source bucket (CloudFormation):**
 
 ```bash

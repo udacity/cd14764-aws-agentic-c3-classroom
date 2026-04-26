@@ -19,7 +19,7 @@ import sys
 from dotenv import load_dotenv
 
 load_dotenv()
-AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+AWS_REGION = os.environ.get("AWS_REGION", "us-west-2")
 
 # ── Document Content ──────────────────────────────────────────────────────────
 # These are the exact documents that should be indexed in each Knowledge Base.
