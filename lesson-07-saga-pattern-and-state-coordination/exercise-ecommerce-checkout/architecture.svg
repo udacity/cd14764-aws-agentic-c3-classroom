@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 720 860" xmlns="http://www.w3.org/2000/svg" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
+<svg viewBox="0 0 720 900" xmlns="http://www.w3.org/2000/svg" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
   <defs>
     <filter id="sh" x="-4%" y="-4%" width="108%" height="116%">
       <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
@@ -7,66 +7,98 @@
     <marker id="a" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
       <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
     </marker>
-    <marker id="ah" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
-      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
-    </marker>
   </defs>
-  <rect width="720" height="860" rx="12" fill="#1e293b"/>
-  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">Exercise 7: E-Commerce Checkout Saga</text>
-  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#cbd5e1">Saga with barrier coordination</text>
-  <rect x="270" y="65" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
-  <text x="360" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="white">Checkout Order</text>
-  <rect x="40" y="139" width="640" height="218" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
-  <text x="60" y="159" font-size="11" font-weight="700" fill="#166534">FORWARD EXECUTION (sequential)</text>
-  <rect x="70" y="167" width="280" height="42" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="210" y="185" text-anchor="middle" font-size="11" font-weight="700" fill="white">InventoryAgent</text>
-  <text x="210" y="203" text-anchor="middle" font-size="9" fill="#bfdbfe">reserve_items()</text>
-  <text x="370" y="192" font-size="10" fill="#16a34a">✓</text>
-  <rect x="390" y="171" width="210" height="32" rx="5" fill="#fee2e2" stroke="#fca5a5" stroke-width="1"/>
-  <text x="495" y="192" text-anchor="middle" font-size="9" fill="#991b1b">release_items()</text>
-  <rect x="70" y="227" width="280" height="42" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="210" y="245" text-anchor="middle" font-size="11" font-weight="700" fill="white">PaymentAgent</text>
-  <text x="210" y="263" text-anchor="middle" font-size="9" fill="#bfdbfe">charge_card()</text>
-  <text x="370" y="252" font-size="10" fill="#16a34a">✓</text>
-  <rect x="390" y="231" width="210" height="32" rx="5" fill="#fee2e2" stroke="#fca5a5" stroke-width="1"/>
-  <text x="495" y="252" text-anchor="middle" font-size="9" fill="#991b1b">refund_card()</text>
-  <rect x="70" y="287" width="280" height="42" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="210" y="305" text-anchor="middle" font-size="11" font-weight="700" fill="white">ShippingAgent</text>
-  <text x="210" y="323" text-anchor="middle" font-size="9" fill="#bfdbfe">schedule_delivery()</text>
-  <text x="370" y="312" font-size="10" fill="#16a34a">✓</text>
-  <rect x="390" y="291" width="210" height="32" rx="5" fill="#fee2e2" stroke="#fca5a5" stroke-width="1"/>
-  <text x="495" y="312" text-anchor="middle" font-size="9" fill="#991b1b">cancel_delivery()</text>
-  <rect x="120" y="371" width="480" height="42" rx="8" fill="#ef4444" filter="url(#sh)"/>
-  <text x="360" y="389" text-anchor="middle" font-size="12" font-weight="700" fill="white">FAILURE DETECTED</text>
-  <text x="360" y="406" text-anchor="middle" font-size="10" fill="#fecaca">Compensate in REVERSE order</text>
-  <rect x="40" y="427" width="640" height="176" rx="10" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5"/>
-  <text x="60" y="447" font-size="11" font-weight="700" fill="#991b1b">COMPENSATION (reverse order)</text>
-  <rect x="140" y="455" width="440" height="32" rx="6" fill="#ef4444"/>
-  <text x="360" y="476" text-anchor="middle" font-size="10" font-weight="600" fill="white">ShippingAgent: cancel_delivery()</text>
-  <rect x="140" y="501" width="440" height="32" rx="6" fill="#ef4444"/>
-  <text x="360" y="522" text-anchor="middle" font-size="10" font-weight="600" fill="white">PaymentAgent: refund_card()</text>
-  <rect x="140" y="547" width="440" height="32" rx="6" fill="#ef4444"/>
-  <text x="360" y="568" text-anchor="middle" font-size="10" font-weight="600" fill="white">InventoryAgent: release_items()</text>
-  <rect x="70" y="621" width="280" height="34" rx="6" fill="#6366f1"/>
-  <text x="210" y="643" text-anchor="middle" font-size="10" font-weight="600" fill="white">Barrier: done == needed</text>
-  <rect x="380" y="621" width="280" height="34" rx="6" fill="#f59e0b"/>
-  <text x="520" y="643" text-anchor="middle" font-size="10" font-weight="600" fill="#422006">DynamoDB: CheckoutSaga</text>
-  <rect x="210" y="675" width="300" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
-  <text x="360" y="698" text-anchor="middle" font-size="12" font-weight="600" fill="white">Order Complete / Failed</text>
-  <rect x="202" y="753" width="14" height="14" rx="3" fill="#16a34a"/>
-  <text x="220" y="764" font-size="10" fill="#e2e8f0">Forward</text>
-  <rect x="279" y="753" width="14" height="14" rx="3" fill="#ef4444"/>
-  <text x="297" y="764" font-size="10" fill="#e2e8f0">Compensate</text>
-  <rect x="377" y="753" width="14" height="14" rx="3" fill="#6366f1"/>
-  <text x="395" y="764" font-size="10" fill="#e2e8f0">Barrier</text>
-  <rect x="454" y="753" width="14" height="14" rx="3" fill="#f59e0b"/>
-  <text x="472" y="764" font-size="10" fill="#e2e8f0">State</text>
-  <g id="arrows">
-    <line x1="360" y1="106" x2="360" y2="136" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="374" y="124" font-size="9" fill="#cbd5e1">checkout order</text>
-    <line x1="210" y1="212" x2="210" y2="224" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="220" y="220" font-size="9" fill="#cbd5e1">forward_ref</text>
-    <line x1="210" y1="272" x2="210" y2="284" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="220" y="280" font-size="9" fill="#cbd5e1">forward_ref</text>
-  </g>
+
+  <!-- Background -->
+  <rect width="720" height="900" rx="12" fill="#1e293b"/>
+
+  <!-- Title -->
+  <text x="360" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#ffffff">Exercise 7: E-Commerce Checkout Saga</text>
+  <text x="360" y="52" text-anchor="middle" font-size="12" fill="#94a3b8">Saga with barrier coordination</text>
+
+  <!-- Checkout Order pill -->
+  <rect x="260" y="68" width="200" height="40" rx="20" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="93" text-anchor="middle" font-size="13" font-weight="600" fill="white">Checkout Order</text>
+
+  <!-- Arrow down to forward section -->
+  <line x1="360" y1="110" x2="360" y2="142" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- ── FORWARD EXECUTION section ── -->
+  <rect x="40" y="145" width="640" height="236" rx="10" fill="#f0fdf4" stroke="#4ade80" stroke-width="2"/>
+  <text x="60" y="167" font-size="12" font-weight="700" fill="#166534">FORWARD EXECUTION (sequential)</text>
+
+  <!-- Column headers -->
+  <text x="210" y="185" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">▶  Forward Action</text>
+  <text x="495" y="185" text-anchor="middle" font-size="10" font-weight="600" fill="#991b1b">↩  Compensating Action</text>
+
+  <!-- InventoryAgent row -->
+  <rect x="60" y="192" width="300" height="48" rx="8" fill="#2563eb" filter="url(#sh)"/>
+  <text x="210" y="212" text-anchor="middle" font-size="12" font-weight="700" fill="white">InventoryAgent</text>
+  <text x="210" y="230" text-anchor="middle" font-size="11" fill="white">reserve_items()</text>
+  <text x="378" y="220" font-size="13" fill="#16a34a">✓</text>
+  <rect x="395" y="192" width="215" height="48" rx="8" fill="#fecaca" stroke="#f87171" stroke-width="1.5"/>
+  <text x="502" y="212" text-anchor="middle" font-size="11" font-weight="600" fill="#7f1d1d">release_items()</text>
+  <text x="502" y="230" text-anchor="middle" font-size="10" fill="#991b1b">compensating transaction</text>
+
+  <!-- PaymentAgent row -->
+  <rect x="60" y="252" width="300" height="48" rx="8" fill="#2563eb" filter="url(#sh)"/>
+  <text x="210" y="272" text-anchor="middle" font-size="12" font-weight="700" fill="white">PaymentAgent</text>
+  <text x="210" y="290" text-anchor="middle" font-size="11" fill="white">charge_card()</text>
+  <text x="378" y="280" font-size="13" fill="#16a34a">✓</text>
+  <rect x="395" y="252" width="215" height="48" rx="8" fill="#fecaca" stroke="#f87171" stroke-width="1.5"/>
+  <text x="502" y="272" text-anchor="middle" font-size="11" font-weight="600" fill="#7f1d1d">refund_card()</text>
+  <text x="502" y="290" text-anchor="middle" font-size="10" fill="#991b1b">compensating transaction</text>
+
+  <!-- ShippingAgent row -->
+  <rect x="60" y="312" width="300" height="48" rx="8" fill="#2563eb" filter="url(#sh)"/>
+  <text x="210" y="332" text-anchor="middle" font-size="12" font-weight="700" fill="white">ShippingAgent</text>
+  <text x="210" y="350" text-anchor="middle" font-size="11" fill="white">schedule_delivery()</text>
+  <text x="378" y="340" font-size="13" fill="#16a34a">✓</text>
+  <rect x="395" y="312" width="215" height="48" rx="8" fill="#fecaca" stroke="#f87171" stroke-width="1.5"/>
+  <text x="502" y="332" text-anchor="middle" font-size="11" font-weight="600" fill="#7f1d1d">cancel_delivery()</text>
+  <text x="502" y="350" text-anchor="middle" font-size="10" fill="#991b1b">compensating transaction</text>
+
+  <!-- FAILURE DETECTED banner -->
+  <rect x="100" y="396" width="520" height="48" rx="8" fill="#dc2626" filter="url(#sh)"/>
+  <text x="360" y="415" text-anchor="middle" font-size="13" font-weight="700" fill="white">FAILURE DETECTED</text>
+  <text x="360" y="434" text-anchor="middle" font-size="11" fill="#fecaca">Compensate in REVERSE order — last completed first</text>
+
+  <!-- ── COMPENSATION section ── -->
+  <rect x="40" y="458" width="640" height="188" rx="10" fill="#fff1f2" stroke="#f87171" stroke-width="2"/>
+  <text x="60" y="480" font-size="12" font-weight="700" fill="#991b1b">COMPENSATION (reverse order)</text>
+
+  <rect x="110" y="488" width="500" height="38" rx="7" fill="#dc2626" filter="url(#sh)"/>
+  <text x="360" y="503" text-anchor="middle" font-size="11" font-weight="700" fill="white">3rd → ShippingAgent: cancel_delivery()</text>
+  <text x="360" y="518" text-anchor="middle" font-size="10" fill="#fecaca">barrier += 1 (inside tool)</text>
+
+  <rect x="110" y="538" width="500" height="38" rx="7" fill="#dc2626" filter="url(#sh)"/>
+  <text x="360" y="553" text-anchor="middle" font-size="11" font-weight="700" fill="white">2nd → PaymentAgent: refund_card()</text>
+  <text x="360" y="568" text-anchor="middle" font-size="10" fill="#fecaca">barrier += 1 (inside tool)</text>
+
+  <rect x="110" y="588" width="500" height="38" rx="7" fill="#dc2626" filter="url(#sh)"/>
+  <text x="360" y="603" text-anchor="middle" font-size="11" font-weight="700" fill="white">1st → InventoryAgent: release_items()</text>
+  <text x="360" y="618" text-anchor="middle" font-size="10" fill="#fecaca">barrier += 1 (inside tool)</text>
+
+  <!-- Barrier + DynamoDB boxes -->
+  <rect x="50" y="662" width="290" height="42" rx="8" fill="#6366f1" filter="url(#sh)"/>
+  <text x="195" y="678" text-anchor="middle" font-size="11" font-weight="700" fill="white">Barrier Counter (NEW)</text>
+  <text x="195" y="695" text-anchor="middle" font-size="11" fill="#e0e7ff">compensations_done == needed</text>
+
+  <rect x="380" y="662" width="290" height="42" rx="8" fill="#d97706" filter="url(#sh)"/>
+  <text x="525" y="678" text-anchor="middle" font-size="11" font-weight="700" fill="white">DynamoDB: CheckoutSaga</text>
+  <text x="525" y="695" text-anchor="middle" font-size="11" fill="#fef3c7">checkout_id | steps[] | lock</text>
+
+  <!-- Result pill -->
+  <rect x="190" y="722" width="340" height="40" rx="20" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="747" text-anchor="middle" font-size="13" font-weight="600" fill="white">Order Complete / Failed</text>
+
+  <!-- Legend -->
+  <rect x="170" y="785" width="14" height="14" rx="3" fill="#2563eb"/>
+  <text x="190" y="797" font-size="11" fill="#cbd5e1">Forward Agent</text>
+  <rect x="298" y="785" width="14" height="14" rx="3" fill="#dc2626"/>
+  <text x="318" y="797" font-size="11" fill="#cbd5e1">Compensate</text>
+  <rect x="414" y="785" width="14" height="14" rx="3" fill="#6366f1"/>
+  <text x="434" y="797" font-size="11" fill="#cbd5e1">Barrier</text>
+  <rect x="498" y="785" width="14" height="14" rx="3" fill="#d97706"/>
+  <text x="518" y="797" font-size="11" fill="#cbd5e1">State</text>
 </svg>
