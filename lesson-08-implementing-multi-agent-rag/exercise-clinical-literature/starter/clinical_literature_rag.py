@@ -96,8 +96,8 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
 
 
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
-NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")
-NOVA_PRO_MODEL = os.environ.get("NOVA_PRO_MODEL", "amazon.nova-pro-v1:0")
+NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "us.amazon.nova-lite-v1:0")
+NOVA_PRO_MODEL = os.environ.get("NOVA_PRO_MODEL", "us.amazon.nova-pro-v1:0")
 TOP_K = 10  # More passages for clinical context
 
 # Bedrock Knowledge Base IDs (created manually in AWS Console)

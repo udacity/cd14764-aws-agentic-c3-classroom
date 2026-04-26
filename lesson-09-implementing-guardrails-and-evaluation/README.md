@@ -2,7 +2,25 @@
 
 This lesson teaches production-grade governance for multi-agent systems. We implement four Bedrock Guardrail policy types (content filtering, PII protection, topic denial, word filtering), a CloudWatch-based kill switch that disables the agent when violation rates spike, API Gateway rate limiting, and a monitoring dashboard for real-time visibility. Every guardrail decision is audit-logged for compliance reporting.
 
-The lesson uses simulated Bedrock Guardrails, CloudWatch, and API Gateway so students can focus on the governance patterns without infrastructure setup. Production-mapping comments throughout the code show the exact boto3 API calls.
+The lesson uses **real Amazon Bedrock Guardrails**. When `HEALTHCARE_GUARDRAIL_ID` / `TRADING_GUARDRAIL_ID` are set (populated by the CloudFormation stack below), the code calls the actual `bedrock-runtime.apply_guardrail()` API. If those env vars are not set, the guardrail check is skipped and all requests pass through — useful for testing the agent in isolation. Deploy the stack before running the demo or exercise. Production-mapping comments throughout the code show the full boto3 API surface.
+
+## Setup
+
+Deploy the CloudFormation stack to create both guardrails:
+
+```python
+import boto3, json
+cf = boto3.client("cloudformation", region_name="us-west-1")
+with open("infrastructure/stack.yaml") as f:
+    template = f.read()
+cf.create_stack(StackName="lesson-09-guardrails", TemplateBody=template, Capabilities=["CAPABILITY_NAMED_IAM"])
+waiter = cf.get_waiter("stack_create_complete")
+waiter.wait(StackName="lesson-09-guardrails")
+outputs = {o["OutputKey"]: o["OutputValue"] for o in cf.describe_stacks(StackName="lesson-09-guardrails")["Stacks"][0]["Outputs"]}
+print(outputs)
+```
+
+Copy `HealthcareGuardrailId` → `HEALTHCARE_GUARDRAIL_ID` and `TradingGuardrailId` → `TRADING_GUARDRAIL_ID` in your `.env` file.
 
 ## Folder Structure
 

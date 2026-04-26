@@ -104,7 +104,7 @@ def run_agent_with_retry(agent_builder, prompt: str, max_retries: int = 3) -> fl
 
 # CONFIGURATION
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
-NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")
+NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "us.amazon.nova-lite-v1:0")
 
 # TODO 0: Bedrock Guardrail settings from environment
 GUARDRAIL_ID = os.environ.get("TRADING_GUARDRAIL_ID", "")

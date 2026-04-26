@@ -1,62 +1,98 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 720 740" xmlns="http://www.w3.org/2000/svg" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
+<svg viewBox="0 0 720 720" xmlns="http://www.w3.org/2000/svg" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
   <defs>
     <filter id="sh" x="-4%" y="-4%" width="108%" height="116%">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.18"/>
     </filter>
     <marker id="a" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
-      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
-    </marker>
-    <marker id="ah" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
-      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#94a3b8" stroke-width="1.4" stroke-linejoin="round"/>
     </marker>
   </defs>
-  <rect width="720" height="740" rx="12" fill="#1e293b"/>
-  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">Exercise 8: Clinical Literature RAG</text>
-  <text x="360" y="50" text-anchor="middle" font-size="11" fill="#cbd5e1">Retrieval + deduplication + structured output</text>
-  <rect x="270" y="65" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
-  <text x="360" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="white">Clinical Query</text>
-  <rect x="25" y="133" width="670" height="190" rx="10" fill="#ecfeff" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="6,3"/>
-  <text x="40" y="151" font-size="10" font-weight="700" fill="#0891b2">ThreadPoolExecutor (max_workers=2) — Parallel Retrieval</text>
-  <rect x="45" y="163" width="300" height="48" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="195" y="183" text-anchor="middle" font-size="11" font-weight="700" fill="white">Drug Interaction Retriever Agent</text>
-  <text x="195" y="203" text-anchor="middle" font-size="9" fill="#bfdbfe">Nova Lite | retrieve_drug_interactions()</text>
-  <rect x="55" y="221" width="280" height="30" rx="6" fill="#f59e0b"/>
-  <text x="195" y="241" text-anchor="middle" font-size="10" font-weight="600" fill="#422006">KB: Drug Interactions</text>
-  <rect x="375" y="163" width="300" height="48" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="525" y="183" text-anchor="middle" font-size="11" font-weight="700" fill="white">Guidelines Retriever Agent</text>
-  <text x="525" y="203" text-anchor="middle" font-size="9" fill="#bfdbfe">Nova Lite | retrieve_guidelines()</text>
-  <rect x="385" y="221" width="280" height="30" rx="6" fill="#f59e0b"/>
-  <text x="525" y="241" text-anchor="middle" font-size="10" font-weight="600" fill="#422006">KB: Clinical Guidelines</text>
-  <text x="360" y="315" text-anchor="middle" font-size="9" font-weight="600" fill="#0891b2">Merge results</text>
-  <rect x="120" y="359" width="480" height="42" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
-  <text x="360" y="376" text-anchor="middle" font-size="11" font-weight="600" fill="#1e40af">Aggregation + Deduplication</text>
-  <text x="360" y="394" text-anchor="middle" font-size="9" fill="#1e3a5f">Rank by relevance, select top-K, deduplicate</text>
-  <rect x="110" y="431" width="500" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
-  <text x="360" y="453" text-anchor="middle" font-size="12" font-weight="700" fill="white">Synthesis Agent</text>
-  <text x="360" y="473" text-anchor="middle" font-size="10" fill="#bfdbfe">Nova Pro | temp 0.1 | Grounded [DOC_ID] citations</text>
-  <rect x="190" y="519" width="340" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
-  <text x="360" y="542" text-anchor="middle" font-size="12" font-weight="600" fill="white">Clinical Literature Report</text>
-  <rect x="80" y="569" width="560" height="32" rx="8" fill="#fffbeb" stroke="#fbbf24" stroke-width="1"/>
-  <text x="360" y="590" text-anchor="middle" font-size="10" font-weight="600" fill="#92400e">Graceful degradation: if one KB fails, synthesis uses partial results</text>
-  <rect x="213" y="621" width="14" height="14" rx="3" fill="#06b6d4"/>
-  <text x="231" y="632" font-size="10" fill="#e2e8f0">Parallel</text>
-  <rect x="297" y="621" width="14" height="14" rx="3" fill="#3b82f6"/>
-  <text x="315" y="632" font-size="10" fill="#e2e8f0">Agent</text>
-  <rect x="360" y="621" width="14" height="14" rx="3" fill="#f59e0b"/>
-  <text x="378" y="632" font-size="10" fill="#e2e8f0">KB</text>
-  <rect x="402" y="621" width="14" height="14" rx="3" fill="#dbeafe"/>
-  <text x="420" y="632" font-size="10" fill="#e2e8f0">Aggregation</text>
-  <g id="arrows">
-    <line x1="360" y1="106" x2="360" y2="130" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="374" y="120" font-size="9" fill="#cbd5e1">clinical query</text>
-    <line x1="195" y1="323" x2="360" y2="356" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
-    <text x="210" y="340" font-size="9" fill="#cbd5e1">drug passages</text>
-    <line x1="525" y1="323" x2="360" y2="356" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
-    <text x="440" y="334" font-size="9" fill="#cbd5e1">guideline passages</text>
-    <line x1="360" y1="404" x2="360" y2="428" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="374" y="418" font-size="9" fill="#cbd5e1">deduped top-K</text>
-    <line x1="360" y1="486" x2="360" y2="516" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-    <text x="374" y="504" font-size="9" fill="#cbd5e1">clinical report</text>
-  </g>
+
+  <!-- Background -->
+  <rect width="720" height="720" rx="12" fill="#0f172a"/>
+
+  <!-- Title -->
+  <text x="360" y="35" text-anchor="middle" font-size="19" font-weight="700" fill="#ffffff">Exercise 8: Clinical Literature RAG</text>
+  <text x="360" y="56" text-anchor="middle" font-size="13" font-weight="600" fill="#94a3b8">Parallel retrieval  +  deduplication  +  structured clinical output</text>
+
+  <!-- Clinical Query pill -->
+  <rect x="250" y="68" width="220" height="42" rx="21" fill="#059669" filter="url(#sh)"/>
+  <text x="360" y="94" text-anchor="middle" font-size="14" font-weight="700" fill="white">Clinical Query</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="112" x2="360" y2="138" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+  <text x="374" y="128" font-size="11" fill="#e2e8f0">query</text>
+
+  <!-- ── Parallel Retrieval container ── -->
+  <rect x="28" y="142" width="664" height="212" rx="10" fill="#ecfeff" stroke="#0891b2" stroke-width="2.5"/>
+  <text x="360" y="163" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">ThreadPoolExecutor  —  Parallel Retrieval  (max_workers=2)</text>
+
+  <!-- Drug Interaction Retriever -->
+  <rect x="48" y="172" width="304" height="58" rx="8" fill="#1d4ed8" filter="url(#sh)"/>
+  <text x="200" y="196" text-anchor="middle" font-size="13" font-weight="700" fill="white">Drug Interaction Retriever</text>
+  <text x="200" y="216" text-anchor="middle" font-size="11" font-weight="600" fill="#93c5fd">Nova Lite  |  retrieve_drug_interactions()</text>
+
+  <!-- Drug KB box -->
+  <rect x="48" y="240" width="304" height="36" rx="6" fill="#b45309" filter="url(#sh)"/>
+  <text x="200" y="263" text-anchor="middle" font-size="13" font-weight="700" fill="white">Bedrock KB: Drug Interactions</text>
+
+  <!-- Clinical Guidelines Retriever -->
+  <rect x="368" y="172" width="304" height="58" rx="8" fill="#1d4ed8" filter="url(#sh)"/>
+  <text x="520" y="196" text-anchor="middle" font-size="13" font-weight="700" fill="white">Guidelines Retriever</text>
+  <text x="520" y="216" text-anchor="middle" font-size="11" font-weight="600" fill="#93c5fd">Nova Lite  |  retrieve_guidelines()</text>
+
+  <!-- Guidelines KB box -->
+  <rect x="368" y="240" width="304" height="36" rx="6" fill="#b45309" filter="url(#sh)"/>
+  <text x="520" y="263" text-anchor="middle" font-size="13" font-weight="700" fill="white">Bedrock KB: Clinical Guidelines</text>
+
+  <!-- NEW badge on deduplication -->
+  <rect x="282" y="285" width="196" height="24" rx="12" fill="#7c3aed"/>
+  <text x="380" y="302" text-anchor="middle" font-size="11" font-weight="700" fill="white">✦ NEW: Deduplication pass</text>
+
+  <!-- Arrows from retrievers down -->
+  <line x1="200" y1="354" x2="320" y2="382" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
+  <text x="190" y="372" text-anchor="end" font-size="11" fill="#e2e8f0">drug passages</text>
+  <line x1="520" y1="354" x2="400" y2="382" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a)"/>
+  <text x="530" y="372" text-anchor="start" font-size="11" fill="#e2e8f0">guideline passages</text>
+
+  <!-- Aggregation + Dedup box -->
+  <rect x="100" y="386" width="520" height="54" rx="8" fill="#1e40af" filter="url(#sh)"/>
+  <text x="360" y="409" text-anchor="middle" font-size="14" font-weight="700" fill="white">Aggregation + Deduplication  ✦ NEW</text>
+  <text x="360" y="430" text-anchor="middle" font-size="12" font-weight="600" fill="#93c5fd">Remove near-duplicates  |  Rank by score  |  Top-K</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="442" x2="360" y2="466" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+  <text x="374" y="457" font-size="11" fill="#e2e8f0">deduped top-K</text>
+
+  <!-- Synthesis Agent -->
+  <rect x="100" y="470" width="520" height="72" rx="8" fill="#1d4ed8" filter="url(#sh)"/>
+  <text x="360" y="493" text-anchor="middle" font-size="14" font-weight="700" fill="white">Synthesis Agent  ✦ Structured Output</text>
+  <text x="360" y="513" text-anchor="middle" font-size="12" font-weight="600" fill="#93c5fd">Drug Interactions  |  Guidelines  |  Integrated Recommendation</text>
+  <text x="360" y="532" text-anchor="middle" font-size="11" fill="#bfdbfe">Nova Pro  |  temp 0.1  |  Citations required</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="544" x2="360" y2="568" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+  <text x="374" y="559" font-size="11" fill="#e2e8f0">clinical report</text>
+
+  <!-- Result pill -->
+  <rect x="178" y="572" width="364" height="44" rx="22" fill="#059669" filter="url(#sh)"/>
+  <text x="360" y="599" text-anchor="middle" font-size="14" font-weight="700" fill="white">Clinical Literature Report</text>
+
+  <!-- Graceful degradation note -->
+  <rect x="78" y="630" width="564" height="40" rx="8" fill="#b45309" filter="url(#sh)"/>
+  <text x="360" y="646" text-anchor="middle" font-size="12" font-weight="700" fill="white">⚡  Graceful Degradation  ✦ NEW</text>
+  <text x="360" y="662" text-anchor="middle" font-size="11" font-weight="600" fill="white">If one KB fails, partial results returned with confidence disclaimer</text>
+
+  <!-- Legend -->
+  <rect x="110" y="688" width="14" height="14" rx="3" fill="#0891b2"/>
+  <text x="129" y="700" font-size="12" fill="#cbd5e1">Parallel</text>
+  <rect x="200" y="688" width="14" height="14" rx="3" fill="#1d4ed8"/>
+  <text x="219" y="700" font-size="12" fill="#cbd5e1">Agent</text>
+  <rect x="274" y="688" width="14" height="14" rx="3" fill="#b45309"/>
+  <text x="293" y="700" font-size="12" fill="#cbd5e1">KB</text>
+  <rect x="326" y="688" width="14" height="14" rx="3" fill="#1e40af"/>
+  <text x="345" y="700" font-size="12" fill="#cbd5e1">Aggregation</text>
+  <rect x="454" y="688" width="14" height="14" rx="3" fill="#7c3aed"/>
+  <text x="473" y="700" font-size="12" fill="#cbd5e1">New in exercise</text>
 </svg>
