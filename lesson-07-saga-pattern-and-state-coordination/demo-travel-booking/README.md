@@ -5,16 +5,22 @@
 ![Architecture Diagram](architecture.svg)
 
 ## Overview
-This demo implements the Saga pattern for a travel booking system where a trip reservation spans three independent services: flight, hotel, and car rental. If any booking fails, the saga orchestrator runs compensating transactions to undo previous successful bookings in reverse order. A SimulatedDynamoDB state machine tracks the saga's progress through each phase.
+This demo implements the Saga pattern for a travel booking system where a trip reservation spans three independent services: flight, hotel, and car rental. If any booking fails, the saga orchestrator runs compensating transactions to undo previous successful bookings in reverse order. A DynamoDB state machine tracks the saga's progress through each phase.
 
 ## Architecture
 - **3 booking agents:** FlightAgent (book/cancel flight), HotelAgent (book/cancel hotel), CarAgent (book/cancel car)
 - **Saga orchestrator:** Python controller (NOT LLM-driven) that runs forward execution and compensation
-- **State machine:** Tracks each step: pending → executing → completed/failed → compensating → compensated
+- **State machine:** DynamoDB tracks each step: pending → executing → completed/failed → compensating → compensated
 - **Distributed lock:** Conditional write prevents concurrent compensation attempts
 
 ## Models
 - All agents: Amazon Nova Lite (booking operations need speed, not depth)
+
+## Setup
+
+Before running, complete the setup in the parent `README.md`:
+1. `.env` exists in `lesson-07-saga-pattern-and-state-coordination/` with your credentials, region, and model
+2. The `lesson-07-saga` CloudFormation stack is deployed in your region
 
 ## Test Cases (3 packages)
 | Saga | Scenario | Key Behavior |

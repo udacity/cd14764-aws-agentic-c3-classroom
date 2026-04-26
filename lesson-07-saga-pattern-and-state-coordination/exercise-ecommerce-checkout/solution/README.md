@@ -19,6 +19,12 @@ This exercise implements a saga-based checkout flow where an order spans invento
 | CHK-002 | Payment fails | Release inventory (1 compensation, barrier: 1/1) |
 | CHK-003 | Shipping fails | Refund payment + Release inventory (2 compensations, barrier: 2/2) |
 
+## Setup
+
+Before running, complete the setup in the parent `README.md`:
+1. `.env` exists in `lesson-07-saga-pattern-and-state-coordination/` with your credentials, region, and model
+2. The `lesson-07-saga` CloudFormation stack is deployed in your region
+
 ## Running
 ```bash
 python ecommerce_checkout_saga.py

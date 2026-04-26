@@ -17,7 +17,7 @@ Complete **18 TODOs** in `ecommerce_checkout_saga.py`:
 | TODO 2 | `update_step()` — update a step in the saga | Same as demo |
 | TODO 3 | `acquire_lock()` — distributed lock for compensation | Same as demo |
 | TODO 4 | `release_lock()` — release lock after compensation | Same as demo |
-| TODO 5 | `increment_barrier()` — NEW: atomic counter for barrier | Use db.atomic_increment() |
+| TODO 5 | `increment_barrier()` — NEW: atomic counter for barrier | Use DynamoDB ADD expression (same as demo's increment_barrier) |
 
 ### Agent Builder TODOs (9 = 3 per agent x 3 agents)
 | Agent | TODOs | Tools provided |
@@ -37,11 +37,17 @@ Each agent needs: BedrockModel (TODO), system prompt for cancel mode (TODO), sys
 | TODO 18 | Wire up main() to run all 3 scenarios | Same structure as demo |
 
 ## What's Already Done
-- SimulatedDynamoDB class (with conditional writes, atomic increment)
+- DynamoDB boto3 setup (real AWS resource — created by CloudFormation)
 - All `@tool` functions for all 3 agents (forward + compensating)
 - Sample checkout data (3 scenarios)
 - agents_config setup in run_checkout_saga()
 - Helper functions (clean_response, run_agent_with_retry)
+
+## Setup
+
+Before running, complete the setup in the parent `README.md`:
+1. `.env` exists in `lesson-07-saga-pattern-and-state-coordination/` with your credentials, region, and model
+2. The `lesson-07-saga` CloudFormation stack is deployed in your region
 
 ## Expected Results
 - CHK-001: All succeed — status "completed"
