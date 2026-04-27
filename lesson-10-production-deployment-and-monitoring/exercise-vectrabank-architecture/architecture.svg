@@ -58,7 +58,7 @@
   <text x="550" y="405" text-anchor="middle" font-size="10" font-weight="600" fill="#422006">Alarms</text>
   <text x="550" y="425" text-anchor="middle" font-size="8" fill="#713f12">Error>2%, P99>8s</text>
   <rect x="90" y="457" width="540" height="36" rx="8" fill="#fffbeb" stroke="#fbbf24" stroke-width="1"/>
-  <text x="360" y="480" text-anchor="middle" font-size="11" font-weight="600" fill="#92400e">Estimated: ~$3,200/month @ 10K req/day</text>
+  <text x="360" y="480" text-anchor="middle" font-size="11" font-weight="600" fill="#92400e">Estimated: ~$6,000/month @ 10K req/day</text>
   <rect x="230" y="515" width="14" height="14" rx="3" fill="#6366f1"/>
   <text x="248" y="526" font-size="10" fill="#e2e8f0">Runtime</text>
   <rect x="307" y="515" width="14" height="14" rx="3" fill="#3b82f6"/>
