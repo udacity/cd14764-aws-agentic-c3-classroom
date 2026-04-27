@@ -63,10 +63,9 @@ _CF = _load_cf_exports()
 #       roleArn=AGENTCORE_ROLE_ARN,
 #       networkConfiguration={'networkMode': 'PUBLIC'},
 #       protocolConfiguration={'serverProtocol': 'MCP'},
-#       agentRuntimeArtifact={'s3Location': {...}},
+#       agentRuntimeArtifact={'codeConfiguration': {'code': {'s3': {...}}, 'runtime': 'PYTHON_3_12', 'entryPoint': [...]}},
 #       environmentVariables={...}
 #   )
-#   # guardrailConfiguration injected via before-call event hook (SDK workaround)
 # ═══════════════════════════════════════════════════════
 
 # Discover resources from CloudFormation exports.
@@ -338,31 +337,11 @@ def estimate_monthly_costs(agents: list, days: int = 30) -> dict:
 
 # ═══════════════════════════════════════════════════════
 # STEP 6: REAL AgentCore RUNTIME DEPLOYMENT
-#
-# Three SDK compatibility workarounds for the current
-# Amazon Bedrock AgentCore SDK version:
-#
-#   WORKAROUND 1 — guardrailConfiguration injection
-#     The create_agent_runtime SDK schema does not include
-#     guardrailConfiguration in its input shape yet.
-#     Solution: register a before-call event hook that patches
-#     the request params before they are serialised.
-#
-#   WORKAROUND 2 — agentRuntimeArtifact (deployment.zip)
-#     The API requires an agentRuntimeArtifact pointing to a
-#     zip file on S3.  We build a minimal placeholder in memory
-#     and upload it — no local filesystem writes needed.
-#
-#   WORKAROUND 3 — put_agent_runtime_logging_configuration
-#     This method may be absent in older botocore versions.
-#     Wrap it in try/except so the rest of deployment succeeds
-#     even if the logging call fails.
 # ═══════════════════════════════════════════════════════
 
 def deploy_to_agentcore() -> str:
     """
     Deploy the insurance-claims runtime to Amazon Bedrock AgentCore.
-    Uses the three SDK compatibility workarounds described above.
     Returns the runtime ARN.
     """
     agentcore_control = boto3.client("bedrock-agentcore-control", region_name=AWS_REGION)
@@ -423,9 +402,15 @@ def deploy_to_agentcore() -> str:
         networkConfiguration=RUNTIME_CONFIG["networkConfiguration"],
         protocolConfiguration=RUNTIME_CONFIG["protocolConfiguration"],
         agentRuntimeArtifact={
-            "s3Location": {
-                "bucketName": _S3_BUCKET,
-                "objectKey":  artifact_key,
+            "codeConfiguration": {
+                "code": {
+                    "s3": {
+                        "bucket": _S3_BUCKET,
+                        "prefix": artifact_key,
+                    }
+                },
+                "runtime": "PYTHON_3_12",
+                "entryPoint": ["main.handler"],
             }
         },
         environmentVariables=RUNTIME_CONFIG["environmentVariables"],
@@ -534,9 +519,6 @@ def main():
     print(f"\n  Role ARN:    {_ROLE_ARN}")
     print(f"  S3 Bucket:   {_S3_BUCKET}")
     print(f"  Guardrail:   {_GUARDRAIL_ID} (v{_GUARDRAIL_VERSION})")
-    print(f"\n  [Workaround 1] Registering before-call hook for guardrailConfiguration")
-    print(f"  [Workaround 2] Building deployment.zip in memory -> uploading to S3")
-    print(f"  [Workaround 3] try/except wrapper on put_agent_runtime_logging_configuration")
     print()
     runtime_arn = deploy_to_agentcore()
 

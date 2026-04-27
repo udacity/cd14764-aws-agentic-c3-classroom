@@ -23,13 +23,19 @@ import os
 import time
 from dotenv import load_dotenv
 
-# Load .env from infrastructure/ first, then parent (lesson-10 root)
-load_dotenv()
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+# ── Credential loading ─────────────────────────────────────────────────────────
+# Use abspath so this works regardless of where the script is invoked from.
+_THIS_DIR   = os.path.dirname(os.path.abspath(__file__))
+_LESSON_DIR = os.path.dirname(_THIS_DIR)
+
+# Load .env from lesson root first (AWS creds live there),
+# then infrastructure/ for any local overrides.
+load_dotenv(os.path.join(_LESSON_DIR, ".env"))
+load_dotenv(os.path.join(_THIS_DIR,   ".env"))
 
 AWS_REGION   = os.environ.get("AWS_REGION", "us-east-1")
 STACK_NAME   = "lesson-10-runtime"
-TEMPLATE_FILE = os.path.join(os.path.dirname(__file__), "stack.yaml")
+TEMPLATE_FILE = os.path.join(_THIS_DIR, "stack.yaml")
 
 
 def deploy():

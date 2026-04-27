@@ -319,12 +319,6 @@ OPERATIONAL_RUNBOOK = {
 # ═══════════════════════════════════════════════════════
 #  STEP 5: REAL AgentCore RUNTIME DEPLOYMENT
 #
-#  Three SDK compatibility workarounds (same as demo):
-#
-#   WORKAROUND 1 — guardrailConfiguration injection via before-call event hook
-#   WORKAROUND 2 — dummy deployment.zip built in memory, uploaded to S3
-#   WORKAROUND 3 — try/except on put_agent_runtime_logging_configuration
-#
 #  VectraBank specifics vs demo:
 #   - VPC network mode (financial services — internal only)
 #   - Stricter X-Ray sampling (10% vs 5%) for SEC/FINRA audit trail
@@ -333,7 +327,6 @@ OPERATIONAL_RUNBOOK = {
 def deploy_to_agentcore() -> str:
     """
     Deploy the VectraBank runtime to Amazon Bedrock AgentCore.
-    Uses the three SDK compatibility workarounds documented above.
     Returns the runtime ARN.
     """
     agentcore_control = boto3.client("bedrock-agentcore-control", region_name=AWS_REGION)
@@ -394,9 +387,15 @@ def deploy_to_agentcore() -> str:
         networkConfiguration=VECTRABANK_RUNTIME_CONFIG["networkConfiguration"],
         protocolConfiguration=VECTRABANK_RUNTIME_CONFIG["protocolConfiguration"],
         agentRuntimeArtifact={
-            "s3Location": {
-                "bucketName": _S3_BUCKET,
-                "objectKey":  artifact_key,
+            "codeConfiguration": {
+                "code": {
+                    "s3": {
+                        "bucket": _S3_BUCKET,
+                        "prefix": artifact_key,
+                    }
+                },
+                "runtime": "PYTHON_3_12",
+                "entryPoint": ["main.handler"],
             }
         },
         environmentVariables=VECTRABANK_RUNTIME_CONFIG["environmentVariables"],
@@ -502,9 +501,6 @@ def main():
     print(f"\n  Role ARN:    {_ROLE_ARN}")
     print(f"  S3 Bucket:   {_S3_BUCKET}")
     print(f"  Guardrail:   {_GUARDRAIL_ID} (v{_GUARDRAIL_VERSION})")
-    print(f"\n  [Workaround 1] Registering before-call hook for guardrailConfiguration")
-    print(f"  [Workaround 2] Building deployment.zip in memory -> uploading to S3")
-    print(f"  [Workaround 3] try/except wrapper on put_agent_runtime_logging_configuration")
     print()
     runtime_arn = deploy_to_agentcore()
 
