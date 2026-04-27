@@ -531,8 +531,7 @@ def main():
     print(f"  4. COST MANAGEMENT -- model selection is the biggest cost driver")
     print(f"     Multi-model strategy (Lite for routing, Sonnet for analysis) saves ~60%")
     print(f"  5. ENV VARS -- no hardcoded IDs; same code deploys to dev/staging/prod")
-    print(f"  6. SDK WORKAROUNDS -- 3 patches for current AgentCore SDK version")
-    print(f"     Runtime ARN: {runtime_arn}\n")
+    print(f"  6. RUNTIME ARN: {runtime_arn}\n")
 
 
 if __name__ == "__main__":

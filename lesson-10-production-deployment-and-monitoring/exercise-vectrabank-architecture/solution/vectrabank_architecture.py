@@ -512,8 +512,7 @@ def main():
     print(f"  3. STRICTER THRESHOLDS -- 2% error rate (vs 5% in demo) for financial compliance")
     print(f"  4. OPERATIONAL RUNBOOK -- deploy, rollback, kill switch, latency procedures")
     print(f"  5. AUDIT TRAIL -- X-Ray at 10% sampling + full guardrail audit log")
-    print(f"  6. SDK WORKAROUNDS -- same 3 patches; apply to your capstone project")
-    print(f"     Runtime ARN: {runtime_arn}\n")
+    print(f"  6. RUNTIME ARN: {runtime_arn}\n")
 
 
 if __name__ == "__main__":
