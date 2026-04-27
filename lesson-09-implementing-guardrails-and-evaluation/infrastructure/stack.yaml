@@ -54,7 +54,7 @@ Resources:
     Type: AWS::Bedrock::Guardrail
     Properties:
       Name: !Sub ${ProjectName}-trading
-      Description: Trading compliance guardrail — blocks insider trading, market manipulation
+      Description: Trading compliance guardrail — blocks PII, insider trading, recommendations, profanity, threats
       BlockedInputMessaging: "Your input was blocked by our compliance guardrail."
       BlockedOutputsMessaging: "The response was blocked by our compliance guardrail."
       ContentPolicyConfig:
@@ -65,14 +65,35 @@ Resources:
           - Type: HATE
             InputStrength: HIGH
             OutputStrength: HIGH
+          - Type: INSULTS
+            InputStrength: HIGH
+            OutputStrength: HIGH
+      SensitiveInformationPolicyConfig:
+        PiiEntitiesConfig:
+          - Type: CREDIT_DEBIT_CARD_NUMBER
+            Action: BLOCK
+          - Type: US_SOCIAL_SECURITY_NUMBER
+            Action: BLOCK
+          - Type: US_BANK_ACCOUNT_NUMBER
+            Action: BLOCK
+          - Type: EMAIL
+            Action: ANONYMIZE
+          - Type: PHONE
+            Action: ANONYMIZE
       TopicPolicyConfig:
         TopicsConfig:
           - Name: insider-trading
             Definition: "Requests involving insider information, non-public material information, or trading on undisclosed corporate actions"
             Type: DENY
-          - Name: market-manipulation
-            Definition: "Requests to manipulate stock prices, coordinate pump-and-dump schemes, or create artificial market activity"
+          - Name: trading-recommendations
+            Definition: "Requests for specific stock buy or sell recommendations, investment advice, or opinions on whether to invest in specific securities or assets"
             Type: DENY
+          - Name: competitor-disparagement
+            Definition: "Negative statements, criticism, or disparagement of competitor companies, their products, services, or platforms"
+            Type: DENY
+      WordPolicyConfig:
+        ManagedWordListsConfig:
+          - Type: PROFANITY
 
 Outputs:
   HealthcareGuardrailId:
