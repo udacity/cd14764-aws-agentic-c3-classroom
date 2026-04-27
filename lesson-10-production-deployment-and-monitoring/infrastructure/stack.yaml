@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Lesson 10: Production Deployment and Monitoring
+  Creates the IAM role and S3 artifact bucket required to deploy
+  an AgentCore Runtime via create_agent_runtime().
+  Used by both demo (insurance-claims) and exercise (vectrabank) scripts.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: lesson-10-runtime
+    Description: Prefix for all resource names and CloudFormation exports
+
+Resources:
+
+  # ─────────────────────────────────────────────────────────
+  # S3 BUCKET — stores the deployment.zip artifact
+  # AgentCore Runtime requires an agentRuntimeArtifact on S3.
+  # ─────────────────────────────────────────────────────────
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${ProjectName}-artifacts-${AWS::AccountId}
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # ─────────────────────────────────────────────────────────
+  # AGENTCORE EXECUTION ROLE
+  # Assumed by the AgentCore Runtime when running your agents.
+  # Permissions: Bedrock model invocation, S3 artifact access,
+  #              CloudWatch Logs, X-Ray tracing, Guardrail apply.
+  # ─────────────────────────────────────────────────────────
+  AgentCoreRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-agentcore-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: bedrock-agentcore.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AgentCoreExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # Bedrock model invocation
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                  - bedrock:ApplyGuardrail
+                Resource: '*'
+              # S3 artifact access
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub arn:aws:s3:::${ArtifactBucket}
+                  - !Sub arn:aws:s3:::${ArtifactBucket}/*
+              # CloudWatch Logs
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                Resource: '*'
+              # X-Ray tracing
+              - Effect: Allow
+                Action:
+                  - xray:PutTraceSegments
+                  - xray:PutTelemetryRecords
+                  - xray:GetSamplingRules
+                  - xray:GetSamplingTargets
+                Resource: '*'
+
+Outputs:
+  AgentCoreRoleArn:
+    Description: IAM Role ARN for AgentCore Runtime execution
+    Value: !GetAtt AgentCoreRole.Arn
+    Export:
+      Name: !Sub ${ProjectName}-AgentCoreRoleArn
+
+  ArtifactBucket:
+    Description: S3 bucket name for deployment artifacts
+    Value: !Ref ArtifactBucket
+    Export:
+      Name: !Sub ${ProjectName}-ArtifactBucket

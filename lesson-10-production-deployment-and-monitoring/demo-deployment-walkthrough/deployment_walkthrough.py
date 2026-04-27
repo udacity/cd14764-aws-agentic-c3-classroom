@@ -69,14 +69,18 @@ _CF = _load_cf_exports()
 #   # guardrailConfiguration injected via before-call event hook (SDK workaround)
 # ═══════════════════════════════════════════════════════
 
-# Discover lab resources from CloudFormation exports (auto-populated in Udacity lab)
+# Discover resources from CloudFormation exports.
+# Checks lesson-10 stack first, then project stack as fallback.
+# Deploy lesson-10 infra first: python infrastructure/deploy_stack.py
 _ROLE_ARN = (
-    _CF.get("udacity-agentcore-AgentCoreRoleArn")
-    or os.environ.get("AGENTCORE_ROLE_ARN", "arn:aws:iam::ACCOUNT_ID:role/AgentCoreRole")
+    _CF.get("lesson-10-runtime-AgentCoreRoleArn")       # lesson-10 stack (preferred)
+    or _CF.get("udacity-agentcore-AgentCoreRoleArn")    # project stack (fallback)
+    or os.environ.get("AGENTCORE_ROLE_ARN", "")
 )
 _S3_BUCKET = (
-    _CF.get("udacity-agentcore-PolicyBucket")
-    or os.environ.get("S3_ARTIFACT_BUCKET", "udacity-agentcore-bucket-ACCOUNT_ID")
+    _CF.get("lesson-10-runtime-ArtifactBucket")         # lesson-10 stack (preferred)
+    or _CF.get("udacity-agentcore-PolicyBucket")        # project stack (fallback)
+    or os.environ.get("S3_ARTIFACT_BUCKET", "")
 )
 _GUARDRAIL_ID      = os.environ.get("GUARDRAIL_ID", "gr-insurance-claims")
 _GUARDRAIL_VERSION = os.environ.get("GUARDRAIL_VERSION", "DRAFT")
@@ -376,14 +380,11 @@ def deploy_to_agentcore() -> str:
     except Exception as e:
         print(f"  [Note] Could not check existing runtimes: {e}")
 
-    # ── WORKAROUND 1: STS role fetch + before-call event hook ─────────────
-    # Get caller identity to confirm account (and for logging)
+    # -- WORKAROUND 1: STS role fetch + before-call event hook --
     sts        = boto3.client("sts", region_name=AWS_REGION)
     account_id = sts.get_caller_identity()["Account"]
     print(f"  AWS Account: {account_id}  |  Region: {AWS_REGION}")
 
-    # The SDK's CreateAgentRuntime input shape does not yet include
-    # guardrailConfiguration — inject it via a before-call event hook.
     guardrail_config = {
         "guardrailIdentifier": _GUARDRAIL_ID,
         "guardrailVersion":    _GUARDRAIL_VERSION,
@@ -398,8 +399,7 @@ def deploy_to_agentcore() -> str:
     )
     print(f"  Guardrail hook registered: {_GUARDRAIL_ID} (v{_GUARDRAIL_VERSION})")
 
-    # ── WORKAROUND 2: Dummy deployment.zip → S3 ───────────────────────────
-    # AgentCore Runtime requires an S3 artifact; build a minimal zip in memory.
+    # -- WORKAROUND 2: Dummy deployment.zip to S3 --
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("main.py", "# AgentCore Runtime entry point\n")
@@ -414,7 +414,7 @@ def deploy_to_agentcore() -> str:
     )
     print(f"  Artifact uploaded: s3://{_S3_BUCKET}/{artifact_key}")
 
-    # ── DEPLOY ──────────────────────────────────────────────────────────────
+    # -- DEPLOY --
     print(f"  Calling create_agent_runtime...")
     response = agentcore_control.create_agent_runtime(
         agentRuntimeName=runtime_name,
@@ -434,8 +434,7 @@ def deploy_to_agentcore() -> str:
     runtime_arn = response.get("agentRuntimeArn", response.get("arn", ""))
     print(f"  Runtime ARN: {runtime_arn}")
 
-    # ── WORKAROUND 3: try/except on logging configuration ─────────────────
-    # put_agent_runtime_logging_configuration may not exist in older botocore.
+    # -- WORKAROUND 3: try/except on logging configuration --
     try:
         runtime_id = runtime_arn.split("/")[-1]
         agentcore_control.put_agent_runtime_logging_configuration(
@@ -459,17 +458,12 @@ def deploy_to_agentcore() -> str:
     return runtime_arn
 
 
-# ═══════════════════════════════════════════════════════
-# MAIN
-# ═══════════════════════════════════════════════════════
-
 def main():
     print("=" * 70)
-    print("  Production Deployment Walkthrough — Module 10 Demo")
+    print("  Production Deployment Walkthrough -- Module 10 Demo")
     print("  AgentCore Runtime + Monitoring + Cost Estimation")
     print("=" * 70)
 
-    # ── Runtime Configuration ──
     print(f"\n{'━' * 70}")
     print("  1. AgentCore Runtime Configuration")
     print(f"{'━' * 70}")
@@ -482,7 +476,6 @@ def main():
     for key, val in RUNTIME_CONFIG["environmentVariables"].items():
         print(f"    {key}: {val}")
 
-    # ── Agent Definitions ──
     print(f"\n{'━' * 70}")
     print("  2. Agent Definitions (3 agents)")
     print(f"{'━' * 70}")
@@ -495,7 +488,6 @@ def main():
         print(f"    Est. tokens: {agent['estimated_tokens_per_request']}/request")
         print(f"    Daily reqs:  {agent['requests_per_day']:,}")
 
-    # ── Deployment Pipeline ──
     print(f"\n{'━' * 70}")
     print("  3. Deployment Pipeline (6 steps)")
     print(f"{'━' * 70}")
@@ -505,7 +497,6 @@ def main():
         print(f"    $ {step['command']}")
         print(f"    Gate: {step['gate']}")
 
-    # ── Monitoring Strategy ──
     print(f"\n{'━' * 70}")
     print("  4. Monitoring Strategy")
     print(f"{'━' * 70}")
@@ -516,13 +507,12 @@ def main():
     print(f"\n  Alarms:")
     for a in MONITORING_STRATEGY["alarms"]:
         print(f"    {a['name']}: {a['metric']} > {a['threshold']} "
-              f"(period: {a['period']}s) → {a['action']}")
+              f"(period: {a['period']}s) -> {a['action']}")
     print(f"\n  X-Ray Tracing:")
     xray = MONITORING_STRATEGY["xray_tracing"]
     print(f"    Enabled: {xray['enabled']}, Sampling: {xray['sampling_rate']*100:.0f}%")
     print(f"    Annotations: {', '.join(xray['annotations'])}")
 
-    # ── Cost Estimation ──
     print(f"\n{'━' * 70}")
     print("  5. Monthly Cost Estimation (10,000 requests/day)")
     print(f"{'━' * 70}")
@@ -532,13 +522,12 @@ def main():
     for name, data in costs.items():
         if name == "TOTAL":
             print(f"  {'─' * 77}")
-        model = data.get("model", "—")
+        model = data.get("model", "--")
         cost = data["monthly_cost"]
         daily = data.get("daily_requests", "")
         daily_str = f" ({daily:,}/day)" if daily else ""
         print(f"  {name:<25s} {model:<40s} ${cost:>10.2f}{daily_str}")
 
-    # ── Step 6: Real AgentCore Deployment ──
     print(f"\n{'━' * 70}")
     print("  6. Deploy to AgentCore Runtime (Real API Call)")
     print(f"{'━' * 70}")
@@ -546,22 +535,21 @@ def main():
     print(f"  S3 Bucket:   {_S3_BUCKET}")
     print(f"  Guardrail:   {_GUARDRAIL_ID} (v{_GUARDRAIL_VERSION})")
     print(f"\n  [Workaround 1] Registering before-call hook for guardrailConfiguration")
-    print(f"  [Workaround 2] Building deployment.zip in memory → uploading to S3")
+    print(f"  [Workaround 2] Building deployment.zip in memory -> uploading to S3")
     print(f"  [Workaround 3] try/except wrapper on put_agent_runtime_logging_configuration")
     print()
     runtime_arn = deploy_to_agentcore()
 
-    # ── Key Takeaways ──
     print(f"\n{'━' * 70}")
     print("  Key Takeaways")
     print(f"{'━' * 70}")
-    print(f"  1. RUNTIME CONFIG — network mode, protocol, guardrails, env vars")
-    print(f"  2. DEPLOYMENT PIPELINE — build → guardrail → runtime → memory → observability")
-    print(f"  3. MONITORING — dashboard (4 widgets), alarms (error rate, latency), X-Ray")
-    print(f"  4. COST MANAGEMENT — model selection is the biggest cost driver")
+    print(f"  1. RUNTIME CONFIG -- network mode, protocol, guardrails, env vars")
+    print(f"  2. DEPLOYMENT PIPELINE -- build -> guardrail -> runtime -> memory -> observability")
+    print(f"  3. MONITORING -- dashboard (4 widgets), alarms (error rate, latency), X-Ray")
+    print(f"  4. COST MANAGEMENT -- model selection is the biggest cost driver")
     print(f"     Multi-model strategy (Lite for routing, Sonnet for analysis) saves ~60%")
-    print(f"  5. ENV VARS — no hardcoded IDs; same code deploys to dev/staging/prod")
-    print(f"  6. SDK WORKAROUNDS — 3 patches for current AgentCore SDK version")
+    print(f"  5. ENV VARS -- no hardcoded IDs; same code deploys to dev/staging/prod")
+    print(f"  6. SDK WORKAROUNDS -- 3 patches for current AgentCore SDK version")
     print(f"     Runtime ARN: {runtime_arn}\n")
 
 

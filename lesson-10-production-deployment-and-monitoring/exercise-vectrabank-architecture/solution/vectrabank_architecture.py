@@ -54,14 +54,18 @@ def _load_cf_exports(project_name: str = "udacity-agentcore") -> dict:
 
 _CF = _load_cf_exports()
 
-# Discover lab resources from CloudFormation exports
+# Discover resources from CloudFormation exports.
+# Checks lesson-10 stack first, then project stack as fallback.
+# Deploy lesson-10 infra first: python infrastructure/deploy_stack.py
 _ROLE_ARN = (
-    _CF.get("udacity-agentcore-AgentCoreRoleArn")
-    or os.environ.get("AGENTCORE_ROLE_ARN", "arn:aws:iam::ACCOUNT_ID:role/AgentCoreRole")
+    _CF.get("lesson-10-runtime-AgentCoreRoleArn")       # lesson-10 stack (preferred)
+    or _CF.get("udacity-agentcore-AgentCoreRoleArn")    # project stack (fallback)
+    or os.environ.get("AGENTCORE_ROLE_ARN", "")
 )
 _S3_BUCKET = (
-    _CF.get("udacity-agentcore-PolicyBucket")
-    or os.environ.get("S3_ARTIFACT_BUCKET", "udacity-agentcore-bucket-ACCOUNT_ID")
+    _CF.get("lesson-10-runtime-ArtifactBucket")         # lesson-10 stack (preferred)
+    or _CF.get("udacity-agentcore-PolicyBucket")        # project stack (fallback)
+    or os.environ.get("S3_ARTIFACT_BUCKET", "")
 )
 _GUARDRAIL_ID      = os.environ.get("GUARDRAIL_ID", "gr-vectrabank-compliance")
 _GUARDRAIL_VERSION = os.environ.get("GUARDRAIL_VERSION", "DRAFT")
@@ -366,7 +370,7 @@ def deploy_to_agentcore() -> str:
     )
     print(f"  Guardrail hook registered: {_GUARDRAIL_ID} (v{_GUARDRAIL_VERSION})")
 
-    # ── WORKAROUND 2: Dummy deployment.zip → S3 ───────────────────────────
+    # -- WORKAROUND 2: Dummy deployment.zip to S3 --
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("main.py", "# VectraBank AgentCore Runtime entry point\n")
@@ -381,7 +385,7 @@ def deploy_to_agentcore() -> str:
     )
     print(f"  Artifact uploaded: s3://{_S3_BUCKET}/{artifact_key}")
 
-    # ── DEPLOY ──────────────────────────────────────────────────────────────
+    # -- DEPLOY --
     print(f"  Calling create_agent_runtime...")
     response = agentcore_control.create_agent_runtime(
         agentRuntimeName=runtime_name,
@@ -401,7 +405,7 @@ def deploy_to_agentcore() -> str:
     runtime_arn = response.get("agentRuntimeArn", response.get("arn", ""))
     print(f"  Runtime ARN: {runtime_arn}")
 
-    # ── WORKAROUND 3: try/except on logging configuration ─────────────────
+    # -- WORKAROUND 3: try/except on logging configuration --
     try:
         runtime_id = runtime_arn.split("/")[-1]
         agentcore_control.put_agent_runtime_logging_configuration(
@@ -425,23 +429,18 @@ def deploy_to_agentcore() -> str:
     return runtime_arn
 
 
-# ═══════════════════════════════════════════════════════
-#  MAIN
-# ═══════════════════════════════════════════════════════
-
 def main():
     print("=" * 70)
-    print("  VectraBank Deployment Architecture — Module 10 Exercise")
+    print("  VectraBank Deployment Architecture -- Module 10 Exercise")
     print("  Runtime Config + Monitoring + Cost + Operational Runbook")
     print("=" * 70)
 
-    # ── Runtime Configuration ──
     print(f"\n{'━' * 70}")
     print("  1. AgentCore Runtime Configuration")
     print(f"{'━' * 70}")
     cfg = VECTRABANK_RUNTIME_CONFIG
     print(f"  Runtime:  {cfg['agentRuntimeName']}")
-    print(f"  Network:  {cfg['networkConfiguration']['networkMode']} (VPC — financial services)")
+    print(f"  Network:  {cfg['networkConfiguration']['networkMode']} (VPC -- financial services)")
     vpc = cfg["networkConfiguration"]["vpcConfiguration"]
     print(f"    VPC:    {vpc['vpcId']}")
     print(f"    Subnets: {', '.join(vpc['subnetIds'])}")
@@ -452,7 +451,6 @@ def main():
     for key, val in cfg["environmentVariables"].items():
         print(f"    {key}: {val}")
 
-    # ── Agent Definitions ──
     print(f"\n{'━' * 70}")
     print("  2. Agent Definitions (4 agents)")
     print(f"{'━' * 70}")
@@ -463,7 +461,6 @@ def main():
         print(f"    Role:        {agent['role']}")
         print(f"    Daily reqs:  {agent['requests_per_day']:,}")
 
-    # ── Monitoring ──
     print(f"\n{'━' * 70}")
     print("  3. Monitoring Strategy")
     print(f"{'━' * 70}")
@@ -474,11 +471,10 @@ def main():
     print(f"\n  Alarms ({len(mon['alarms'])}):")
     for a in mon["alarms"]:
         print(f"    {a['name']}: threshold={a['threshold']}, period={a['period']}s")
-        print(f"      → {a['action']}")
+        print(f"      -> {a['action']}")
     print(f"\n  X-Ray: sampling={mon['xray_tracing']['sampling_rate']*100:.0f}%, "
           f"annotations={', '.join(mon['xray_tracing']['annotations'])}")
 
-    # ── Cost Estimation ──
     print(f"\n{'━' * 70}")
     print("  4. Monthly Cost Estimation (10,000 requests/day)")
     print(f"{'━' * 70}")
@@ -488,42 +484,39 @@ def main():
     for name, data in costs.items():
         if name == "TOTAL":
             print(f"  {'─' * 75}")
-        model = data.get("model", "—")
+        model = data.get("model", "--")
         cost = data["monthly_cost"]
         print(f"  {name:<25s} {model:<40s} ${cost:>9.2f}")
 
-    # ── Operational Runbook (NEW) ──
     print(f"\n{'━' * 70}")
     print("  5. Operational Runbook (4 procedures)")
     print(f"{'━' * 70}")
     for key, runbook in OPERATIONAL_RUNBOOK.items():
-        print(f"\n  📋 {runbook['title']}")
+        print(f"\n  {runbook['title']}")
         for step in runbook["steps"]:
             print(f"    {step}")
 
-    # ── Step 5: Real AgentCore Deployment ──
     print(f"\n{'━' * 70}")
-    print("  5. Deploy to AgentCore Runtime (Real API Call)")
+    print("  6. Deploy to AgentCore Runtime (Real API Call)")
     print(f"{'━' * 70}")
     print(f"\n  Role ARN:    {_ROLE_ARN}")
     print(f"  S3 Bucket:   {_S3_BUCKET}")
     print(f"  Guardrail:   {_GUARDRAIL_ID} (v{_GUARDRAIL_VERSION})")
     print(f"\n  [Workaround 1] Registering before-call hook for guardrailConfiguration")
-    print(f"  [Workaround 2] Building deployment.zip in memory → uploading to S3")
+    print(f"  [Workaround 2] Building deployment.zip in memory -> uploading to S3")
     print(f"  [Workaround 3] try/except wrapper on put_agent_runtime_logging_configuration")
     print()
     runtime_arn = deploy_to_agentcore()
 
-    # ── Key Takeaways ──
     print(f"\n{'━' * 70}")
     print("  Key Takeaways")
     print(f"{'━' * 70}")
-    print(f"  1. VPC NETWORK MODE — financial services agents stay internal")
-    print(f"  2. MULTI-MODEL COST OPTIMIZATION — Lite for routing/retrieval, Sonnet for synthesis")
-    print(f"  3. STRICTER THRESHOLDS — 2% error rate (vs 5% in demo) for financial compliance")
-    print(f"  4. OPERATIONAL RUNBOOK — deploy, rollback, kill switch, latency procedures")
-    print(f"  5. AUDIT TRAIL — X-Ray at 10% sampling + full guardrail audit log")
-    print(f"  6. SDK WORKAROUNDS — same 3 patches; apply to your capstone project")
+    print(f"  1. VPC NETWORK MODE -- financial services agents stay internal")
+    print(f"  2. MULTI-MODEL COST OPTIMIZATION -- Lite for routing/retrieval, Sonnet for synthesis")
+    print(f"  3. STRICTER THRESHOLDS -- 2% error rate (vs 5% in demo) for financial compliance")
+    print(f"  4. OPERATIONAL RUNBOOK -- deploy, rollback, kill switch, latency procedures")
+    print(f"  5. AUDIT TRAIL -- X-Ray at 10% sampling + full guardrail audit log")
+    print(f"  6. SDK WORKAROUNDS -- same 3 patches; apply to your capstone project")
     print(f"     Runtime ARN: {runtime_arn}\n")
 
 
