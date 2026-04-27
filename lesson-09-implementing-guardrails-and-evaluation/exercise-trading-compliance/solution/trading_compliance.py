@@ -399,6 +399,7 @@ RULES: (1) Factual regulatory info only (2) NO trade recommendations (3) NO insi
             "short selling": {"regulation": "Regulation SHO", "rule": "Must locate shares before short selling", "penalty": "Failure to deliver sanctions"},
             "insider": {"regulation": "SEC Rule 10b-5", "rule": "Trading on material non-public info prohibited", "penalty": "20 years & $5M fine"},
             "margin": {"regulation": "Regulation T", "rule": "50% initial margin for equity purchases", "penalty": "Margin call & forced liquidation"},
+            "settlement": {"regulation": "SEC Rule 15c6-1", "rule": "Equity trades settle T+1 (next business day)", "penalty": "Failure to settle may result in buy-in by clearing firm"},
         }
         for key, data in rules_db.items():
             if key in query.lower():
