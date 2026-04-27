@@ -82,10 +82,9 @@ VECTRABANK_RUNTIME_CONFIG = {
 
     "networkConfiguration": {
         "networkMode": "VPC",  # Financial services = internal only
-        "vpcConfiguration": {
-            "vpcId": "vpc-vectrabank-prod",
-            "subnetIds": ["subnet-private-1a", "subnet-private-1b"],
-            "securityGroupIds": ["sg-agentcore-prod"],
+        "networkModeConfig": {
+            "securityGroups": ["sg-agentcore-prod"],
+            "subnets": ["subnet-private-1a", "subnet-private-1b"],
         },
     },
 
@@ -440,9 +439,9 @@ def main():
     cfg = VECTRABANK_RUNTIME_CONFIG
     print(f"  Runtime:  {cfg['agentRuntimeName']}")
     print(f"  Network:  {cfg['networkConfiguration']['networkMode']} (VPC -- financial services)")
-    vpc = cfg["networkConfiguration"]["vpcConfiguration"]
-    print(f"    VPC:    {vpc['vpcId']}")
-    print(f"    Subnets: {', '.join(vpc['subnetIds'])}")
+    vpc = cfg["networkConfiguration"]["networkModeConfig"]
+    print(f"    Subnets: {', '.join(vpc['subnets'])}")
+    print(f"    Security Groups: {', '.join(vpc['securityGroups'])}")
     print(f"  Protocol: {cfg['protocolConfiguration']['serverProtocol']}")
     print(f"  Guardrail: {cfg['guardrailConfiguration']['guardrailIdentifier']} "
           f"v{cfg['guardrailConfiguration']['guardrailVersion']}")
