@@ -6,21 +6,23 @@ The lesson uses **real Amazon Bedrock Guardrails**. When `HEALTHCARE_GUARDRAIL_I
 
 ## Setup
 
-Deploy the CloudFormation stack to create both guardrails:
+1. **Deploy the CloudFormation stack** via the AWS Console:
+   - Go to **CloudFormation → Create stack → Upload a template file**
+   - Select `infrastructure/stack.yaml`
+   - Stack name: `lesson-09-guardrails`
+   - Region: **us-east-1**
+   - Click through defaults and **Create stack**
 
-```python
-import boto3, json
-cf = boto3.client("cloudformation", region_name="us-west-1")
-with open("infrastructure/stack.yaml") as f:
-    template = f.read()
-cf.create_stack(StackName="lesson-09-guardrails", TemplateBody=template, Capabilities=["CAPABILITY_NAMED_IAM"])
-waiter = cf.get_waiter("stack_create_complete")
-waiter.wait(StackName="lesson-09-guardrails")
-outputs = {o["OutputKey"]: o["OutputValue"] for o in cf.describe_stacks(StackName="lesson-09-guardrails")["Stacks"][0]["Outputs"]}
-print(outputs)
-```
+2. **Copy the guardrail IDs** into your `.env` file:
+   - When the stack shows `CREATE_COMPLETE`, open the **Outputs** tab
+   - Copy `HealthcareGuardrailId` → `HEALTHCARE_GUARDRAIL_ID`
+   - Copy `TradingGuardrailId` → `TRADING_GUARDRAIL_ID`
+   - Use only the short ID (e.g. `kl71m6xumzg6`), not the full ARN
 
-Copy `HealthcareGuardrailId` → `HEALTHCARE_GUARDRAIL_ID` and `TradingGuardrailId` → `TRADING_GUARDRAIL_ID` in your `.env` file.
+3. **Install dependencies** from the repo root:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 ## Folder Structure
 
