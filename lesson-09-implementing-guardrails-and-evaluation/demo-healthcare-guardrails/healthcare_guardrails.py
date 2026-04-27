@@ -490,7 +490,7 @@ def main():
             print(f"  Policy: {test['expected_policy']} | {test['description']}")
         print(f"{'━' * 70}")
         result = run_governance_pipeline(test, rate_limiter, kill_switch, dashboard)
-        results.append({**test, "actual_action": result["action"], "actual_policy": result.get("policy")})
+        results.append({**test, "actual_action": result["action"], "actual_policy": result.get("policy"), "agent_response": result.get("agent_response", "")})
     print(f"\n{'═' * 70}\n  GOVERNANCE EVALUATION\n{'═' * 70}")
     correct = sum(1 for r in results if r["actual_action"] == r["expected_action"])
     for idx, r in enumerate(results):
