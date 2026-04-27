@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 720 800" xmlns="http://www.w3.org/2000/svg" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
+<svg viewBox="0 0 720 720" xmlns="http://www.w3.org/2000/svg" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
   <defs>
     <filter id="sh" x="-4%" y="-4%" width="108%" height="116%">
       <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.18"/>
@@ -9,95 +9,86 @@
     </marker>
   </defs>
 
-  <!-- Background -->
-  <rect width="720" height="800" rx="12" fill="#0f172a"/>
+  <rect width="720" height="720" rx="12" fill="#0f172a"/>
 
-  <!-- Title -->
-  <text x="360" y="35" text-anchor="middle" font-size="19" font-weight="700" fill="#ffffff">Lesson 9: Healthcare Agent Guardrails</text>
-  <text x="360" y="56" text-anchor="middle" font-size="13" font-weight="600" fill="#94a3b8">6-layer governance pipeline with model evaluation</text>
+  <text x="360" y="35" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff">Lesson 9 Demo: Healthcare Agent Guardrails</text>
+  <text x="360" y="56" text-anchor="middle" font-size="13" font-weight="600" fill="#94a3b8">5-layer governance pipeline with model evaluation</text>
 
-  <!-- Patient Input pill -->
-  <rect x="250" y="68" width="220" height="42" rx="21" fill="#059669" filter="url(#sh)"/>
-  <text x="360" y="94" text-anchor="middle" font-size="14" font-weight="700" fill="white">Patient Input</text>
+  <!-- Patient Input -->
+  <rect x="250" y="68" width="220" height="40" rx="20" fill="#059669" filter="url(#sh)"/>
+  <text x="360" y="93" text-anchor="middle" font-size="14" font-weight="700" fill="white">Patient Input</text>
 
-  <!-- Arrow -->
-  <line x1="360" y1="112" x2="360" y2="128" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
-  <text x="374" y="122" font-size="11" fill="#e2e8f0">patient input</text>
+  <line x1="360" y1="110" x2="360" y2="126" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
 
   <!-- 1. Kill Switch -->
-  <rect x="130" y="132" width="460" height="52" rx="8" fill="#b91c1c" filter="url(#sh)"/>
-  <text x="360" y="154" text-anchor="middle" font-size="14" font-weight="700" fill="white">① Kill Switch Check</text>
-  <text x="360" y="174" text-anchor="middle" font-size="12" font-weight="600" fill="white">Threshold: 3 violations / 5-minute window → agent disabled</text>
+  <rect x="130" y="130" width="460" height="52" rx="8" fill="#b91c1c" filter="url(#sh)"/>
+  <text x="360" y="152" text-anchor="middle" font-size="14" font-weight="700" fill="white">&#9312; Kill Switch</text>
+  <text x="360" y="171" text-anchor="middle" font-size="12" font-weight="600" fill="white">3 violations / 5-min window &#8594; agent disabled</text>
 
-  <line x1="360" y1="186" x2="360" y2="202" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
-  <text x="374" y="196" font-size="11" fill="#e2e8f0">allowed</text>
+  <line x1="360" y1="184" x2="360" y2="200" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+  <text x="374" y="194" font-size="11" fill="#e2e8f0">allowed</text>
 
   <!-- 2. Rate Limiter -->
-  <rect x="130" y="206" width="460" height="52" rx="8" fill="#b45309" filter="url(#sh)"/>
-  <text x="360" y="228" text-anchor="middle" font-size="14" font-weight="700" fill="white">② Rate Limiter</text>
-  <text x="360" y="248" text-anchor="middle" font-size="12" font-weight="600" fill="white">Token bucket: 100 req/sec sustained  |  200 burst</text>
+  <rect x="130" y="204" width="460" height="52" rx="8" fill="#b45309" filter="url(#sh)"/>
+  <text x="360" y="226" text-anchor="middle" font-size="14" font-weight="700" fill="white">&#9313; Rate Limiter</text>
+  <text x="360" y="246" text-anchor="middle" font-size="12" font-weight="600" fill="white">Token bucket: 100 req/sec  |  200 burst</text>
 
-  <line x1="360" y1="260" x2="360" y2="276" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
-  <text x="374" y="270" font-size="11" fill="#e2e8f0">within limit</text>
+  <line x1="360" y1="258" x2="360" y2="274" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+  <text x="374" y="268" font-size="11" fill="#e2e8f0">within limit</text>
 
   <!-- 3. INPUT Guardrail -->
-  <rect x="46" y="280" width="628" height="84" rx="8" fill="#4338ca" filter="url(#sh)"/>
-  <text x="360" y="302" text-anchor="middle" font-size="14" font-weight="700" fill="white">③ INPUT Guardrail  (Bedrock API)</text>
-  <!-- Policy chips -->
-  <rect x="66" y="312" width="136" height="34" rx="6" fill="rgba(255,255,255,0.2)"/>
-  <text x="134" y="334" text-anchor="middle" font-size="13" font-weight="700" fill="white">Content</text>
-  <rect x="212" y="312" width="136" height="34" rx="6" fill="rgba(255,255,255,0.2)"/>
-  <text x="280" y="334" text-anchor="middle" font-size="13" font-weight="700" fill="white">PII</text>
-  <rect x="358" y="312" width="136" height="34" rx="6" fill="rgba(255,255,255,0.2)"/>
-  <text x="426" y="334" text-anchor="middle" font-size="13" font-weight="700" fill="white">Topic</text>
-  <rect x="504" y="312" width="136" height="34" rx="6" fill="rgba(255,255,255,0.2)"/>
-  <text x="572" y="334" text-anchor="middle" font-size="13" font-weight="700" fill="white">Word</text>
+  <rect x="46" y="278" width="628" height="84" rx="8" fill="#4338ca" filter="url(#sh)"/>
+  <text x="360" y="300" text-anchor="middle" font-size="14" font-weight="700" fill="white">&#9314; INPUT Guardrail  (bedrock-runtime.apply_guardrail)</text>
+  <rect x="66" y="310" width="136" height="34" rx="6" fill="rgba(255,255,255,0.2)"/>
+  <text x="134" y="332" text-anchor="middle" font-size="13" font-weight="700" fill="white">Content</text>
+  <rect x="212" y="310" width="136" height="34" rx="6" fill="rgba(255,255,255,0.2)"/>
+  <text x="280" y="332" text-anchor="middle" font-size="13" font-weight="700" fill="white">PII</text>
+  <rect x="358" y="310" width="136" height="34" rx="6" fill="rgba(255,255,255,0.2)"/>
+  <text x="426" y="332" text-anchor="middle" font-size="13" font-weight="700" fill="white">Topic</text>
+  <rect x="504" y="310" width="136" height="34" rx="6" fill="rgba(255,255,255,0.2)"/>
+  <text x="572" y="332" text-anchor="middle" font-size="13" font-weight="700" fill="white">Word</text>
 
-  <line x1="360" y1="366" x2="360" y2="382" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
-  <text x="374" y="376" font-size="11" fill="#e2e8f0">safe input</text>
+  <line x1="360" y1="364" x2="360" y2="380" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+  <text x="374" y="374" font-size="11" fill="#e2e8f0">safe input</text>
 
   <!-- 4. Healthcare Agent -->
-  <rect x="130" y="386" width="460" height="56" rx="8" fill="#1d4ed8" filter="url(#sh)"/>
-  <text x="360" y="409" text-anchor="middle" font-size="14" font-weight="700" fill="white">④ Healthcare Agent</text>
-  <text x="360" y="430" text-anchor="middle" font-size="12" font-weight="600" fill="#93c5fd">Nova Lite  |  lookup_symptoms()</text>
+  <rect x="130" y="384" width="460" height="56" rx="8" fill="#1d4ed8" filter="url(#sh)"/>
+  <text x="360" y="407" text-anchor="middle" font-size="14" font-weight="700" fill="white">&#9315; Healthcare Agent</text>
+  <text x="360" y="428" text-anchor="middle" font-size="12" font-weight="600" fill="#93c5fd">Strands + Nova Lite  |  lookup_symptoms()</text>
 
-  <line x1="360" y1="444" x2="360" y2="460" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
-  <text x="374" y="454" font-size="11" fill="#e2e8f0">agent response</text>
+  <line x1="360" y1="442" x2="360" y2="458" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+  <text x="374" y="452" font-size="11" fill="#e2e8f0">agent response</text>
 
-  <!-- 5. OUTPUT Guardrail -->
-  <rect x="130" y="464" width="460" height="46" rx="8" fill="#4338ca" filter="url(#sh)"/>
-  <text x="360" y="492" text-anchor="middle" font-size="14" font-weight="700" fill="white">⑤ OUTPUT Guardrail  (same 4 policies)</text>
+  <!-- 5. Model Evaluation -->
+  <rect x="130" y="462" width="460" height="52" rx="8" fill="#7c3aed" filter="url(#sh)"/>
+  <text x="360" y="484" text-anchor="middle" font-size="14" font-weight="700" fill="white">&#9316; Model Evaluation  (LLM-as-Judge)</text>
+  <text x="360" y="503" text-anchor="middle" font-size="12" font-weight="600" fill="white">Claude Sonnet  |  relevance / accuracy / safety / completeness</text>
 
-  <line x1="360" y1="512" x2="360" y2="528" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
-  <text x="374" y="522" font-size="11" fill="#e2e8f0">safe output</text>
+  <line x1="360" y1="516" x2="360" y2="532" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+  <text x="374" y="526" font-size="11" fill="#e2e8f0">scores + metrics</text>
 
-  <!-- 6. Model Evaluation -->
-  <rect x="130" y="532" width="460" height="46" rx="8" fill="#7c3aed" filter="url(#sh)"/>
-  <text x="360" y="560" text-anchor="middle" font-size="14" font-weight="700" fill="white">⑥ Model Evaluation  (LLM-as-Judge: Claude Sonnet)</text>
+  <!-- CloudWatch -->
+  <rect x="130" y="536" width="460" height="40" rx="8" fill="#b45309" filter="url(#sh)"/>
+  <text x="360" y="561" text-anchor="middle" font-size="13" font-weight="700" fill="white">CloudWatch Dashboard + Audit Log</text>
 
-  <line x1="360" y1="580" x2="360" y2="596" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
-  <text x="374" y="590" font-size="11" fill="#e2e8f0">input + response</text>
+  <line x1="360" y1="578" x2="360" y2="594" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
 
-  <!-- CloudWatch Dashboard -->
-  <rect x="130" y="600" width="460" height="44" rx="8" fill="#b45309" filter="url(#sh)"/>
-  <text x="360" y="627" text-anchor="middle" font-size="13" font-weight="700" fill="white">CloudWatch Dashboard + Audit Log</text>
+  <!-- Safe Response -->
+  <rect x="250" y="598" width="220" height="38" rx="19" fill="#059669" filter="url(#sh)"/>
+  <text x="360" y="622" text-anchor="middle" font-size="14" font-weight="700" fill="white">Safe Response</text>
 
-  <line x1="360" y1="646" x2="360" y2="662" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
-  <text x="374" y="656" font-size="11" fill="#e2e8f0">eval scores</text>
-
-  <!-- Safe Response pill -->
-  <rect x="250" y="666" width="220" height="42" rx="21" fill="#059669" filter="url(#sh)"/>
-  <text x="360" y="692" text-anchor="middle" font-size="14" font-weight="700" fill="white">Safe Response</text>
+  <!-- Note -->
+  <text x="360" y="658" text-anchor="middle" font-size="11" fill="#64748b">Output-side guardrail scanning introduced in the exercise</text>
 
   <!-- Legend -->
-  <rect x="134" y="728" width="14" height="14" rx="3" fill="#b91c1c"/>
-  <text x="153" y="740" font-size="12" fill="#cbd5e1">Kill Switch</text>
-  <rect x="248" y="728" width="14" height="14" rx="3" fill="#4338ca"/>
-  <text x="267" y="740" font-size="12" fill="#cbd5e1">Guardrail</text>
-  <rect x="352" y="728" width="14" height="14" rx="3" fill="#1d4ed8"/>
-  <text x="371" y="740" font-size="12" fill="#cbd5e1">Agent</text>
-  <rect x="420" y="728" width="14" height="14" rx="3" fill="#7c3aed"/>
-  <text x="439" y="740" font-size="12" fill="#cbd5e1">Evaluation</text>
-  <rect x="524" y="728" width="14" height="14" rx="3" fill="#b45309"/>
-  <text x="543" y="740" font-size="12" fill="#cbd5e1">Monitoring</text>
+  <rect x="134" y="674" width="12" height="12" rx="2" fill="#b91c1c"/>
+  <text x="151" y="684" font-size="11" fill="#cbd5e1">Kill Switch</text>
+  <rect x="240" y="674" width="12" height="12" rx="2" fill="#4338ca"/>
+  <text x="257" y="684" font-size="11" fill="#cbd5e1">Guardrail</text>
+  <rect x="340" y="674" width="12" height="12" rx="2" fill="#1d4ed8"/>
+  <text x="357" y="684" font-size="11" fill="#cbd5e1">Agent</text>
+  <rect x="410" y="674" width="12" height="12" rx="2" fill="#7c3aed"/>
+  <text x="427" y="684" font-size="11" fill="#cbd5e1">Evaluation</text>
+  <rect x="520" y="674" width="12" height="12" rx="2" fill="#b45309"/>
+  <text x="537" y="684" font-size="11" fill="#cbd5e1">Monitoring</text>
 </svg>
