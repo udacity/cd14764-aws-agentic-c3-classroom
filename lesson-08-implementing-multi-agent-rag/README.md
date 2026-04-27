@@ -40,7 +40,7 @@ This script reads the KB IDs from the CloudFormation outputs automatically and u
 | Drug Interactions     | `s3://<bucket>/drugs/`      |
 | Clinical Guidelines   | `s3://<bucket>/guidelines/` |
 
-Any PDFs or `.txt` files in the corresponding domain work — a half-dozen per KB is enough. Sample document sets are referenced at the top of each `*_rag.py` file (the `CS_PAPERS`/`BIO_PAPERS` arrays describe what each KB should contain).
+The seed script uploads all documents automatically — no manual file creation needed.
 
 **4. Create each Knowledge Base** in the AWS Console:
 
@@ -104,8 +104,5 @@ This lesson is the most expensive to leave running because Bedrock Knowledge Bas
 
 1. **Delete the Knowledge Bases manually** (Bedrock cannot delete them via CloudFormation). In the AWS Console:
    - Bedrock → Knowledge Bases → select each KB you created (CS Papers, Biology Papers, Drug Interactions, Clinical Guidelines) → Delete
-2. **Delete the CloudFormation stack** (removes the S3 source bucket; you may need to empty it first):
-   ```bash
-   aws cloudformation delete-stack --stack-name lesson-08-rag
-   ```
+2. **Delete the CloudFormation stack** — AWS Console → CloudFormation → select `lesson-08-rag` → Delete. Empty the S3 bucket first if prompted.
 3. **Optional:** delete the S3 Vectors index from the bucket the KB used (the console KB-deletion step usually does this for you).
