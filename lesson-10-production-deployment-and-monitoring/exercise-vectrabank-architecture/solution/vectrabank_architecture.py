@@ -81,11 +81,9 @@ VECTRABANK_RUNTIME_CONFIG = {
     "roleArn": _ROLE_ARN,
 
     "networkConfiguration": {
-        "networkMode": "VPC",  # Financial services = internal only
-        "networkModeConfig": {
-            "securityGroups": ["sg-agentcore-prod"],
-            "subnets": ["subnet-private-1a", "subnet-private-1b"],
-        },
+        # In production: VPC mode with real subnet/security group IDs.
+        # Lab uses PUBLIC mode — no VPC resources provisioned here.
+        "networkMode": "PUBLIC",
     },
 
     "protocolConfiguration": {
@@ -438,10 +436,8 @@ def main():
     print(f"{'━' * 70}")
     cfg = VECTRABANK_RUNTIME_CONFIG
     print(f"  Runtime:  {cfg['agentRuntimeName']}")
-    print(f"  Network:  {cfg['networkConfiguration']['networkMode']} (VPC -- financial services)")
-    vpc = cfg["networkConfiguration"]["networkModeConfig"]
-    print(f"    Subnets: {', '.join(vpc['subnets'])}")
-    print(f"    Security Groups: {', '.join(vpc['securityGroups'])}")
+    print(f"  Network:  {cfg['networkConfiguration']['networkMode']}")
+    print(f"  Note:     Production deploys use VPC mode with private subnets")
     print(f"  Protocol: {cfg['protocolConfiguration']['serverProtocol']}")
     print(f"  Guardrail: {cfg['guardrailConfiguration']['guardrailIdentifier']} "
           f"v{cfg['guardrailConfiguration']['guardrailVersion']}")
