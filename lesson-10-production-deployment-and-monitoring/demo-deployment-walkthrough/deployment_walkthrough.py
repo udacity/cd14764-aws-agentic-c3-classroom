@@ -9,48 +9,82 @@ for a multi-agent system. It covers:
   2. Deployment pipeline (agents → guardrails → runtime → memory → observability)
   3. Monitoring strategy (CloudWatch metrics, X-Ray tracing)
   4. Cost estimation for a 10,000 req/day system
+  5. Real AgentCore Runtime deployment (create_agent_runtime API call)
 
-This is a CONFIGURATION AND PLANNING demo — the code defines and prints
-deployment configs, NOT running agents. Students learn what decisions to
-make BEFORE deploying their capstone project.
+This demo defines configs, prints them for review, then deploys to
+Amazon Bedrock AgentCore Runtime using the real control-plane API.
 
 Tech Stack:
-  - Python 3.11+ (configuration definitions)
-  - Amazon Bedrock AgentCore Runtime (simulated configs)
-  - Amazon CloudWatch, X-Ray (simulated monitoring configs)
+  - Python 3.11+ with boto3
+  - Amazon Bedrock AgentCore Runtime (bedrock-agentcore-control client)
+  - Amazon CloudWatch, X-Ray (monitoring configs)
   - AWS Cost estimation
 """
 
+import io
 import json
 import os
-from datetime import datetime
+import zipfile
+import boto3
 from dotenv import load_dotenv
 
 load_dotenv()
+
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+
+
+# ─────────────────────────────────────────────────────────
+# CLOUDFORMATION HELPER — auto-discover lab resources
+# Same pattern as the capstone project's config.py
+# ─────────────────────────────────────────────────────────
+def _load_cf_exports(project_name: str = "udacity-agentcore") -> dict:
+    """Load CloudFormation stack exports (works in Udacity lab automatically)."""
+    try:
+        cf = boto3.client("cloudformation", region_name=AWS_REGION)
+        exports = {}
+        paginator = cf.get_paginator("list_exports")
+        for page in paginator.paginate():
+            for export in page["Exports"]:
+                exports[export["Name"]] = export["Value"]
+        return exports
+    except Exception:
+        return {}
+
+_CF = _load_cf_exports()
 
 
 # ═══════════════════════════════════════════════════════
 # STEP 1: AgentCore RUNTIME CONFIGURATION
 #
-# Production equivalent:
-#   agentcore = boto3.client('bedrock-agentcore')
-#   response = agentcore.create_agent_runtime(
+# Real API call (Step 6 of this demo deploys this config):
+#   agentcore_control = boto3.client('bedrock-agentcore-control')
+#   response = agentcore_control.create_agent_runtime(
 #       agentRuntimeName='insurance-claims-runtime',
-#       roleArn='arn:aws:iam::123456789:role/AgentCoreRole',
+#       roleArn=AGENTCORE_ROLE_ARN,
 #       networkConfiguration={'networkMode': 'PUBLIC'},
 #       protocolConfiguration={'serverProtocol': 'MCP'},
-#       guardrailConfiguration={
-#           'guardrailIdentifier': 'gr-insurance-claims',
-#           'guardrailVersion': '1'
-#       },
+#       agentRuntimeArtifact={'s3Location': {...}},
 #       environmentVariables={...}
 #   )
+#   # guardrailConfiguration injected via before-call event hook (SDK workaround)
 # ═══════════════════════════════════════════════════════
+
+# Discover lab resources from CloudFormation exports (auto-populated in Udacity lab)
+_ROLE_ARN = (
+    _CF.get("udacity-agentcore-AgentCoreRoleArn")
+    or os.environ.get("AGENTCORE_ROLE_ARN", "arn:aws:iam::ACCOUNT_ID:role/AgentCoreRole")
+)
+_S3_BUCKET = (
+    _CF.get("udacity-agentcore-PolicyBucket")
+    or os.environ.get("S3_ARTIFACT_BUCKET", "udacity-agentcore-bucket-ACCOUNT_ID")
+)
+_GUARDRAIL_ID      = os.environ.get("GUARDRAIL_ID", "gr-insurance-claims")
+_GUARDRAIL_VERSION = os.environ.get("GUARDRAIL_VERSION", "DRAFT")
 
 RUNTIME_CONFIG = {
     "agentRuntimeName": "insurance-claims-runtime",
     "description": "Multi-agent system for insurance claims processing",
-    "roleArn": "arn:aws:iam::123456789012:role/AgentCoreExecutionRole",
+    "roleArn": _ROLE_ARN,
 
     # Network mode: PUBLIC (internet-facing) vs VPC (internal only)
     "networkConfiguration": {
@@ -70,9 +104,10 @@ RUNTIME_CONFIG = {
     },
 
     # Guardrails attached at runtime level (applies to ALL agents)
+    # Note: injected via before-call event hook in deploy_to_agentcore() — see Step 6
     "guardrailConfiguration": {
-        "guardrailIdentifier": "gr-insurance-claims",
-        "guardrailVersion": "1",
+        "guardrailIdentifier": _GUARDRAIL_ID,
+        "guardrailVersion": _GUARDRAIL_VERSION,
     },
 
     # Environment variables — NO hardcoded IDs in agent code
@@ -298,6 +333,133 @@ def estimate_monthly_costs(agents: list, days: int = 30) -> dict:
 
 
 # ═══════════════════════════════════════════════════════
+# STEP 6: REAL AgentCore RUNTIME DEPLOYMENT
+#
+# Three SDK compatibility workarounds for the current
+# Amazon Bedrock AgentCore SDK version:
+#
+#   WORKAROUND 1 — guardrailConfiguration injection
+#     The create_agent_runtime SDK schema does not include
+#     guardrailConfiguration in its input shape yet.
+#     Solution: register a before-call event hook that patches
+#     the request params before they are serialised.
+#
+#   WORKAROUND 2 — agentRuntimeArtifact (deployment.zip)
+#     The API requires an agentRuntimeArtifact pointing to a
+#     zip file on S3.  We build a minimal placeholder in memory
+#     and upload it — no local filesystem writes needed.
+#
+#   WORKAROUND 3 — put_agent_runtime_logging_configuration
+#     This method may be absent in older botocore versions.
+#     Wrap it in try/except so the rest of deployment succeeds
+#     even if the logging call fails.
+# ═══════════════════════════════════════════════════════
+
+def deploy_to_agentcore() -> str:
+    """
+    Deploy the insurance-claims runtime to Amazon Bedrock AgentCore.
+    Uses the three SDK compatibility workarounds described above.
+    Returns the runtime ARN.
+    """
+    agentcore_control = boto3.client("bedrock-agentcore-control", region_name=AWS_REGION)
+    s3_client         = boto3.client("s3",                        region_name=AWS_REGION)
+
+    runtime_name = RUNTIME_CONFIG["agentRuntimeName"]
+
+    # ── Check if runtime already exists ───────────────────────────────────
+    try:
+        existing = agentcore_control.list_agent_runtimes()
+        for r in existing.get("agentRuntimes", []):
+            if r["agentRuntimeName"] == runtime_name:
+                print(f"  Runtime already exists: {r['agentRuntimeArn']}")
+                return r["agentRuntimeArn"]
+    except Exception as e:
+        print(f"  [Note] Could not check existing runtimes: {e}")
+
+    # ── WORKAROUND 1: STS role fetch + before-call event hook ─────────────
+    # Get caller identity to confirm account (and for logging)
+    sts        = boto3.client("sts", region_name=AWS_REGION)
+    account_id = sts.get_caller_identity()["Account"]
+    print(f"  AWS Account: {account_id}  |  Region: {AWS_REGION}")
+
+    # The SDK's CreateAgentRuntime input shape does not yet include
+    # guardrailConfiguration — inject it via a before-call event hook.
+    guardrail_config = {
+        "guardrailIdentifier": _GUARDRAIL_ID,
+        "guardrailVersion":    _GUARDRAIL_VERSION,
+    }
+
+    def _inject_guardrail(params, **kwargs):
+        params["guardrailConfiguration"] = guardrail_config
+
+    agentcore_control.meta.events.register(
+        "before-call.bedrock-agentcore-control.CreateAgentRuntime",
+        _inject_guardrail,
+    )
+    print(f"  Guardrail hook registered: {_GUARDRAIL_ID} (v{_GUARDRAIL_VERSION})")
+
+    # ── WORKAROUND 2: Dummy deployment.zip → S3 ───────────────────────────
+    # AgentCore Runtime requires an S3 artifact; build a minimal zip in memory.
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("main.py", "# AgentCore Runtime entry point\n")
+    zip_buffer.seek(0)
+
+    artifact_key = f"agentcore-artifacts/{runtime_name}/deployment.zip"
+    s3_client.put_object(
+        Bucket=_S3_BUCKET,
+        Key=artifact_key,
+        Body=zip_buffer.getvalue(),
+        ContentType="application/zip",
+    )
+    print(f"  Artifact uploaded: s3://{_S3_BUCKET}/{artifact_key}")
+
+    # ── DEPLOY ──────────────────────────────────────────────────────────────
+    print(f"  Calling create_agent_runtime...")
+    response = agentcore_control.create_agent_runtime(
+        agentRuntimeName=runtime_name,
+        description=RUNTIME_CONFIG["description"],
+        roleArn=RUNTIME_CONFIG["roleArn"],
+        networkConfiguration=RUNTIME_CONFIG["networkConfiguration"],
+        protocolConfiguration=RUNTIME_CONFIG["protocolConfiguration"],
+        agentRuntimeArtifact={
+            "s3Location": {
+                "bucketName": _S3_BUCKET,
+                "objectKey":  artifact_key,
+            }
+        },
+        environmentVariables=RUNTIME_CONFIG["environmentVariables"],
+    )
+
+    runtime_arn = response.get("agentRuntimeArn", response.get("arn", ""))
+    print(f"  Runtime ARN: {runtime_arn}")
+
+    # ── WORKAROUND 3: try/except on logging configuration ─────────────────
+    # put_agent_runtime_logging_configuration may not exist in older botocore.
+    try:
+        runtime_id = runtime_arn.split("/")[-1]
+        agentcore_control.put_agent_runtime_logging_configuration(
+            agentRuntimeId=runtime_id,
+            loggingConfiguration={
+                "cloudWatchConfig": {
+                    "logGroupName": f"/aws/agentcore/{runtime_name}",
+                    "logLevel":     "INFO",
+                    "enabled":      True,
+                },
+                "xRayConfig": {
+                    "enabled":      True,
+                    "samplingRate": MONITORING_STRATEGY["xray_tracing"]["sampling_rate"],
+                },
+            },
+        )
+        print(f"  Observability configured: CloudWatch + X-Ray")
+    except Exception as e:
+        print(f"  [Note] Logging config skipped (SDK version mismatch): {e}")
+
+    return runtime_arn
+
+
+# ═══════════════════════════════════════════════════════
 # MAIN
 # ═══════════════════════════════════════════════════════
 
@@ -376,6 +538,19 @@ def main():
         daily_str = f" ({daily:,}/day)" if daily else ""
         print(f"  {name:<25s} {model:<40s} ${cost:>10.2f}{daily_str}")
 
+    # ── Step 6: Real AgentCore Deployment ──
+    print(f"\n{'━' * 70}")
+    print("  6. Deploy to AgentCore Runtime (Real API Call)")
+    print(f"{'━' * 70}")
+    print(f"\n  Role ARN:    {_ROLE_ARN}")
+    print(f"  S3 Bucket:   {_S3_BUCKET}")
+    print(f"  Guardrail:   {_GUARDRAIL_ID} (v{_GUARDRAIL_VERSION})")
+    print(f"\n  [Workaround 1] Registering before-call hook for guardrailConfiguration")
+    print(f"  [Workaround 2] Building deployment.zip in memory → uploading to S3")
+    print(f"  [Workaround 3] try/except wrapper on put_agent_runtime_logging_configuration")
+    print()
+    runtime_arn = deploy_to_agentcore()
+
     # ── Key Takeaways ──
     print(f"\n{'━' * 70}")
     print("  Key Takeaways")
@@ -385,7 +560,9 @@ def main():
     print(f"  3. MONITORING — dashboard (4 widgets), alarms (error rate, latency), X-Ray")
     print(f"  4. COST MANAGEMENT — model selection is the biggest cost driver")
     print(f"     Multi-model strategy (Lite for routing, Sonnet for analysis) saves ~60%")
-    print(f"  5. ENV VARS — no hardcoded IDs; same code deploys to dev/staging/prod\n")
+    print(f"  5. ENV VARS — no hardcoded IDs; same code deploys to dev/staging/prod")
+    print(f"  6. SDK WORKAROUNDS — 3 patches for current AgentCore SDK version")
+    print(f"     Runtime ARN: {runtime_arn}\n")
 
 
 if __name__ == "__main__":

@@ -9,6 +9,7 @@ This exercise creates a deployment architecture plan for the capstone project
   2. Monitoring strategy with metrics and thresholds
   3. Monthly cost estimates
   4. Operational runbook for incidents
+  5. Real AgentCore Runtime deployment (create_agent_runtime API call)
 
 Same planning pattern as the demo (deployment_walkthrough.py),
 with additions:
@@ -18,16 +19,52 @@ with additions:
   4. COST OPTIMIZATION — model selection recommendations
 
 Tech Stack:
-  - Python 3.11+ (configuration definitions)
-  - Amazon Bedrock AgentCore Runtime (planned configs)
-  - Amazon CloudWatch, X-Ray (planned monitoring)
+  - Python 3.11+ with boto3
+  - Amazon Bedrock AgentCore Runtime (bedrock-agentcore-control client)
+  - Amazon CloudWatch, X-Ray (monitoring configs)
 """
 
+import io
 import json
 import os
+import zipfile
+import boto3
 from dotenv import load_dotenv
 
 load_dotenv()
+
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+
+
+# ─────────────────────────────────────────────────────────
+# CLOUDFORMATION HELPER — auto-discover lab resources
+# ─────────────────────────────────────────────────────────
+def _load_cf_exports(project_name: str = "udacity-agentcore") -> dict:
+    """Load CloudFormation stack exports (works in Udacity lab automatically)."""
+    try:
+        cf = boto3.client("cloudformation", region_name=AWS_REGION)
+        exports = {}
+        paginator = cf.get_paginator("list_exports")
+        for page in paginator.paginate():
+            for export in page["Exports"]:
+                exports[export["Name"]] = export["Value"]
+        return exports
+    except Exception:
+        return {}
+
+_CF = _load_cf_exports()
+
+# Discover lab resources from CloudFormation exports
+_ROLE_ARN = (
+    _CF.get("udacity-agentcore-AgentCoreRoleArn")
+    or os.environ.get("AGENTCORE_ROLE_ARN", "arn:aws:iam::ACCOUNT_ID:role/AgentCoreRole")
+)
+_S3_BUCKET = (
+    _CF.get("udacity-agentcore-PolicyBucket")
+    or os.environ.get("S3_ARTIFACT_BUCKET", "udacity-agentcore-bucket-ACCOUNT_ID")
+)
+_GUARDRAIL_ID      = os.environ.get("GUARDRAIL_ID", "gr-vectrabank-compliance")
+_GUARDRAIL_VERSION = os.environ.get("GUARDRAIL_VERSION", "DRAFT")
 
 
 # ═══════════════════════════════════════════════════════
@@ -37,7 +74,7 @@ load_dotenv()
 VECTRABANK_RUNTIME_CONFIG = {
     "agentRuntimeName": "vectrabank-financial-services",
     "description": "Multi-agent financial services system with RAG, guardrails, and compliance",
-    "roleArn": "arn:aws:iam::ACCOUNT_ID:role/VectraBankAgentCoreRole",
+    "roleArn": _ROLE_ARN,
 
     "networkConfiguration": {
         "networkMode": "VPC",  # Financial services = internal only
@@ -52,9 +89,10 @@ VECTRABANK_RUNTIME_CONFIG = {
         "serverProtocol": "MCP",
     },
 
+    # Note: injected via before-call event hook in deploy_to_agentcore() — see Step 5
     "guardrailConfiguration": {
-        "guardrailIdentifier": "gr-vectrabank-compliance",
-        "guardrailVersion": "1",
+        "guardrailIdentifier": _GUARDRAIL_ID,
+        "guardrailVersion": _GUARDRAIL_VERSION,
     },
 
     "environmentVariables": {
@@ -275,6 +313,119 @@ OPERATIONAL_RUNBOOK = {
 
 
 # ═══════════════════════════════════════════════════════
+#  STEP 5: REAL AgentCore RUNTIME DEPLOYMENT
+#
+#  Three SDK compatibility workarounds (same as demo):
+#
+#   WORKAROUND 1 — guardrailConfiguration injection via before-call event hook
+#   WORKAROUND 2 — dummy deployment.zip built in memory, uploaded to S3
+#   WORKAROUND 3 — try/except on put_agent_runtime_logging_configuration
+#
+#  VectraBank specifics vs demo:
+#   - VPC network mode (financial services — internal only)
+#   - Stricter X-Ray sampling (10% vs 5%) for SEC/FINRA audit trail
+# ═══════════════════════════════════════════════════════
+
+def deploy_to_agentcore() -> str:
+    """
+    Deploy the VectraBank runtime to Amazon Bedrock AgentCore.
+    Uses the three SDK compatibility workarounds documented above.
+    Returns the runtime ARN.
+    """
+    agentcore_control = boto3.client("bedrock-agentcore-control", region_name=AWS_REGION)
+    s3_client         = boto3.client("s3",                        region_name=AWS_REGION)
+
+    runtime_name = VECTRABANK_RUNTIME_CONFIG["agentRuntimeName"]
+
+    # ── Check if runtime already exists ───────────────────────────────────
+    try:
+        existing = agentcore_control.list_agent_runtimes()
+        for r in existing.get("agentRuntimes", []):
+            if r["agentRuntimeName"] == runtime_name:
+                print(f"  Runtime already exists: {r['agentRuntimeArn']}")
+                return r["agentRuntimeArn"]
+    except Exception as e:
+        print(f"  [Note] Could not check existing runtimes: {e}")
+
+    # ── WORKAROUND 1: STS role fetch + before-call event hook ─────────────
+    sts        = boto3.client("sts", region_name=AWS_REGION)
+    account_id = sts.get_caller_identity()["Account"]
+    print(f"  AWS Account: {account_id}  |  Region: {AWS_REGION}")
+
+    guardrail_config = {
+        "guardrailIdentifier": _GUARDRAIL_ID,
+        "guardrailVersion":    _GUARDRAIL_VERSION,
+    }
+
+    def _inject_guardrail(params, **kwargs):
+        params["guardrailConfiguration"] = guardrail_config
+
+    agentcore_control.meta.events.register(
+        "before-call.bedrock-agentcore-control.CreateAgentRuntime",
+        _inject_guardrail,
+    )
+    print(f"  Guardrail hook registered: {_GUARDRAIL_ID} (v{_GUARDRAIL_VERSION})")
+
+    # ── WORKAROUND 2: Dummy deployment.zip → S3 ───────────────────────────
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("main.py", "# VectraBank AgentCore Runtime entry point\n")
+    zip_buffer.seek(0)
+
+    artifact_key = f"agentcore-artifacts/{runtime_name}/deployment.zip"
+    s3_client.put_object(
+        Bucket=_S3_BUCKET,
+        Key=artifact_key,
+        Body=zip_buffer.getvalue(),
+        ContentType="application/zip",
+    )
+    print(f"  Artifact uploaded: s3://{_S3_BUCKET}/{artifact_key}")
+
+    # ── DEPLOY ──────────────────────────────────────────────────────────────
+    print(f"  Calling create_agent_runtime...")
+    response = agentcore_control.create_agent_runtime(
+        agentRuntimeName=runtime_name,
+        description=VECTRABANK_RUNTIME_CONFIG["description"],
+        roleArn=VECTRABANK_RUNTIME_CONFIG["roleArn"],
+        networkConfiguration=VECTRABANK_RUNTIME_CONFIG["networkConfiguration"],
+        protocolConfiguration=VECTRABANK_RUNTIME_CONFIG["protocolConfiguration"],
+        agentRuntimeArtifact={
+            "s3Location": {
+                "bucketName": _S3_BUCKET,
+                "objectKey":  artifact_key,
+            }
+        },
+        environmentVariables=VECTRABANK_RUNTIME_CONFIG["environmentVariables"],
+    )
+
+    runtime_arn = response.get("agentRuntimeArn", response.get("arn", ""))
+    print(f"  Runtime ARN: {runtime_arn}")
+
+    # ── WORKAROUND 3: try/except on logging configuration ─────────────────
+    try:
+        runtime_id = runtime_arn.split("/")[-1]
+        agentcore_control.put_agent_runtime_logging_configuration(
+            agentRuntimeId=runtime_id,
+            loggingConfiguration={
+                "cloudWatchConfig": {
+                    "logGroupName": f"/aws/agentcore/{runtime_name}",
+                    "logLevel":     "INFO",
+                    "enabled":      True,
+                },
+                "xRayConfig": {
+                    "enabled":      True,
+                    "samplingRate": VECTRABANK_MONITORING["xray_tracing"]["sampling_rate"],
+                },
+            },
+        )
+        print(f"  Observability configured: CloudWatch + X-Ray (10% sampling)")
+    except Exception as e:
+        print(f"  [Note] Logging config skipped (SDK version mismatch): {e}")
+
+    return runtime_arn
+
+
+# ═══════════════════════════════════════════════════════
 #  MAIN
 # ═══════════════════════════════════════════════════════
 
@@ -350,6 +501,19 @@ def main():
         for step in runbook["steps"]:
             print(f"    {step}")
 
+    # ── Step 5: Real AgentCore Deployment ──
+    print(f"\n{'━' * 70}")
+    print("  5. Deploy to AgentCore Runtime (Real API Call)")
+    print(f"{'━' * 70}")
+    print(f"\n  Role ARN:    {_ROLE_ARN}")
+    print(f"  S3 Bucket:   {_S3_BUCKET}")
+    print(f"  Guardrail:   {_GUARDRAIL_ID} (v{_GUARDRAIL_VERSION})")
+    print(f"\n  [Workaround 1] Registering before-call hook for guardrailConfiguration")
+    print(f"  [Workaround 2] Building deployment.zip in memory → uploading to S3")
+    print(f"  [Workaround 3] try/except wrapper on put_agent_runtime_logging_configuration")
+    print()
+    runtime_arn = deploy_to_agentcore()
+
     # ── Key Takeaways ──
     print(f"\n{'━' * 70}")
     print("  Key Takeaways")
@@ -357,8 +521,10 @@ def main():
     print(f"  1. VPC NETWORK MODE — financial services agents stay internal")
     print(f"  2. MULTI-MODEL COST OPTIMIZATION — Lite for routing/retrieval, Sonnet for synthesis")
     print(f"  3. STRICTER THRESHOLDS — 2% error rate (vs 5% in demo) for financial compliance")
-    print(f"  4. OPERATIONAL RUNBOOK — deploy, rollback, kill switch, latency procedures (NEW)")
-    print(f"  5. AUDIT TRAIL — X-Ray at 10% sampling + full guardrail audit log\n")
+    print(f"  4. OPERATIONAL RUNBOOK — deploy, rollback, kill switch, latency procedures")
+    print(f"  5. AUDIT TRAIL — X-Ray at 10% sampling + full guardrail audit log")
+    print(f"  6. SDK WORKAROUNDS — same 3 patches; apply to your capstone project")
+    print(f"     Runtime ARN: {runtime_arn}\n")
 
 
 if __name__ == "__main__":
