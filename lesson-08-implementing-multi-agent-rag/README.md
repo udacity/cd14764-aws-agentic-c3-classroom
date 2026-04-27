@@ -10,19 +10,19 @@ Bedrock Knowledge Bases cannot be created via CloudFormation today, so they are 
 
 > **Region note:** Bedrock Knowledge Bases require **us-west-2** (Oregon) or **us-east-1** (N. Virginia). us-west-1 is not supported. All commands below use us-west-2.
 
-**1. Deploy the S3 source bucket (CloudFormation):**
+**1. Install dependencies:**
 
 ```bash
-cd lesson-08-implementing-multi-agent-rag/infrastructure
-aws cloudformation deploy \
-  --template-file stack.yaml \
-  --stack-name lesson-08-rag \
-  --capabilities CAPABILITY_IAM
+pip install -r requirements.txt
 ```
 
-Note the `KBSourceBucketName` output — you'll use it as the data source for every KB.
+**2. Deploy the S3 source bucket (CloudFormation console):**
 
-**2. Seed documents into S3:**
+- Open AWS Console → CloudFormation → Create stack → Upload a template file
+- Select `infrastructure/stack.yaml` → Stack name: `lesson-08-rag` → Create stack
+- Wait for `CREATE_COMPLETE`, then note the `KBSourceBucketName` in the Outputs tab
+
+**3. Seed documents into S3:**
 
 ```bash
 python seed_documents.py
@@ -42,7 +42,7 @@ This script reads the KB IDs from the CloudFormation outputs automatically and u
 
 Any PDFs or `.txt` files in the corresponding domain work — a half-dozen per KB is enough. Sample document sets are referenced at the top of each `*_rag.py` file (the `CS_PAPERS`/`BIO_PAPERS` arrays describe what each KB should contain).
 
-**3. Create each Knowledge Base** in the AWS Console:
+**4. Create each Knowledge Base** in the AWS Console:
 
 1. Open **Amazon Bedrock → Knowledge Bases → Create knowledge base**
 2. Data source: **S3**, pointing at the prefix from the table above
@@ -53,7 +53,7 @@ Any PDFs or `.txt` files in the corresponding domain work — a half-dozen per K
 
 ```bash
 # .env (not committed)
-AWS_REGION=us-east-1
+AWS_REGION=us-west-2
 CS_KB_ID=...
 BIO_KB_ID=...
 DRUG_INTERACTIONS_KB_ID=...
