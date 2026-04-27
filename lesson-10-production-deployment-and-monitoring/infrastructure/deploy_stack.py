@@ -21,6 +21,11 @@ discover them automatically via _load_cf_exports().
 import boto3
 import os
 import time
+from dotenv import load_dotenv
+
+# Load .env from infrastructure/ first, then parent (lesson-10 root)
+load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 AWS_REGION   = os.environ.get("AWS_REGION", "us-east-1")
 STACK_NAME   = "lesson-10-runtime"
