@@ -76,7 +76,7 @@ _GUARDRAIL_VERSION = os.environ.get("GUARDRAIL_VERSION", "DRAFT")
 # ═══════════════════════════════════════════════════════
 
 VECTRABANK_RUNTIME_CONFIG = {
-    "agentRuntimeName": "vectrabank-financial-services",
+    "agentRuntimeName": "vectrabank_financial_services",
     "description": "Multi-agent financial services system with RAG, guardrails, and compliance",
     "roleArn": _ROLE_ARN,
 

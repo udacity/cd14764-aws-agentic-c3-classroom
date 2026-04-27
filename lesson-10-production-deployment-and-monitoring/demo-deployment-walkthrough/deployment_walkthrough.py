@@ -85,7 +85,7 @@ _GUARDRAIL_ID      = os.environ.get("GUARDRAIL_ID", "gr-insurance-claims")
 _GUARDRAIL_VERSION = os.environ.get("GUARDRAIL_VERSION", "DRAFT")
 
 RUNTIME_CONFIG = {
-    "agentRuntimeName": "insurance-claims-runtime",
+    "agentRuntimeName": "insurance_claims_runtime",
     "description": "Multi-agent system for insurance claims processing",
     "roleArn": _ROLE_ARN,
 
