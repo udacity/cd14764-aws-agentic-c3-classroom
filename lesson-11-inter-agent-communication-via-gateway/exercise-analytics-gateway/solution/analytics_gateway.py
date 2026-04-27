@@ -156,6 +156,129 @@ class LambdaGateway:
 # The data that was previously in-memory is now stored in Lambda functions,
 # which are invoked through the gateway's invoke_tool() method.
 
+
+# AGENTCORE GATEWAY API — Production equivalent of LambdaGateway
+# In production, replace LambdaGateway with Amazon Bedrock AgentCore Gateway.
+
+def _get_function_arn(function_name: str) -> str:
+    """Resolve a Lambda function name to its full ARN."""
+    resp = lambda_client.get_function(FunctionName=function_name)
+    return resp["Configuration"]["FunctionArn"]
+
+
+def create_agentcore_gateway(role_arn: str) -> dict:
+    """Create a real AgentCore Gateway and register the analytics Lambda targets.
+
+    Production equivalent of:
+        gateway = LambdaGateway(...)
+        gateway.register_target(...)
+
+    Args:
+        role_arn: IAM role ARN that AgentCore uses to invoke the Lambda functions.
+
+    Returns:
+        dict with gateway_id, gateway_url, and status.
+    """
+    agentcore = boto3.client("bedrock-agentcore-control", region_name=AWS_REGION)
+
+    # create_gateway: managed MCP endpoint, open auth for lab
+    print("  Calling create_gateway...")
+    gw = agentcore.create_gateway(
+        name="analytics_gateway",
+        roleArn=role_arn,
+        protocolType="MCP",
+        authorizerType="NONE",
+        protocolConfiguration={
+            "mcp": {
+                "instructions": (
+                    "Analytics tool gateway. "
+                    "Provides weather, currency conversion, and news tools."
+                ),
+                "searchType": "SEMANTIC",
+            }
+        },
+    )
+    gateway_id = gw["gatewayId"]
+    print(f"    Gateway ID  : {gateway_id}")
+    print(f"    Gateway URL : {gw['gatewayUrl']}")
+    print(f"    Status      : {gw['status']}")
+
+    # create_gateway_target: one call per Lambda backend
+    targets = [
+        {
+            "name": "weather_lambda",
+            "description": "Look up current weather conditions for a given city including temperature, humidity, and wind",
+            "function": WEATHER_FUNCTION,
+            "tool_name": "get_weather",
+            "tool_description": "Get current weather conditions for a city",
+            "param_name": "city",
+            "param_desc": "City name (e.g. Tokyo, London, New York)",
+        },
+        {
+            "name": "currency_lambda",
+            "description": "Convert amounts between currencies using real-time exchange rates",
+            "function": CURRENCY_FUNCTION,
+            "tool_name": "convert_currency",
+            "tool_description": "Convert an amount from one currency to another",
+            "param_name": "amount",
+            "param_desc": "Amount to convert as a number",
+        },
+        {
+            "name": "news_api",
+            "description": "Get latest news headlines by topic including AI, finance, and technology",
+            "function": NEWS_FUNCTION,
+            "tool_name": "get_news",
+            "tool_description": "Get latest news headlines for a topic",
+            "param_name": "topic",
+            "param_desc": "News topic (e.g. ai, finance, technology)",
+        },
+    ]
+
+    print(f"\n  Registering {len(targets)} Gateway targets...")
+    for t in targets:
+        lambda_arn = _get_function_arn(t["function"])
+        resp = agentcore.create_gateway_target(
+            gatewayIdentifier=gateway_id,
+            name=t["name"],
+            description=t["description"],
+            targetConfiguration={
+                "mcp": {
+                    "lambda": {
+                        "lambdaArn": lambda_arn,
+                        "toolSchema": {
+                            "inlinePayload": [
+                                {
+                                    "name": t["tool_name"],
+                                    "description": t["tool_description"],
+                                    "inputSchema": {
+                                        "type": "object",
+                                        "properties": {
+                                            t["param_name"]: {
+                                                "type": "string",
+                                                "description": t["param_desc"],
+                                            }
+                                        },
+                                        "required": [t["param_name"]],
+                                    },
+                                }
+                            ]
+                        },
+                    }
+                }
+            },
+            credentialProviderConfigurations=[
+                {"credentialProviderType": "GATEWAY_IAM_ROLE"}
+            ],
+        )
+        print(f"    [{resp['status']:12s}] {t['name']} → target {resp['targetId']}")
+
+    return {
+        "gateway_id": gateway_id,
+        "gateway_url": gw["gatewayUrl"],
+        "status": gw["status"],
+    }
+
+
 def build_analytics_agent(gateway: LambdaGateway) -> Agent:
     """Build an analytics agent connected to the Gateway."""
 
@@ -328,6 +451,29 @@ def main():
 
     print(f"\n  Gateway Pattern Advantage: register a 4th tool (stock_price) with NO changes to:")
     print(f"    - @tool function definitions\n")
+
+    # ── AgentCore Gateway API (Production) ────────────────────────────────────
+    print(f"{'═' * 70}")
+    print("AgentCore Gateway API (Production)")
+    print(f"{'═' * 70}")
+    print("  Replace LambdaGateway with Amazon Bedrock AgentCore Gateway.")
+    print("  These exact API calls register the same tools on a managed MCP endpoint:\n")
+
+    agentcore_role = os.environ.get("AGENTCORE_ROLE_ARN", "")
+    if not agentcore_role or agentcore_role.startswith("PASTE"):
+        print("  AGENTCORE_ROLE_ARN not set in .env")
+        print("  Run:  python infrastructure/deploy_stack.py")
+        print("  Then paste the printed role ARN into .env as AGENTCORE_ROLE_ARN\n")
+    else:
+        try:
+            result = create_agentcore_gateway(agentcore_role)
+            print(f"\n  AgentCore Gateway is live:")
+            print(f"    Gateway URL : {result['gateway_url']}")
+            print(f"    Status      : {result['status']}")
+            print(f"    Agents connect via MCP at this endpoint — no code changes needed")
+        except Exception as e:
+            print(f"  [{e.__class__.__name__}] {e}")
+            print("  (Check AGENTCORE_ROLE_ARN and that the Lambda stack is deployed)\n")
 
 
 if __name__ == "__main__":

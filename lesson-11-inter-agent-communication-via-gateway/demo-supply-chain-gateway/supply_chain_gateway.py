@@ -257,6 +257,141 @@ If a query doesn't match any tool, say so."""
                  tools=[check_inventory, track_shipment, lookup_supplier, inspect_quality])
 
 
+# STEP 2: AGENTCORE GATEWAY API — Production equivalent of LambdaGateway
+# In production, replace the LambdaGateway class above with Amazon Bedrock
+# AgentCore Gateway. The calls below create the same registry → discover →
+# invoke pattern, managed by AWS over MCP.
+
+def _get_function_arn(function_name: str) -> str:
+    """Resolve a Lambda function name to its full ARN."""
+    resp = lambda_client.get_function(FunctionName=function_name)
+    return resp["Configuration"]["FunctionArn"]
+
+
+def create_agentcore_gateway(role_arn: str) -> dict:
+    """Create a real AgentCore Gateway and register all 4 supply chain Lambda targets.
+
+    Production equivalent of:
+        gateway = LambdaGateway(...)
+        gateway.register_target(...)
+
+    Args:
+        role_arn: IAM role ARN that AgentCore uses to invoke the Lambda functions.
+                  Create this role with deploy_stack.py.
+
+    Returns:
+        dict with gateway_id, gateway_url, and status.
+    """
+    agentcore = boto3.client("bedrock-agentcore-control", region_name=AWS_REGION)
+
+    # ── create_gateway: managed MCP endpoint, open auth for lab ──────────────
+    print("  Calling create_gateway...")
+    gw = agentcore.create_gateway(
+        name="supply_chain_gateway",
+        roleArn=role_arn,
+        protocolType="MCP",
+        authorizerType="NONE",
+        protocolConfiguration={
+            "mcp": {
+                "instructions": (
+                    "Supply chain tool gateway. "
+                    "Provides inventory, shipping, supplier, and quality inspection tools."
+                ),
+                "searchType": "SEMANTIC",
+            }
+        },
+    )
+    gateway_id = gw["gatewayId"]
+    print(f"    Gateway ID  : {gateway_id}")
+    print(f"    Gateway URL : {gw['gatewayUrl']}")
+    print(f"    Status      : {gw['status']}")
+
+    # ── create_gateway_target: one call per Lambda backend ───────────────────
+    # Each target = a Lambda function + inline tool schema (name, description, params).
+    targets = [
+        {
+            "name": "inventory_api",
+            "description": "Check inventory levels, stock counts, and reorder status for warehouse items",
+            "function": INVENTORY_FUNCTION,
+            "tool_name": "check_inventory",
+            "tool_description": "Check inventory levels for a specific warehouse item by ID",
+            "param_name": "item_id",
+            "param_desc": "Item ID (e.g. WIDGET-001), or empty string for all items",
+        },
+        {
+            "name": "shipping_api",
+            "description": "Track shipment status, ETAs, and delivery confirmations by tracking ID",
+            "function": SHIPPING_FUNCTION,
+            "tool_name": "track_shipment",
+            "tool_description": "Track a shipment's current status and estimated delivery date",
+            "param_name": "tracking_id",
+            "param_desc": "Shipment tracking ID (e.g. SHIP-101), or empty string for all",
+        },
+        {
+            "name": "supplier_api",
+            "description": "Look up supplier information, ratings, lead times, and minimum order quantities",
+            "function": SUPPLIER_FUNCTION,
+            "tool_name": "lookup_supplier",
+            "tool_description": "Look up supplier details including rating, lead time, and minimum order",
+            "param_name": "supplier_id",
+            "param_desc": "Supplier ID (e.g. SUP-A), or empty string for all suppliers",
+        },
+        {
+            "name": "quality_inspection_api",
+            "description": "Check quality inspection results, defect rates, and pass/fail status for items",
+            "function": QUALITY_INSPECTION_FUNCTION,
+            "tool_name": "inspect_quality",
+            "tool_description": "Check quality inspection result and defect rate for a warehouse item",
+            "param_name": "item_id",
+            "param_desc": "Item ID (e.g. WIDGET-001), or empty string for all items",
+        },
+    ]
+
+    print(f"\n  Registering {len(targets)} Gateway targets...")
+    for t in targets:
+        lambda_arn = _get_function_arn(t["function"])
+        resp = agentcore.create_gateway_target(
+            gatewayIdentifier=gateway_id,
+            name=t["name"],
+            description=t["description"],
+            targetConfiguration={
+                "mcp": {
+                    "lambda": {
+                        "lambdaArn": lambda_arn,
+                        "toolSchema": {
+                            "inlinePayload": [
+                                {
+                                    "name": t["tool_name"],
+                                    "description": t["tool_description"],
+                                    "inputSchema": {
+                                        "type": "object",
+                                        "properties": {
+                                            t["param_name"]: {
+                                                "type": "string",
+                                                "description": t["param_desc"],
+                                            }
+                                        },
+                                        "required": [t["param_name"]],
+                                    },
+                                }
+                            ]
+                        },
+                    }
+                }
+            },
+            credentialProviderConfigurations=[
+                {"credentialProviderType": "GATEWAY_IAM_ROLE"}
+            ],
+        )
+        print(f"    [{resp['status']:12s}] {t['name']} → target {resp['targetId']}")
+
+    return {
+        "gateway_id": gateway_id,
+        "gateway_url": gw["gatewayUrl"],
+        "status": gw["status"],
+    }
+
+
 TEST_QUERIES = [
     {
         "query": "Check the inventory level for WIDGET-002 Copper Wire",
@@ -343,6 +478,29 @@ def main():
 
     print(f"\n  Key: 1) PLUGIN ARCH — register APIs 2) DYNAMIC DISCOVERY — no code changes")
     print(f"       3) SEMANTIC ROUTING — agent selects by description 4) MULTI-TEAM APIs\n")
+
+    # ── STEP 5: AgentCore Gateway API (Production) ────────────────────────────
+    print(f"{'═' * 70}")
+    print("STEP 5: AgentCore Gateway API (Production)")
+    print(f"{'═' * 70}")
+    print("  Replace LambdaGateway with Amazon Bedrock AgentCore Gateway.")
+    print("  These exact API calls register the same tools on a managed MCP endpoint:\n")
+
+    agentcore_role = os.environ.get("AGENTCORE_ROLE_ARN", "")
+    if not agentcore_role or agentcore_role.startswith("PASTE"):
+        print("  AGENTCORE_ROLE_ARN not set in .env")
+        print("  Run:  python infrastructure/deploy_stack.py")
+        print("  Then paste the printed role ARN into .env as AGENTCORE_ROLE_ARN\n")
+    else:
+        try:
+            result = create_agentcore_gateway(agentcore_role)
+            print(f"\n  AgentCore Gateway is live:")
+            print(f"    Gateway URL : {result['gateway_url']}")
+            print(f"    Status      : {result['status']}")
+            print(f"    Agents connect via MCP at this endpoint — no code changes needed")
+        except Exception as e:
+            print(f"  [{e.__class__.__name__}] {e}")
+            print("  (Check AGENTCORE_ROLE_ARN and that the Lambda stack is deployed)\n")
 
 
 if __name__ == "__main__":

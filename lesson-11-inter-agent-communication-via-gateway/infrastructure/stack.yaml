@@ -209,6 +209,30 @@ Resources:
                   item for sublist in HEADLINES.values() for item in sublist[:1]
               ]}
 
+  # ─────────────────────────────────────────────────────
+  # IAM Role for AgentCore Gateway
+  # ─────────────────────────────────────────────────────
+  AgentCoreGatewayRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-agentcore-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: bedrock-agentcore.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: invoke-lambda
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-*
+
 Outputs:
   InventoryFunctionArn:
     Value: !GetAtt InventoryFunction.Arn
@@ -238,3 +262,7 @@ Outputs:
     Value: !GetAtt NewsFunction.Arn
     Export:
       Name: !Sub ${ProjectName}-news-arn
+  AgentCoreGatewayRoleArn:
+    Value: !GetAtt AgentCoreGatewayRole.Arn
+    Export:
+      Name: !Sub ${ProjectName}-agentcore-role-arn
