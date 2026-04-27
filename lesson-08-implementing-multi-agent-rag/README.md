@@ -28,7 +28,7 @@ pip install -r requirements.txt
 python seed_documents.py
 ```
 
-This script reads the KB IDs from the CloudFormation outputs automatically and uploads all 24 source documents (6 per KB) to the correct S3 prefixes. No manual file creation needed.
+This script reads the bucket name from CloudFormation outputs automatically and uploads all 24 source documents (6 per KB) to the correct S3 prefixes:
 
 | Demo KB            | S3 prefix              |
 |--------------------|------------------------|
@@ -39,8 +39,6 @@ This script reads the KB IDs from the CloudFormation outputs automatically and u
 |-----------------------|-----------------------------|
 | Drug Interactions     | `s3://<bucket>/drugs/`      |
 | Clinical Guidelines   | `s3://<bucket>/guidelines/` |
-
-The seed script uploads all documents automatically — no manual file creation needed.
 
 **4. Create each Knowledge Base** in the AWS Console:
 
