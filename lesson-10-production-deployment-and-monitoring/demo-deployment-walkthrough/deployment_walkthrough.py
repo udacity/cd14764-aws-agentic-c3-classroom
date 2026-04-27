@@ -410,7 +410,7 @@ def deploy_to_agentcore() -> str:
                     }
                 },
                 "runtime": "PYTHON_3_12",
-                "entryPoint": ["main.handler"],
+                "entryPoint": ["main.py"],
             }
         },
         environmentVariables=RUNTIME_CONFIG["environmentVariables"],

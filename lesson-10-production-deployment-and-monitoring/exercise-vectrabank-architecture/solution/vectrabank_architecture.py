@@ -395,7 +395,7 @@ def deploy_to_agentcore() -> str:
                     }
                 },
                 "runtime": "PYTHON_3_12",
-                "entryPoint": ["main.handler"],
+                "entryPoint": ["main.py"],
             }
         },
         environmentVariables=VECTRABANK_RUNTIME_CONFIG["environmentVariables"],
