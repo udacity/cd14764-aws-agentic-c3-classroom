@@ -209,6 +209,29 @@ Resources:
                   item for sublist in HEADLINES.values() for item in sublist[:1]
               ]}
 
+  StockPriceFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-stock-price
+      Runtime: python3.11
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          PRICES = {
+              "AMZN": {"price": 185.23, "change": "+1.2%", "name": "Amazon.com"},
+              "GOOG": {"price": 175.84, "change": "+0.8%", "name": "Alphabet"},
+              "AAPL": {"price": 189.51, "change": "-0.3%", "name": "Apple"},
+              "MSFT": {"price": 415.20, "change": "+1.5%", "name": "Microsoft"},
+              "NVDA": {"price": 875.40, "change": "+2.1%", "name": "NVIDIA"},
+          }
+          def handler(event, context):
+              symbol = event.get("symbol", "").upper()
+              if symbol in PRICES:
+                  return {"status": "ok", "symbol": symbol, **PRICES[symbol]}
+              return {"status": "error", "message": f"Symbol '{symbol}' not found"}
+      Timeout: 10
+
   # ─────────────────────────────────────────────────────
   # IAM Role for AgentCore Gateway
   # ─────────────────────────────────────────────────────
@@ -262,6 +285,10 @@ Outputs:
     Value: !GetAtt NewsFunction.Arn
     Export:
       Name: !Sub ${ProjectName}-news-arn
+  StockPriceFunctionArn:
+    Value: !GetAtt StockPriceFunction.Arn
+    Export:
+      Name: !Sub ${ProjectName}-stock-price-arn
   AgentCoreGatewayRoleArn:
     Value: !GetAtt AgentCoreGatewayRole.Arn
     Export:

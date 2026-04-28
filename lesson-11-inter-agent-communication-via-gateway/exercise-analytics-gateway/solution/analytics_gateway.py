@@ -83,6 +83,7 @@ lambda_client = boto3.client("lambda", region_name=AWS_REGION)
 WEATHER_FUNCTION = os.environ.get("WEATHER_FUNCTION", "lesson-11-gateway-weather")
 CURRENCY_FUNCTION = os.environ.get("CURRENCY_FUNCTION", "lesson-11-gateway-currency")
 NEWS_FUNCTION = os.environ.get("NEWS_FUNCTION", "lesson-11-gateway-news")
+STOCK_PRICE_FUNCTION = os.environ.get("STOCK_PRICE_FUNCTION", "lesson-11-gateway-stock-price")
 
 
 # LAMBDA GATEWAY
@@ -340,8 +341,22 @@ Use the appropriate tool for each query. Report results concisely."""
         result = gateway.invoke_tool("news_api", {"topic": topic})
         return json.dumps(result, indent=2)
 
+    @tool
+    def stock_price(symbol: str) -> str:
+        """
+        Get the current stock price for a ticker symbol.
+
+        Args:
+            symbol: Stock ticker symbol (e.g., "AMZN", "GOOG", "AAPL", "MSFT", "NVDA")
+
+        Returns:
+            JSON with price, daily change, and company name
+        """
+        result = gateway.invoke_tool("stock_price", {"symbol": symbol})
+        return json.dumps(result, indent=2)
+
     return Agent(model=model, system_prompt=system_prompt,
-                 tools=[get_weather, convert_currency, get_news])
+                 tools=[get_weather, convert_currency, get_news, stock_price])
 
 
 TEST_QUERIES = [
@@ -425,8 +440,8 @@ def main():
     print(f"{'═' * 70}")
     gateway.register_target(
         name="stock_price",
-        description="Get current stock price for any ticker symbol",
-        function_name=os.environ.get("STOCK_PRICE_FUNCTION", "analytics-stock-price"),
+        description="Get current stock price for any ticker symbol including price and daily change",
+        function_name=STOCK_PRICE_FUNCTION,
     )
     print(f"\n  {len(gateway.targets)} tools available:")
     for t in gateway.discover_tools():
