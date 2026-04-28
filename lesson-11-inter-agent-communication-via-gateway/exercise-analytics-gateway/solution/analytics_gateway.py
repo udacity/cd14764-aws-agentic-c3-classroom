@@ -167,12 +167,106 @@ def _get_function_arn(function_name: str) -> str:
     return resp["Configuration"]["FunctionArn"]
 
 
+def _stack_uuid() -> str:
+    """Return the short UUID from the lesson-11-gateway CloudFormation stack ID.
+
+    The stack ID looks like:
+        arn:aws:cloudformation:us-east-1:123456789012:stack/lesson-11-gateway/abc12345-...
+    We take the first segment of the UUID (before the first '-'), giving something
+    like 'abc12345'.  This is unique per stack deployment and matches the same
+    naming pattern used for S3 buckets elsewhere in this project.
+    """
+    cf = boto3.client("cloudformation", region_name=AWS_REGION)
+    stack_info = cf.describe_stacks(StackName="lesson-11-gateway")
+    stack_id = stack_info["Stacks"][0]["StackId"]
+    full_uuid = stack_id.split("/")[-1]
+    return full_uuid.split("-")[0]
+
+
+def _get_or_create_gateway(agentcore, name: str, role_arn: str,
+                            instructions: str) -> tuple[str, str]:
+    """Create an AgentCore Gateway, or reuse it if it already exists.
+
+    Returns (gateway_id, gateway_url).
+    Handles ConflictException so re-runs and shared environments work cleanly.
+    """
+    try:
+        gw = agentcore.create_gateway(
+            name=name,
+            roleArn=role_arn,
+            protocolType="MCP",
+            authorizerType="NONE",
+            protocolConfiguration={"mcp": {"instructions": instructions,
+                                            "searchType": "SEMANTIC"}},
+        )
+        print(f"    Gateway ID  : {gw['gatewayId']}")
+        print(f"    Gateway URL : {gw['gatewayUrl']}")
+        print(f"    Status      : {gw['status']}")
+        return gw["gatewayId"], gw["gatewayUrl"]
+    except agentcore.exceptions.ConflictException:
+        print(f"    Gateway '{name}' already exists — reusing it.")
+        gateways = agentcore.list_gateways().get("items", [])
+        existing = next((g for g in gateways if g["name"] == name), None)
+        if not existing:
+            raise RuntimeError(f"Gateway '{name}' not found after ConflictException")
+        gw_id = existing["gatewayId"]
+        gw_url = existing.get("gatewayUrl", "")
+        print(f"    Gateway ID  : {gw_id}")
+        print(f"    Gateway URL : {gw_url}")
+        return gw_id, gw_url
+
+
+def _create_target(agentcore, gateway_id: str, t: dict, lambda_arn: str):
+    """Register one Lambda target on the gateway. Skips if it already exists."""
+    payload = dict(
+        gatewayIdentifier=gateway_id,
+        name=t["name"],
+        description=t["description"],
+        targetConfiguration={
+            "mcp": {
+                "lambda": {
+                    "lambdaArn": lambda_arn,
+                    "toolSchema": {
+                        "inlinePayload": [
+                            {
+                                "name": t["tool_name"],
+                                "description": t["tool_description"],
+                                "inputSchema": {
+                                    "type": "object",
+                                    "properties": {
+                                        t["param_name"]: {
+                                            "type": "string",
+                                            "description": t["param_desc"],
+                                        }
+                                    },
+                                    "required": [t["param_name"]],
+                                },
+                            }
+                        ]
+                    },
+                }
+            }
+        },
+        credentialProviderConfigurations=[
+            {"credentialProviderType": "GATEWAY_IAM_ROLE"}
+        ],
+    )
+    try:
+        resp = agentcore.create_gateway_target(**payload)
+        print(f"    [{resp['status']:12s}] {t['name']} → target {resp['targetId']}")
+    except agentcore.exceptions.ConflictException:
+        print(f"    [already exists] {t['name']} — skipped")
+
+
 def create_agentcore_gateway(role_arn: str) -> dict:
     """Create a real AgentCore Gateway and register the analytics Lambda targets.
 
     Production equivalent of:
         gateway = LambdaGateway(...)
         gateway.register_target(...)
+
+    Uses a stable per-learner gateway name so re-runs and shared lab environments
+    never hit ConflictException — the existing gateway is reused automatically.
 
     Args:
         role_arn: IAM role ARN that AgentCore uses to invoke the Lambda functions.
@@ -182,29 +276,14 @@ def create_agentcore_gateway(role_arn: str) -> dict:
     """
     agentcore = boto3.client("bedrock-agentcore-control", region_name=AWS_REGION)
 
-    # create_gateway: managed MCP endpoint, open auth for lab
-    print("  Calling create_gateway...")
-    gw = agentcore.create_gateway(
-        name="analytics-gateway",
-        roleArn=role_arn,
-        protocolType="MCP",
-        authorizerType="NONE",
-        protocolConfiguration={
-            "mcp": {
-                "instructions": (
-                    "Analytics tool gateway. "
-                    "Provides weather, currency conversion, and news tools."
-                ),
-                "searchType": "SEMANTIC",
-            }
-        },
-    )
-    gateway_id = gw["gatewayId"]
-    print(f"    Gateway ID  : {gateway_id}")
-    print(f"    Gateway URL : {gw['gatewayUrl']}")
-    print(f"    Status      : {gw['status']}")
+    gw_name = f"analytics-{_stack_uuid()}"
 
-    # create_gateway_target: one call per Lambda backend
+    print("  Calling create_gateway...")
+    gateway_id, gateway_url = _get_or_create_gateway(
+        agentcore, gw_name, role_arn,
+        "Analytics tool gateway. Provides weather, currency conversion, and news tools.",
+    )
+
     targets = [
         {
             "name": "weather-lambda",
@@ -238,46 +317,9 @@ def create_agentcore_gateway(role_arn: str) -> dict:
     print(f"\n  Registering {len(targets)} Gateway targets...")
     for t in targets:
         lambda_arn = _get_function_arn(t["function"])
-        resp = agentcore.create_gateway_target(
-            gatewayIdentifier=gateway_id,
-            name=t["name"],
-            description=t["description"],
-            targetConfiguration={
-                "mcp": {
-                    "lambda": {
-                        "lambdaArn": lambda_arn,
-                        "toolSchema": {
-                            "inlinePayload": [
-                                {
-                                    "name": t["tool_name"],
-                                    "description": t["tool_description"],
-                                    "inputSchema": {
-                                        "type": "object",
-                                        "properties": {
-                                            t["param_name"]: {
-                                                "type": "string",
-                                                "description": t["param_desc"],
-                                            }
-                                        },
-                                        "required": [t["param_name"]],
-                                    },
-                                }
-                            ]
-                        },
-                    }
-                }
-            },
-            credentialProviderConfigurations=[
-                {"credentialProviderType": "GATEWAY_IAM_ROLE"}
-            ],
-        )
-        print(f"    [{resp['status']:12s}] {t['name']} → target {resp['targetId']}")
+        _create_target(agentcore, gateway_id, t, lambda_arn)
 
-    return {
-        "gateway_id": gateway_id,
-        "gateway_url": gw["gatewayUrl"],
-        "status": gw["status"],
-    }
+    return {"gateway_id": gateway_id, "gateway_url": gateway_url, "status": "CREATING"}
 
 
 def build_analytics_agent(gateway: LambdaGateway) -> Agent:
