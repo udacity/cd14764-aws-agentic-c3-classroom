@@ -207,7 +207,7 @@ def create_agentcore_gateway(role_arn: str) -> dict:
     # create_gateway_target: one call per Lambda backend
     targets = [
         {
-            "name": "weather_lambda",
+            "name": "weather-lambda",
             "description": "Look up current weather conditions for a given city including temperature, humidity, and wind",
             "function": WEATHER_FUNCTION,
             "tool_name": "get_weather",
@@ -216,7 +216,7 @@ def create_agentcore_gateway(role_arn: str) -> dict:
             "param_desc": "City name (e.g. Tokyo, London, New York)",
         },
         {
-            "name": "currency_lambda",
+            "name": "currency-lambda",
             "description": "Convert amounts between currencies using real-time exchange rates",
             "function": CURRENCY_FUNCTION,
             "tool_name": "convert_currency",
@@ -225,7 +225,7 @@ def create_agentcore_gateway(role_arn: str) -> dict:
             "param_desc": "Amount to convert as a number",
         },
         {
-            "name": "news_api",
+            "name": "news-api",
             "description": "Get latest news headlines by topic including AI, finance, and technology",
             "function": NEWS_FUNCTION,
             "tool_name": "get_news",

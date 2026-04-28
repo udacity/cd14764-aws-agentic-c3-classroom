@@ -310,7 +310,7 @@ def create_agentcore_gateway(role_arn: str) -> dict:
     # Each target = a Lambda function + inline tool schema (name, description, params).
     targets = [
         {
-            "name": "inventory_api",
+            "name": "inventory-api",
             "description": "Check inventory levels, stock counts, and reorder status for warehouse items",
             "function": INVENTORY_FUNCTION,
             "tool_name": "check_inventory",
@@ -319,7 +319,7 @@ def create_agentcore_gateway(role_arn: str) -> dict:
             "param_desc": "Item ID (e.g. WIDGET-001), or empty string for all items",
         },
         {
-            "name": "shipping_api",
+            "name": "shipping-api",
             "description": "Track shipment status, ETAs, and delivery confirmations by tracking ID",
             "function": SHIPPING_FUNCTION,
             "tool_name": "track_shipment",
@@ -328,7 +328,7 @@ def create_agentcore_gateway(role_arn: str) -> dict:
             "param_desc": "Shipment tracking ID (e.g. SHIP-101), or empty string for all",
         },
         {
-            "name": "supplier_api",
+            "name": "supplier-api",
             "description": "Look up supplier information, ratings, lead times, and minimum order quantities",
             "function": SUPPLIER_FUNCTION,
             "tool_name": "lookup_supplier",
@@ -337,7 +337,7 @@ def create_agentcore_gateway(role_arn: str) -> dict:
             "param_desc": "Supplier ID (e.g. SUP-A), or empty string for all suppliers",
         },
         {
-            "name": "quality_inspection_api",
+            "name": "quality-inspection-api",
             "description": "Check quality inspection results, defect rates, and pass/fail status for items",
             "function": QUALITY_INSPECTION_FUNCTION,
             "tool_name": "inspect_quality",
