@@ -12,7 +12,7 @@ Usage:
 
 What it creates:
     - Lambda functions  : lesson-11-gateway-{inventory,shipping,supplier,quality-inspection,
-                          weather,currency,news}
+                          weather,currency,news,stock-price}
     - IAM Role          : lesson-11-gateway-agentcore-role  (for AgentCore Gateway)
 
 The AgentCore Role ARN is printed at the end — paste it into your .env as
@@ -54,9 +54,8 @@ def deploy():
         print(f"Stack '{STACK_NAME}' already exists (status: {status})")
 
         if status in ("CREATE_COMPLETE", "UPDATE_COMPLETE"):
-            print("Stack is healthy — printing outputs and exiting.\n")
-            _print_outputs(stacks[0])
-            return
+            print("Stack is healthy — checking for template changes...")
+            existing = True   # fall through to update path below
         elif "ROLLBACK" in status or "FAILED" in status:
             print("Stack is in a failed state. Deleting and redeploying...")
             cf.delete_stack(StackName=STACK_NAME)
@@ -145,7 +144,7 @@ def _print_outputs(stack: dict):
     print(f"\n  Lambda Functions:")
     for key in ["InventoryFunctionArn", "ShippingFunctionArn", "SupplierFunctionArn",
                 "QualityInspectionFunctionArn", "WeatherFunctionArn",
-                "CurrencyFunctionArn", "NewsFunctionArn"]:
+                "CurrencyFunctionArn", "NewsFunctionArn", "StockPriceFunctionArn"]:
         arn = outputs.get(key, "(not found)")
         label = key.replace("FunctionArn", "").replace("Function", "")
         print(f"    {label:26s} {arn}")
