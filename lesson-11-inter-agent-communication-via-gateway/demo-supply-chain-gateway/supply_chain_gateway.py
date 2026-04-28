@@ -284,12 +284,30 @@ def _stack_uuid() -> str:
     return full_uuid.split("-")[0]
 
 
+def _wait_for_gateway(agentcore, gateway_id: str, timeout: int = 60):
+    """Poll until the gateway reaches ACTIVE status (or timeout)."""
+    print("    Gateway provisioning (async — normal AWS behaviour)", end="", flush=True)
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        status = agentcore.get_gateway(gatewayIdentifier=gateway_id)["status"]
+        if status == "ACTIVE":
+            print(" ready.")
+            return
+        if "FAILED" in status:
+            print(f" failed: {status}")
+            raise RuntimeError(f"Gateway {gateway_id} entered status {status}")
+        print(".", end="", flush=True)
+        time.sleep(3)
+    raise TimeoutError(f"Gateway {gateway_id} still not ACTIVE after {timeout}s")
+
+
 def _get_or_create_gateway(agentcore, name: str, role_arn: str,
                             instructions: str) -> tuple[str, str]:
     """Create an AgentCore Gateway, or reuse it if it already exists.
 
-    Returns (gateway_id, gateway_url).
-    Handles ConflictException so re-runs and shared environments work cleanly.
+    Waits for ACTIVE status before returning so callers can immediately
+    register targets.  Handles ConflictException so re-runs and shared
+    environments work cleanly.
     """
     try:
         gw = agentcore.create_gateway(
@@ -303,6 +321,7 @@ def _get_or_create_gateway(agentcore, name: str, role_arn: str,
         print(f"    Gateway ID  : {gw['gatewayId']}")
         print(f"    Gateway URL : {gw['gatewayUrl']}")
         print(f"    Status      : {gw['status']}")
+        _wait_for_gateway(agentcore, gw["gatewayId"])
         return gw["gatewayId"], gw["gatewayUrl"]
     except agentcore.exceptions.ConflictException:
         print(f"    Gateway '{name}' already exists — reusing it.")
@@ -314,6 +333,7 @@ def _get_or_create_gateway(agentcore, name: str, role_arn: str,
         gw_url = existing.get("gatewayUrl", "")
         print(f"    Gateway ID  : {gw_id}")
         print(f"    Gateway URL : {gw_url}")
+        _wait_for_gateway(agentcore, gw_id)
         return gw_id, gw_url
 
 
