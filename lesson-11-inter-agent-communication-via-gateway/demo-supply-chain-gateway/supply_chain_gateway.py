@@ -284,21 +284,26 @@ def _stack_uuid() -> str:
     return full_uuid.split("-")[0]
 
 
-def _wait_for_gateway(agentcore, gateway_id: str, timeout: int = 60):
-    """Poll until the gateway reaches ACTIVE status (or timeout)."""
-    print("    Gateway provisioning (async — normal AWS behaviour)", end="", flush=True)
+def _wait_for_gateway(agentcore, gateway_id: str, timeout: int = 120) -> str:
+    """Poll until the gateway reaches ACTIVE status. Returns the gateway URL."""
     deadline = time.time() + timeout
+    first = True
     while time.time() < deadline:
-        status = agentcore.get_gateway(gatewayIdentifier=gateway_id)["status"]
-        if status == "ACTIVE":
-            print(" ready.")
-            return
+        gw = agentcore.get_gateway(gatewayIdentifier=gateway_id)
+        status = gw["status"]
+        if status == "READY":
+            if not first:
+                print(" ready.")
+            return gw.get("gatewayUrl", "")
         if "FAILED" in status:
             print(f" failed: {status}")
             raise RuntimeError(f"Gateway {gateway_id} entered status {status}")
+        if first:
+            print("    Gateway provisioning (async — normal AWS behaviour)", end="", flush=True)
+            first = False
         print(".", end="", flush=True)
-        time.sleep(3)
-    raise TimeoutError(f"Gateway {gateway_id} still not ACTIVE after {timeout}s")
+        time.sleep(5)
+    raise TimeoutError(f"Gateway {gateway_id} still not READY after {timeout}s")
 
 
 def _get_or_create_gateway(agentcore, name: str, role_arn: str,
@@ -318,11 +323,12 @@ def _get_or_create_gateway(agentcore, name: str, role_arn: str,
             protocolConfiguration={"mcp": {"instructions": instructions,
                                             "searchType": "SEMANTIC"}},
         )
-        print(f"    Gateway ID  : {gw['gatewayId']}")
-        print(f"    Gateway URL : {gw['gatewayUrl']}")
+        gw_id = gw["gatewayId"]
+        print(f"    Gateway ID  : {gw_id}")
         print(f"    Status      : {gw['status']}")
-        _wait_for_gateway(agentcore, gw["gatewayId"])
-        return gw["gatewayId"], gw["gatewayUrl"]
+        gw_url = _wait_for_gateway(agentcore, gw_id)
+        print(f"    Gateway URL : {gw_url}")
+        return gw_id, gw_url
     except agentcore.exceptions.ConflictException:
         print(f"    Gateway '{name}' already exists — reusing it.")
         gateways = agentcore.list_gateways().get("items", [])
@@ -330,10 +336,9 @@ def _get_or_create_gateway(agentcore, name: str, role_arn: str,
         if not existing:
             raise RuntimeError(f"Gateway '{name}' not found after ConflictException")
         gw_id = existing["gatewayId"]
-        gw_url = existing.get("gatewayUrl", "")
         print(f"    Gateway ID  : {gw_id}")
+        gw_url = _wait_for_gateway(agentcore, gw_id)
         print(f"    Gateway URL : {gw_url}")
-        _wait_for_gateway(agentcore, gw_id)
         return gw_id, gw_url
 
 
