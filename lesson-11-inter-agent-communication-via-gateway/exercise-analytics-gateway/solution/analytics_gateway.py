@@ -185,7 +185,7 @@ def create_agentcore_gateway(role_arn: str) -> dict:
     # create_gateway: managed MCP endpoint, open auth for lab
     print("  Calling create_gateway...")
     gw = agentcore.create_gateway(
-        name="analytics_gateway",
+        name="analytics-gateway",
         roleArn=role_arn,
         protocolType="MCP",
         authorizerType="NONE",
