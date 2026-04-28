@@ -11,7 +11,7 @@ with additions:
 
 Instructions:
   - Follow the demo pattern (supply_chain_gateway.py)
-  - Look for TODO 1-8 below
+  - Look for TODO 1-9 below
   - Register 3 targets on the Gateway
   - Build an agent that discovers and uses Gateway tools
 
