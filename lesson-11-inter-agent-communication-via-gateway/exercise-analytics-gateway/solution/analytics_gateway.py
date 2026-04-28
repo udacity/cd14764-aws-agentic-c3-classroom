@@ -465,7 +465,8 @@ def main():
         print(f"  Tool: {entry['tool']:20s} Lambda: {entry['function']:30s} Status: {entry['result_status']}")
 
     print(f"\n  Gateway Pattern Advantage: register a 4th tool (stock_price) with NO changes to:")
-    print(f"    - @tool function definitions\n")
+    print(f"    - Agent invocation logic  (no re-deployment)")
+    print(f"    - System prompt           (rebuilt automatically from gateway.discover_tools())\n")
 
     # ── AgentCore Gateway API (Production) ────────────────────────────────────
     print(f"{'═' * 70}")
