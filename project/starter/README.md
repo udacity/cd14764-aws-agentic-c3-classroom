@@ -276,6 +276,7 @@ python tests/test_agent.py task5
 - **`configure_observability(runtime_arn)`** - Enable logging and tracing:
   - **CloudWatch:** INFO-level logs to `/aws/bedrock/agentcore/udacity-agentcore`
   - **X-Ray:** 100% sampling (100% in dev, reduce to 5% in prod)
+  - Use `agentcore_control.put_agent_runtime_logging_configuration()` wrapped in `try/except`
 
 **After testing, verify end-to-end tracing:**
 ```bash
@@ -286,6 +287,23 @@ python src/agent_orchestrator.py test
 
 # View traces in AWS Console → X-Ray → Service map
 ```
+
+---
+
+### Deployment Pipeline
+
+When you run `python src/agent_orchestrator.py deploy`, it executes a 6-step pipeline:
+
+| Step | What it does |
+|------|-------------|
+| 1/6 | Build the 5-agent graph locally |
+| 2/6 | Create the Bedrock Guardrail |
+| 3/6 | Deploy to AgentCore Runtime |
+| 4/6 | Configure AgentCore Memory |
+| 5/6 | Configure Observability (CloudWatch + X-Ray) |
+| 6/6 | Deploy AgentCore Gateway *(skipped if Lambda tool functions not deployed)* |
+
+Step 6 is pre-written scaffolding — it registers your Lambda-backed tool APIs on a managed MCP endpoint so agents can discover and invoke them at runtime. It requires Lambda functions to be deployed separately and their names set as `ORDERS_FUNCTION`, `POLICY_FUNCTION`, `CUSTOMERS_FUNCTION` in your `.env`. If those aren't set, Step 6 prints a note and the rest of the deployment completes normally.
 
 ---
 

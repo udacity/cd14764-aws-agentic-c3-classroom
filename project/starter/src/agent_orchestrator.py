@@ -35,6 +35,7 @@ import random
 import logging
 import re
 import io
+import zipfile
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Optional
@@ -672,21 +673,67 @@ def deploy_to_agentcore_runtime(
     Returns:
         The AgentCore Runtime ARN
     """
+    runtime_name = f"{config.PROJECT_NAME}-runtime"
+    s3_client    = boto3.client('s3', region_name=config.AWS_REGION)
+
     # Check if runtime already exists
-    existing = agentcore_control.list_agent_runtimes()
-    for r in existing.get('agentRuntimes', []):
-        if r['agentRuntimeName'] == f"{config.PROJECT_NAME}-runtime":
-            runtime_arn = r['agentRuntimeArn']
-            print(f"AgentCore Runtime already exists: {runtime_arn}")
-            return runtime_arn
+    try:
+        existing = agentcore_control.list_agent_runtimes()
+        for r in existing.get('agentRuntimes', []):
+            if r['agentRuntimeName'] == runtime_name:
+                runtime_arn = r['agentRuntimeArn']
+                print(f"AgentCore Runtime already exists: {runtime_arn}")
+                return runtime_arn
+    except Exception as e:
+        print(f"  [Note] Could not check existing runtimes: {e}")
+
+    sts        = boto3.client('sts', region_name=config.AWS_REGION)
+    account_id = sts.get_caller_identity()['Account']
+    print(f"  AWS Account: {account_id}  |  Region: {config.AWS_REGION}")
+
+    # NOTE: AgentCore API — guardrail injection.
+    # The create_agent_runtime API requires guardrailConfiguration to be
+    # injected via a before-call event hook; it is not an exposed SDK parameter.
+    guardrail_cfg = {
+        'guardrailIdentifier': guardrail_id,
+        'guardrailVersion':    guardrail_version,
+    }
+
+    def _inject_guardrail(params, **kwargs):
+        params['guardrailConfiguration'] = guardrail_cfg
+
+    agentcore_control.meta.events.register(
+        'before-call.bedrock-agentcore-control.CreateAgentRuntime',
+        _inject_guardrail,
+    )
+    print(f"  Guardrail hook registered: {guardrail_id} (v{guardrail_version})")
+
+    # NOTE: AgentCore API — S3 artifact requirement.
+    # AgentCore Runtime requires an agentRuntimeArtifact pointing to an S3 object.
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr('main.py', '# NovaMart AgentCore Runtime entry point\n')
+    zip_buffer.seek(0)
+
+    artifact_key = f"agentcore-artifacts/{runtime_name}/deployment.zip"
+    s3_client.put_object(
+        Bucket=config.POLICY_BUCKET,
+        Key=artifact_key,
+        Body=zip_buffer.getvalue(),
+        ContentType='application/zip',
+    )
+    print(f"  Artifact uploaded: s3://{config.POLICY_BUCKET}/{artifact_key}")
 
     # TODO 3.2: Deploy to AgentCore Runtime
     # Use agentcore_control.create_agent_runtime() with:
-    #   - agentRuntimeName, description, roleArn
+    #   - agentRuntimeName (runtime_name), description, roleArn
     #   - networkConfiguration (PUBLIC)
     #   - protocolConfiguration (MCP)
-    #   - guardrailConfiguration (guardrail_id + guardrail_version)
+    #   - agentRuntimeArtifact pointing to the S3 zip uploaded above
+    #     (bucket: config.POLICY_BUCKET, prefix: artifact_key, runtime: PYTHON_3_12)
     #   - environmentVariables (AWS_REGION, PROJECT_NAME, KB IDs, AGENT_LOG_GROUP)
+    # Note: guardrailConfiguration is injected automatically via the event hook above.
+    # Return: response.get('agentRuntimeArn', response.get('arn', ''))
 
     pass
 
@@ -734,13 +781,229 @@ def configure_observability(runtime_arn: str) -> None:
     runtime_id = runtime_arn.split('/')[-1]
 
     # TODO 6.1: Configure observability
-    # Use agentcore_client.put_agent_runtime_logging_configuration() with:
+    # NOTE: AgentCore API — control plane logging.
+    # put_agent_runtime_logging_configuration may not be available in all
+    # SDK versions — wrap the call in try/except and fall back gracefully.
+    # Use agentcore_control.put_agent_runtime_logging_configuration() with:
     #   - agentRuntimeId (runtime_id)
     #   - loggingConfiguration containing:
-    #     - cloudWatchConfig (logGroupName, logLevel: INFO, enabled: True)
+    #     - cloudWatchConfig (logGroupName: config.AGENT_LOG_GROUP, logLevel: INFO, enabled: True)
     #     - xRayConfig (enabled: True, samplingRate: 1.0)
+    # On success: print the CloudWatch log group and X-Ray sampling rate.
+    # On exception: print "[Note] Logging config skipped (SDK version mismatch): <e>"
 
     pass
+
+
+# ═══════════════════════════════════════════════════════
+#  AGENTCORE GATEWAY DEPLOYMENT  (pre-written - do not modify)
+#
+#  Production equivalent of in-process @tool functions.
+#  Registers Lambda-backed tools on a managed MCP endpoint so tools
+#  can be independently deployed, versioned, and discovered at runtime.
+#
+#  Pattern (from Lesson 11):
+#    Local dev  → LambdaGateway + gateway.register_target(...)
+#    Production → deploy_agentcore_gateway() using real AWS API
+#
+#  Requires Lambda tool functions to be deployed separately.
+#  Set ORDERS_FUNCTION, POLICY_FUNCTION, CUSTOMERS_FUNCTION in .env
+#  to the deployed Lambda function names.
+# ═══════════════════════════════════════════════════════
+
+# Lambda function names for gateway tool backends (set in .env after deploying)
+_ORDERS_FUNCTION    = os.environ.get('ORDERS_FUNCTION',    f"{config.PROJECT_NAME}-orders-api")
+_POLICY_FUNCTION    = os.environ.get('POLICY_FUNCTION',    f"{config.PROJECT_NAME}-policy-api")
+_CUSTOMERS_FUNCTION = os.environ.get('CUSTOMERS_FUNCTION', f"{config.PROJECT_NAME}-customers-api")
+
+
+def _gw_get_function_arn(function_name: str) -> str:
+    """Resolve a Lambda function name to its full ARN."""
+    lambda_client = boto3.client('lambda', region_name=config.AWS_REGION)
+    resp = lambda_client.get_function(FunctionName=function_name)
+    return resp['Configuration']['FunctionArn']
+
+
+def _gw_stack_uuid() -> str:
+    """Return the short UUID from the project CloudFormation stack ID.
+    Gives the gateway a stable name so re-runs never hit ConflictException."""
+    cf = boto3.client('cloudformation', region_name=config.AWS_REGION)
+    stacks = cf.describe_stacks(StackName=config.PROJECT_NAME)
+    stack_id = stacks['Stacks'][0]['StackId']
+    full_uuid = stack_id.split('/')[-1]
+    return full_uuid.split('-')[0]
+
+
+def _gw_wait_for_ready(agentcore_ctrl, gateway_id: str, timeout: int = 120) -> str:
+    """Poll until the gateway reaches READY status. Returns the gateway URL."""
+    deadline = time.time() + timeout
+    first    = True
+    while time.time() < deadline:
+        gw     = agentcore_ctrl.get_gateway(gatewayIdentifier=gateway_id)
+        status = gw['status']
+        if status == 'READY':
+            if not first:
+                print(' ready.')
+            return gw.get('gatewayUrl', '')
+        if 'FAILED' in status:
+            print(f' failed: {status}')
+            raise RuntimeError(f"Gateway {gateway_id} entered status {status}")
+        if first:
+            print('    Gateway provisioning (async — normal AWS behaviour)',
+                  end='', flush=True)
+            first = False
+        print('.', end='', flush=True)
+        time.sleep(5)
+    raise TimeoutError(f"Gateway {gateway_id} not READY after {timeout}s")
+
+
+def _gw_get_or_create(agentcore_ctrl, name: str, role_arn: str,
+                       instructions: str) -> tuple[str, str]:
+    """Create an AgentCore Gateway, or reuse it if it already exists."""
+    try:
+        gw = agentcore_ctrl.create_gateway(
+            name=name,
+            roleArn=role_arn,
+            protocolType='MCP',
+            authorizerType='NONE',
+            protocolConfiguration={'mcp': {'instructions': instructions,
+                                            'searchType': 'SEMANTIC'}},
+        )
+        gw_id  = gw['gatewayId']
+        print(f'    Gateway ID  : {gw_id}')
+        print(f'    Status      : {gw["status"]}')
+        gw_url = _gw_wait_for_ready(agentcore_ctrl, gw_id)
+        print(f'    Gateway URL : {gw_url}')
+        return gw_id, gw_url
+    except agentcore_ctrl.exceptions.ConflictException:
+        print(f"    Gateway '{name}' already exists — reusing it.")
+        gateways = agentcore_ctrl.list_gateways().get('items', [])
+        existing = next((g for g in gateways if g['name'] == name), None)
+        if not existing:
+            raise RuntimeError(f"Gateway '{name}' not found after ConflictException")
+        gw_id  = existing['gatewayId']
+        print(f'    Gateway ID  : {gw_id}')
+        gw_url = _gw_wait_for_ready(agentcore_ctrl, gw_id)
+        print(f'    Gateway URL : {gw_url}')
+        return gw_id, gw_url
+
+
+def _gw_create_target(agentcore_ctrl, gateway_id: str, t: dict,
+                       lambda_arn: str) -> None:
+    """Register one Lambda target on the gateway. Skips if it already exists."""
+    payload = dict(
+        gatewayIdentifier=gateway_id,
+        name=t['name'],
+        description=t['description'],
+        targetConfiguration={
+            'mcp': {
+                'lambda': {
+                    'lambdaArn': lambda_arn,
+                    'toolSchema': {
+                        'inlinePayload': [{
+                            'name':        t['tool_name'],
+                            'description': t['tool_description'],
+                            'inputSchema': {
+                                'type': 'object',
+                                'properties': {
+                                    t['param_name']: {
+                                        'type':        'string',
+                                        'description': t['param_desc'],
+                                    }
+                                },
+                                'required': [t['param_name']],
+                            },
+                        }]
+                    },
+                }
+            }
+        },
+        credentialProviderConfigurations=[
+            {'credentialProviderType': 'GATEWAY_IAM_ROLE'}
+        ],
+    )
+    try:
+        resp = agentcore_ctrl.create_gateway_target(**payload)
+        print(f"    [{resp['status']:12s}] {t['name']} → target {resp['targetId']}")
+    except agentcore_ctrl.exceptions.ConflictException:
+        print(f"    [already exists] {t['name']} — skipped")
+
+
+def deploy_agentcore_gateway() -> dict:
+    """
+    Create an AgentCore Gateway and register the NovaMart tool Lambda targets.
+
+    Production equivalent of the in-process @tool functions defined inside
+    build_*_agent(). Each tool becomes a Lambda function registered as a
+    gateway target; agents discover tools at runtime via the MCP endpoint —
+    no code changes needed when adding or updating tools.
+
+    Uses the same three-step pattern as Lesson 11:
+      1. create_gateway  (MCP protocol, SEMANTIC search)
+      2. create_gateway_target  (one per Lambda-backed tool)
+      3. Agents connect via the returned gateway_url
+
+    Requires Lambda tool functions to be deployed via a separate stack.
+    Set ORDERS_FUNCTION, POLICY_FUNCTION, CUSTOMERS_FUNCTION in .env.
+
+    Returns:
+        dict with gateway_id, gateway_url, and status.
+    """
+    agentcore_ctrl = boto3.client('bedrock-agentcore-control',
+                                   region_name=config.AWS_REGION)
+
+    try:
+        gw_uuid = _gw_stack_uuid()
+    except Exception:
+        gw_uuid = config.PROJECT_NAME
+
+    gw_name = f"novamart-support-{gw_uuid}"
+    print(f"  Calling create_gateway (name: {gw_name})...")
+    gateway_id, gateway_url = _gw_get_or_create(
+        agentcore_ctrl, gw_name, config.AGENTCORE_ROLE_ARN,
+        "NovaMart customer support gateway. Provides order lookup, "
+        "policy search, and customer tier tools.",
+    )
+
+    targets = [
+        {
+            'name':             'orders-api',
+            'description':      'Look up order details, status, and return eligibility for a customer',
+            'function':         _ORDERS_FUNCTION,
+            'tool_name':        'check_order_status',
+            'tool_description': 'Check order status and return eligibility for a specific order',
+            'param_name':       'order_id',
+            'param_desc':       'Order ID (e.g. ORD-27176)',
+        },
+        {
+            'name':             'policy-api',
+            'description':      'Retrieve return, shipping, and warranty policy text from knowledge bases',
+            'function':         _POLICY_FUNCTION,
+            'tool_name':        'search_policies',
+            'tool_description': 'Search all policy knowledge bases for a customer query',
+            'param_name':       'query',
+            'param_desc':       'Customer question about returns, shipping, or warranty',
+        },
+        {
+            'name':             'customers-api',
+            'description':      'Look up customer tier (Standard or Premium) and account details',
+            'function':         _CUSTOMERS_FUNCTION,
+            'tool_name':        'get_customer_tier',
+            'tool_description': 'Get customer tier and account information by customer ID',
+            'param_name':       'customer_id',
+            'param_desc':       'Customer ID (e.g. CUST-001)',
+        },
+    ]
+
+    print(f"\n  Registering {len(targets)} Gateway targets...")
+    for t in targets:
+        try:
+            lambda_arn = _gw_get_function_arn(t['function'])
+            _gw_create_target(agentcore_ctrl, gateway_id, t, lambda_arn)
+        except Exception as e:
+            print(f"    [Skipped] {t['name']}: {e}")
+
+    return {'gateway_id': gateway_id, 'gateway_url': gateway_url, 'status': 'CREATING'}
 
 
 # ═══════════════════════════════════════════════════════
@@ -780,7 +1043,7 @@ def deploy_all():
     print("  Deploying Enterprise Multi-Agent System")
     print("="*60 + "\n")
 
-    print("Step 1/5: Building agent graph...")
+    print("Step 1/6: Building agent graph...")
     inventory_agent     = build_inventory_agent()
     refund_agent        = build_refund_agent()
     policy_agent        = build_policy_agent()
@@ -790,20 +1053,30 @@ def deploy_all():
     )
     print("  All 5 agents initialized\n")
 
-    print("Step 2/5: Creating Bedrock Guardrail...")
+    print("Step 2/6: Creating Bedrock Guardrail...")
     guardrail_id, guardrail_version = create_guardrail()
     print()
 
-    print("Step 3/5: Deploying to AgentCore Runtime...")
+    print("Step 3/6: Deploying to AgentCore Runtime...")
     runtime_arn = deploy_to_agentcore_runtime(orchestrator, guardrail_id, guardrail_version)
     print()
 
-    print("Step 4/5: Configuring Memory...")
+    print("Step 4/6: Configuring Memory...")
     memory_arn = configure_memory(runtime_arn)
     print()
 
-    print("Step 5/5: Configuring Observability...")
+    print("Step 5/6: Configuring Observability...")
     configure_observability(runtime_arn)
+    print()
+
+    print("Step 6/6: Deploying AgentCore Gateway...")
+    try:
+        gw = deploy_agentcore_gateway()
+        print(f"  Gateway URL : {gw['gateway_url']}")
+        print(f"  Agents connect via MCP at this endpoint — no code changes needed")
+    except Exception as e:
+        print(f"  [Note] Gateway deployment skipped: {e}")
+        print(f"  (Deploy Lambda tool functions and set ORDERS_FUNCTION etc. in .env to enable)")
     print()
 
     print("="*60)
@@ -923,11 +1196,6 @@ if __name__ == '__main__':
             t0_turn = time.time()
 
             # ── Install proxy, run orchestrator, restore stdout ────────────
-            # _trace_writer intercepts Strands SDK output during this call:
-            #   - "Tool #N: name"  ->  [TOOL CALL]  name
-            #   - all other text   ->  | <text>      (agent reasoning)
-            # AgentTrace methods bypass the proxy via _trace_print() so our
-            # structured headers are never double-processed.
             trace.new_turn()
             sys.stdout = _trace_writer
             try:
@@ -938,12 +1206,6 @@ if __name__ == '__main__':
             elapsed = time.time() - t0_turn
 
             # ── Resolve the final customer-facing text ────────────────────
-            # The Orchestrator LLM often produces no final text of its own -
-            # it delegates entirely to CommunicationAgent via a tool call.
-            # str(response) is therefore frequently empty.  The authoritative
-            # answer is always what CommunicationAgent wrote to DynamoDB, so
-            # we read directly from WorkflowState and fall back to str(response)
-            # only if the DynamoDB field is missing (e.g. routing was skipped).
             final_state = _read_workflow_state(session_id) or {}
             comm_result = final_state.get('communication_agent', '')
             text = _strip_xml_tags(comm_result or str(response))

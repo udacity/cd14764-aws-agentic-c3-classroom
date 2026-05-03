@@ -431,7 +431,9 @@ class TestTask5(unittest.TestCase):
 class TestTask6(unittest.TestCase):
 
     def setUp(self):
-        self.agentcore = boto3.client('bedrock-agentcore', region_name=config.AWS_REGION)
+        # Use the control-plane client — get_agent_runtime_logging_configuration
+        # lives on bedrock-agentcore-control, not the data-plane bedrock-agentcore client.
+        self.agentcore = boto3.client('bedrock-agentcore-control', region_name=config.AWS_REGION)
         self.logs = boto3.client('logs', region_name=config.AWS_REGION)
 
     def test_6_1_cloudwatch_logging_enabled(self):
