@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![Architecture Diagram](../architecture.svg)
+![Architecture Diagram](architecture.svg)
 
 ## File
 - `contract_compliance.py` — Starter code with 12 TODOs to complete

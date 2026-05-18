@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![Architecture Diagram](../architecture.svg)
+![Architecture Diagram](architecture.svg)
 
 ## Overview
 Build an analytics agent connected to utility services through AgentCore Gateway following the demo pattern (supply_chain_gateway.py). Register 3 targets (2 Lambda + 1 REST API) and build an agent that discovers tools at runtime.

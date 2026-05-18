@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![Architecture Diagram](../architecture.svg)
+![Architecture Diagram](architecture.svg)
 
 ## Overview
 Build a clinical literature RAG system following the same pattern from the demo (research_assistant_rag.py). Two specialized retrievers query Drug Interactions and Clinical Guidelines Knowledge Bases in parallel. Add deduplication, structured clinical output, and graceful degradation when a KB is unavailable.

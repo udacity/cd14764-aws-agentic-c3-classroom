@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![Architecture Diagram](../architecture.svg)
+![Architecture Diagram](architecture.svg)
 
 ## Overview
 Build a shared state system for food delivery orders following the same pattern from the demo (ride_sharing_state.py). Uses SimulatedDynamoDB for transactional state with optimistic locking, and a customer_memory dict for cross-session customer preferences (simulating AgentCore Memory SESSION_SUMMARY strategy).

@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![Architecture Diagram](../architecture.svg)
+![Architecture Diagram](architecture.svg)
 
 ## File
 - `contract_compliance.py` — Complete parallel contract compliance system

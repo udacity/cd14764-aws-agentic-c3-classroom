@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 780 700" xmlns="http://www.w3.org/2000/svg" font-family='system-ui, -apple-system, "Segoe UI", sans-serif'>
+  <defs>
+    <filter id="sh" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
+    </filter>
+    <marker id="a" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#475569" stroke-width="1.2" stroke-linejoin="round"/>
+    </marker>
+    <marker id="ar" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#6366f1" stroke-width="1.2" stroke-linejoin="round"/>
+    </marker>
+    <marker id="ab" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#3b82f6" stroke-width="1.2" stroke-linejoin="round"/>
+    </marker>
+    <marker id="ap" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#8b5cf6" stroke-width="1.2" stroke-linejoin="round"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#94a3b8" stroke-width="1.2" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <rect width="780" height="700" rx="12" fill="#1e293b"/>
+
+  <!-- Title -->
+  <text x="390" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">Exercise 5: Telecom Ticket Router</text>
+  <text x="390" y="50" text-anchor="middle" font-size="11" fill="#cbd5e1">4-tier hybrid: cancellation priority &#x2192; rules &#x2192; LLM &#x2192; fallback</text>
+
+  <!-- Support Ticket -->
+  <rect x="140" y="65" width="180" height="38" rx="19" fill="#10b981" filter="url(#sh)"/>
+  <text x="230" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="white">Support Ticket</text>
+
+  <!-- Vertical flow arrow -->
+  <line x1="230" y1="106" x2="230" y2="130" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- Tier 1: Priority -->
+  <rect x="60" y="133" width="340" height="52" rx="8" fill="#6366f1" filter="url(#sh)"/>
+  <text x="230" y="155" text-anchor="middle" font-size="12" font-weight="700" fill="white">Tier 1: PRIORITY</text>
+  <text x="230" y="173" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">Cancellation intent detection</text>
+
+  <!-- Arrow: Priority pass-through -->
+  <line x1="230" y1="188" x2="230" y2="212" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="244" y="204" font-size="9" fill="#cbd5e1">not cancellation</text>
+
+  <!-- Arrow: Priority to Retention -->
+  <line x1="400" y1="159" x2="620" y2="159" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ar)"/>
+  <rect x="620" y="145" width="140" height="30" rx="6" fill="#6366f1" filter="url(#sh)"/>
+  <text x="690" y="164" text-anchor="middle" font-size="10" font-weight="600" fill="white">Retention Agent</text>
+  <text x="480" y="152" font-size="9" fill="#a5b4fc">&#x201C;cancel&#x201D; &#x201C;terminate&#x201D;</text>
+  <text x="480" y="164" font-size="9" fill="#a5b4fc">&#x201C;switch provider&#x201D;</text>
+
+  <!-- Tier 2: Rule-Based -->
+  <rect x="60" y="215" width="340" height="52" rx="8" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="230" y="237" text-anchor="middle" font-size="12" font-weight="700" fill="white">Tier 2: RULE-BASED</text>
+  <text x="230" y="255" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">Keyword regex matching</text>
+
+  <!-- Arrow: Rule pass-through -->
+  <line x1="230" y1="270" x2="230" y2="344" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="244" y="310" font-size="9" fill="#cbd5e1">no match</text>
+
+  <!-- Arrows: Rules to 2 agents -->
+  <line x1="400" y1="228" x2="620" y2="228" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ab)"/>
+  <rect x="620" y="214" width="140" height="30" rx="6" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="690" y="233" text-anchor="middle" font-size="10" font-weight="600" fill="white">Billing Agent</text>
+
+  <line x1="400" y1="250" x2="540" y2="272" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="540" y1="272" x2="620" y2="272" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ab)"/>
+  <rect x="620" y="258" width="140" height="30" rx="6" fill="#3b82f6" filter="url(#sh)"/>
+  <text x="690" y="277" text-anchor="middle" font-size="10" font-weight="600" fill="white">Technical Agent</text>
+
+  <!-- Labels for rule routing -->
+  <text x="480" y="222" font-size="9" fill="#93c5fd">&#x201C;bill&#x201D; &#x201C;charge&#x201D; &#x201C;payment&#x201D;</text>
+  <text x="480" y="265" font-size="9" fill="#93c5fd">&#x201C;outage&#x201D; &#x201C;no signal&#x201D; &#x201C;slow&#x201D;</text>
+
+  <!-- Tier 3: LLM Classification -->
+  <rect x="60" y="347" width="340" height="52" rx="8" fill="#8b5cf6" filter="url(#sh)"/>
+  <text x="230" y="369" text-anchor="middle" font-size="12" font-weight="700" fill="white">Tier 3: LLM CLASSIFICATION</text>
+  <text x="230" y="387" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">Ambiguous tickets (no keyword match)</text>
+
+  <!-- Arrow: LLM pass-through -->
+  <line x1="230" y1="402" x2="230" y2="446" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="244" y="428" font-size="9" fill="#cbd5e1">low confidence</text>
+
+  <!-- Arrow: LLM tier to Classifier Agent -->
+  <line x1="400" y1="373" x2="478" y2="373" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ap)"/>
+
+  <!-- Classifier Agent box -->
+  <rect x="480" y="352" width="150" height="44" rx="6" fill="#8b5cf6" filter="url(#sh)"/>
+  <text x="555" y="370" text-anchor="middle" font-size="10" font-weight="600" fill="white">Classifier Agent</text>
+  <text x="555" y="386" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.75)">Nova Lite | conf &#x2265; 0.6</text>
+
+  <!-- Arrow: Classifier to specialists (up) -->
+  <line x1="630" y1="365" x2="690" y2="345" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="700" y="353" font-size="8" fill="#c4b5fd">&#x2191; routes to</text>
+  <text x="700" y="363" font-size="8" fill="#c4b5fd">specialist</text>
+
+  <!-- Tier 4: Fallback -->
+  <rect x="60" y="449" width="340" height="52" rx="8" fill="#64748b" filter="url(#sh)"/>
+  <text x="230" y="471" text-anchor="middle" font-size="12" font-weight="700" fill="white">Tier 4: FALLBACK</text>
+  <text x="230" y="489" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">Safety net for unclassifiable tickets</text>
+
+  <!-- Arrow: Fallback to General -->
+  <line x1="400" y1="475" x2="620" y2="475" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ag)"/>
+  <rect x="620" y="461" width="140" height="30" rx="6" fill="#64748b" filter="url(#sh)"/>
+  <text x="690" y="480" text-anchor="middle" font-size="10" font-weight="600" fill="white">General Agent</text>
+  <text x="690" y="500" text-anchor="middle" font-size="9" fill="#94a3b8">+ human review flag</text>
+
+  <!-- All agents arrow down to result -->
+  <line x1="690" y1="175" x2="690" y2="530" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="690" y1="530" x2="390" y2="530" stroke="#475569" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#a)"/>
+
+  <!-- Result / Response -->
+  <rect x="270" y="520" width="180" height="34" rx="17" fill="#10b981" filter="url(#sh)"/>
+  <text x="360" y="541" text-anchor="middle" font-size="11" font-weight="600" fill="white">Agent Response</text>
+
+  <!-- DynamoDB Audit Log -->
+  <line x1="360" y1="557" x2="360" y2="585" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="374" y="575" font-size="9" fill="#cbd5e1">log decision</text>
+  <rect x="220" y="588" width="320" height="36" rx="6" fill="#f59e0b" filter="url(#sh)"/>
+  <text x="380" y="611" text-anchor="middle" font-size="11" font-weight="600" fill="#422006">DynamoDB Audit Log</text>
+  <text x="380" y="635" text-anchor="middle" font-size="9" fill="#fbbf24">ticket_id | method | agent | confidence | latency</text>
+
+  <!-- Legend -->
+  <rect x="170" y="670" width="14" height="14" rx="3" fill="#6366f1"/>
+  <text x="188" y="681" font-size="10" fill="#e2e8f0">Priority</text>
+  <rect x="260" y="670" width="14" height="14" rx="3" fill="#3b82f6"/>
+  <text x="278" y="681" font-size="10" fill="#e2e8f0">Rule-Based</text>
+  <rect x="370" y="670" width="14" height="14" rx="3" fill="#8b5cf6"/>
+  <text x="388" y="681" font-size="10" fill="#e2e8f0">LLM / Classifier</text>
+  <rect x="490" y="670" width="14" height="14" rx="3" fill="#64748b"/>
+  <text x="508" y="681" font-size="10" fill="#e2e8f0">Fallback</text>
+  <rect x="580" y="670" width="14" height="14" rx="3" fill="#f59e0b"/>
+  <text x="598" y="681" font-size="10" fill="#e2e8f0">Infrastructure</text>
+</svg>

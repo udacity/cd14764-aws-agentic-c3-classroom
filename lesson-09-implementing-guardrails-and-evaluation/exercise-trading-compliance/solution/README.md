@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![Architecture Diagram](../architecture.svg)
+![Architecture Diagram](architecture.svg)
 
 ## Overview
 This exercise implements the complete governance stack for a financial trading compliance agent. Same guardrail pattern as the demo, with additions: guardrail versioning (DRAFT → production), a stricter kill switch (3 violations in 60 seconds), and output guardrail scanning.

@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![Architecture Diagram](../architecture.svg)
+![Architecture Diagram](architecture.svg)
 
 ## Overview
 This exercise builds a shared state system for food delivery orders using the same optimistic locking pattern from the demo, with two additions: 4 agents instead of 3 (more concurrent conflicts), and a state recovery pattern that cleans up partial updates after a restaurant rejection.

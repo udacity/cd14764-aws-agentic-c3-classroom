@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![Architecture Diagram](../architecture.svg)
+![Architecture Diagram](architecture.svg)
 
 ## Overview
 This exercise implements a saga-based checkout flow where an order spans inventory reservation, payment processing, and shipping scheduling. Same saga pattern as the demo, with one addition: a barrier coordination primitive that ensures all compensations complete before the saga resolves.

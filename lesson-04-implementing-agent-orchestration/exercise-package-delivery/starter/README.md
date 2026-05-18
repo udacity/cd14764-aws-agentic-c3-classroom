@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![Architecture Diagram](../architecture.svg)
+![Architecture Diagram](architecture.svg)
 
 ## Overview
 This exercise is about **orchestration**, not agent wiring. The control plane — when agents run, how failures are handled, which branch is taken — is what you implement. Most of the agent boilerplate is already filled in so you can stay focused on the three orchestration primitives from the demo (hr_onboarding.py): sequential gate, parallel dispatch, and conditional routing.

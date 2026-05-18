@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![Architecture Diagram](../architecture.svg)
+![Architecture Diagram](architecture.svg)
 
 ## Overview
 Build a saga-based checkout flow following the same pattern from the demo (travel_booking_saga.py). Three checkout agents handle inventory, payment, and shipping — each with a forward action and a compensating action. Add a barrier coordination primitive that ensures all compensations complete before the saga resolves.

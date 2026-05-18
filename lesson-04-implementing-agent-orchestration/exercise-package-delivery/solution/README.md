@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![Architecture Diagram](../architecture.svg)
+![Architecture Diagram](architecture.svg)
 
 ## Overview
 This exercise builds an orchestrated logistics workflow for package delivery that combines a sequential gate, parallel execution, and conditional routing — the same three orchestration patterns from the demo, applied to a different domain.

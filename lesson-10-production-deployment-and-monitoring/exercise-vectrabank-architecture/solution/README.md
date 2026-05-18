@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![Architecture Diagram](../architecture.svg)
+![Architecture Diagram](architecture.svg)
 
 ## Overview
 This exercise creates a production deployment plan for VectraBank's financial services multi-agent system. Same planning pattern as the demo, with additions: VPC network mode, operational runbooks, stricter compliance thresholds, and a 4-agent architecture preview.

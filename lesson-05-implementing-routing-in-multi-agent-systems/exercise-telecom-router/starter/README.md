@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![Architecture Diagram](../architecture.svg)
+![Architecture Diagram](architecture.svg)
 
 ## Overview
 Build a hybrid routing system for telecom support tickets following the same pattern from the demo (financial_router.py).

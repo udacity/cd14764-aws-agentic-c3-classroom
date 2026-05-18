@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![Architecture Diagram](../architecture.svg)
+![Architecture Diagram](architecture.svg)
 
 ## Overview
 Create a deployment architecture plan for VectraBank following the demo pattern (deployment_walkthrough.py). Define runtime configuration, agent definitions, monitoring strategy, cost estimates, and operational runbooks.
