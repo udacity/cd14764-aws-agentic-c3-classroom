@@ -4,7 +4,7 @@
 
 A production-grade multi-agent customer support system built with the [Strands Agents SDK](https://github.com/strands-agents/sdk-python) and Amazon Bedrock AgentCore. The system automatically routes customer support requests to specialist agents, retrieves grounded knowledge via **parallel multi-agent RAG**, enforces enterprise safety guardrails, and maintains shared workflow state across agents - all observable through CloudWatch and X-Ray.
 
-<img width="1140" height="824" alt="image" src="https://github.com/user-attachments/assets/d4495058-cde6-4d7f-beac-d1405ac6ef07" />
+<img width="1140" height="824" alt="NovaMart architecture overview" src="diagrams/architecture-overview.png" />
 
 
 
@@ -40,7 +40,7 @@ Shared State: DynamoDB WorkflowStateTable (with optimistic locking)
 | **RefundAgent** | Claude 3 Sonnet | Makes return/refund eligibility decisions (30-day Standard, 60-day Premium) | `get_inventory_context`, `initiate_refund` |
 | **CommunicationAgent** | Claude 3 Sonnet | Drafts final, empathetic customer-facing response | `get_full_workflow_context` |
 
-<img width="1165" height="842" alt="image" src="https://github.com/user-attachments/assets/8eb93bb7-3e04-4551-afe0-cdecc5130fe9" />
+<img width="1165" height="842" alt="Agents and tools reference" src="diagrams/agents-and-tools-reference.png" />
 
 
 
@@ -57,7 +57,7 @@ Shared State: DynamoDB WorkflowStateTable (with optimistic locking)
 - **Bedrock Knowledge Bases**: Uses S3-backed vector store for policy retrieval (no custom embeddings)
 
 ---
-<img width="1164" height="803" alt="image" src="https://github.com/user-attachments/assets/80a022a7-f801-4665-a9ef-72b47403757f" />
+<img width="1164" height="803" alt="Request flow scenarios" src="diagrams/request-flow-scenarios.png" />
 
 
 
