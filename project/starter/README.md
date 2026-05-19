@@ -146,17 +146,17 @@ starter/
 
 Implement 5 Strands Agents in an Orchestrator → Workers hierarchy:
 
-#### **2.A - InventoryAgent** (TODOs 2.1–2.5)
+#### **2.A - InventoryAgent**
 Gathers order and customer facts from DynamoDB (no decisions).
 - **Tools:** `check_order_status`, `get_customer_tier`, `list_customer_orders`
 - **Model:** Claude 3 Sonnet | **Temperature:** 0.1
 
-#### **2.B - RefundAgent** (TODOs 2.6–2.10)
+#### **2.B - RefundAgent**
 Makes return/refund eligibility decisions based on customer tier and dates.
 - **Tools:** `get_inventory_context`, `initiate_refund`
 - **Model:** Claude 3 Sonnet | **Temperature:** 0.1
 
-#### **2.C - PolicyAgent** (TODOs 2.11–2.17) ⭐
+#### **2.C - PolicyAgent** ⭐
 **Multi-Agent RAG Coordinator:** Runs 3 retriever sub-agents in parallel.
 ```
 PolicyAgent
@@ -168,12 +168,12 @@ PolicyAgent
 - **Output:** Merged, deduplicated results ranked by relevance
 - **Model:** Claude 3 Sonnet | **Temperature:** 0.2
 
-#### **2.D - CommunicationAgent** (TODOs 2.18–2.21)
+#### **2.D - CommunicationAgent**
 Composes final customer-facing response from accumulated WorkflowState.
 - **Tools:** `get_full_workflow_context`
 - **Model:** Claude 3 Sonnet | **Temperature:** 0.3
 
-#### **2.E - OrchestratorAgent** (TODOs 2.22–2.29)
+#### **2.E - OrchestratorAgent**
 Routes requests and manages shared WorkflowState.
 
 - **Tools:** `initialize_session`, `route_to_inventory_agent`, `route_to_policy_agent`, `route_to_refund_agent`, `route_to_communication_agent`

@@ -276,16 +276,16 @@ def build_inventory_agent() -> Agent:
     only retrieves data for the OrchestratorAgent to share with downstream agents.
     """
 
-    # TODO 2.1: Create a BedrockModel using the WORKER model
+    # TODO: Create a BedrockModel using the WORKER model
     pass
 
-    # TODO 2.2: System prompt for the Inventory Agent
+    # TODO: System prompt for the Inventory Agent
     pass
 
-    # TODO 2.3: Implement check_order_status tool
+    # TODO: Implement check_order_status tool
     pass
 
-    # TODO 2.4: Implement get_customer_tier
+    # TODO: Implement get_customer_tier
     @tool
     def get_customer_tier(customer_id: str) -> dict:
         """
@@ -300,7 +300,7 @@ def build_inventory_agent() -> Agent:
         """
         pass
 
-    # TODO 2.5: Implement list_customer_orders
+    # TODO: Implement list_customer_orders
     @tool
     def list_customer_orders(customer_id: str) -> dict:
         """
@@ -314,7 +314,7 @@ def build_inventory_agent() -> Agent:
         """
         pass
 
-    # TODO 2.5b: Instantiate and return the Agent
+    # TODO: Instantiate and return the Agent
     pass
 
 
@@ -330,13 +330,13 @@ def build_refund_agent() -> Agent:
     WorkflowState and applies the correct policy window per customer tier.
     """
 
-    # TODO 2.6: Create a BedrockModel
+    # TODO: Create a BedrockModel
     pass
 
-    # TODO 2.7: System prompt for the Refund Agent
+    # TODO: System prompt for the Refund Agent
     pass
 
-    # TODO 2.8: Implement get_inventory_context
+    # TODO: Implement get_inventory_context
     @tool
     def get_inventory_context(session_id: str) -> dict:
         """
@@ -350,7 +350,7 @@ def build_refund_agent() -> Agent:
         """
         pass
 
-    # TODO 2.9: Implement initiate_refund
+    # TODO: Implement initiate_refund
     @tool
     def initiate_refund(customer_id: str, order_id: str, reason: str) -> dict:
         """
@@ -366,7 +366,7 @@ def build_refund_agent() -> Agent:
         """
         pass
 
-    # TODO 2.10: Instantiate and return the Agent
+    # TODO: Instantiate and return the Agent
     pass
 
 
@@ -383,7 +383,7 @@ def build_policy_agent() -> Agent:
     the combined results into a complete, grounded policy answer.
     """
 
-    # TODO 2.11: Build ReturnsPolicyRetrieverAgent
+    # TODO: Build ReturnsPolicyRetrieverAgent
     @tool
     def retrieve_returns_policy(query: str) -> str:
         """Retrieve relevant passages from the Returns Policy knowledge base."""
@@ -392,7 +392,7 @@ def build_policy_agent() -> Agent:
     # Create the ReturnsPolicyRetrieverAgent with the tool above
     pass
 
-    # TODO 2.12: Build ShippingPolicyRetrieverAgent
+    # TODO: Build ShippingPolicyRetrieverAgent
     @tool
     def retrieve_shipping_policy(query: str) -> str:
         """Retrieve relevant passages from the Shipping Policy knowledge base."""
@@ -401,7 +401,7 @@ def build_policy_agent() -> Agent:
     # Create the ShippingPolicyRetrieverAgent with the tool above
     pass
 
-    # TODO 2.13: Build WarrantyPolicyRetrieverAgent
+    # TODO: Build WarrantyPolicyRetrieverAgent
     @tool
     def retrieve_warranty_policy(query: str) -> str:
         """Retrieve relevant passages from the Warranty Policy knowledge base."""
@@ -410,7 +410,7 @@ def build_policy_agent() -> Agent:
     # Create the WarrantyPolicyRetrieverAgent with the tool above
     pass
 
-    # TODO 2.14: Implement search_all_policies - parallel RAG retrieval tool
+    # TODO: Implement search_all_policies - parallel RAG retrieval tool
     @tool
     def search_all_policies(query: str) -> str:
         """
@@ -462,13 +462,13 @@ def build_policy_agent() -> Agent:
         # Combine results from all three domains and return
         pass
 
-    # TODO 2.15: Create a BedrockModel for the PolicyAgent coordinator
+    # TODO: Create a BedrockModel for the PolicyAgent coordinator
     pass
 
-    # TODO 2.16: System prompt for PolicyAgent coordinator
+    # TODO: System prompt for PolicyAgent coordinator
     pass
 
-    # TODO 2.17: Instantiate and return the PolicyAgent coordinator
+    # TODO: Instantiate and return the PolicyAgent coordinator
     pass
 
 
@@ -484,13 +484,13 @@ def build_communication_agent() -> Agent:
     and composing a coherent, empathetic response.
     """
 
-    # TODO 2.18: Create a BedrockModel
+    # TODO: Create a BedrockModel
     pass
 
-    # TODO 2.19: System prompt for the Communication Agent
+    # TODO: System prompt for the Communication Agent
     pass
 
-    # TODO 2.20: Implement get_full_workflow_context
+    # TODO: Implement get_full_workflow_context
     @tool
     def get_full_workflow_context(session_id: str) -> dict:
         """
@@ -504,7 +504,7 @@ def build_communication_agent() -> Agent:
         """
         pass
 
-    # TODO 2.21: Instantiate and return the Agent
+    # TODO: Instantiate and return the Agent
     pass
 
 
@@ -522,13 +522,13 @@ def build_orchestrator_agent(
     Build the Orchestrator Agent that routes requests and manages WorkflowState.
     """
 
-    # TODO 2.22: Create a BedrockModel using the ORCHESTRATOR model
+    # TODO: Create a BedrockModel using the ORCHESTRATOR model
     pass
 
-    # TODO 2.23: System prompt for the Orchestrator
+    # TODO: System prompt for the Orchestrator
     pass
 
-    # TODO 2.24: Implement route_to_inventory_agent
+    # TODO: Implement route_to_inventory_agent
     @tool
     def route_to_inventory_agent(session_id: str, customer_id: str, request: str) -> str:
         """
@@ -545,7 +545,7 @@ def build_orchestrator_agent(
         """
         pass
 
-    # TODO 2.25: Implement route_to_policy_agent
+    # TODO: Implement route_to_policy_agent
     @tool
     def route_to_policy_agent(session_id: str, request: str) -> str:
         """
@@ -561,7 +561,7 @@ def build_orchestrator_agent(
         """
         pass
 
-    # TODO 2.26: Implement route_to_refund_agent
+    # TODO: Implement route_to_refund_agent
     @tool
     def route_to_refund_agent(session_id: str, customer_id: str, request: str) -> str:
         """
@@ -578,7 +578,7 @@ def build_orchestrator_agent(
         """
         pass
 
-    # TODO 2.27: Implement route_to_communication_agent
+    # TODO: Implement route_to_communication_agent
     @tool
     def route_to_communication_agent(session_id: str, customer_id: str,
                                      original_request: str) -> str:
@@ -596,7 +596,7 @@ def build_orchestrator_agent(
         """
         pass
 
-    # TODO 2.28: Implement initialize_session
+    # TODO: Implement initialize_session
     @tool
     def initialize_session(session_id: str, customer_id: str) -> str:
         """
@@ -612,7 +612,7 @@ def build_orchestrator_agent(
         """
         pass
 
-    # TODO 2.29: Instantiate and return the OrchestratorAgent
+    # TODO: Instantiate and return the OrchestratorAgent
     pass
 
 
@@ -642,7 +642,7 @@ def create_guardrail() -> tuple[str, str]:
             print(f"Guardrail already exists: {guardrail_id} (version: {guardrail_version})")
             return guardrail_id, guardrail_version
 
-    # TODO 3.1: Create the guardrail
+    # TODO: Create the guardrail
     # Use bedrock_client.create_guardrail() with:
     #   - Content policy - block harmful categories at HIGH strength
     #   - PII policy - block credit cards + SSNs; anonymize emails + phone numbers
@@ -724,7 +724,7 @@ def deploy_to_agentcore_runtime(
     )
     print(f"  Artifact uploaded: s3://{config.POLICY_BUCKET}/{artifact_key}")
 
-    # TODO 3.2: Deploy to AgentCore Runtime
+    # TODO: Deploy to AgentCore Runtime
     # Use agentcore_control.create_agent_runtime() with:
     #   - agentRuntimeName (runtime_name), description, roleArn
     #   - networkConfiguration (PUBLIC)
@@ -758,7 +758,7 @@ def configure_memory(runtime_arn: str) -> str:
             print(f"AgentCore Memory already exists: {memory_arn}")
             return memory_arn
 
-    # TODO 4.1: Create AgentCore Memory
+    # TODO: Create AgentCore Memory
     # Use agentcore_control.create_memory() with:
     #   - name (memory_name), description
     #   - eventExpiryDuration (7 days)
@@ -780,7 +780,7 @@ def configure_observability(runtime_arn: str) -> None:
     """
     runtime_id = runtime_arn.split('/')[-1]
 
-    # TODO 6.1: Configure observability
+    # TODO: Configure observability
     # NOTE: AgentCore API — control plane logging.
     # put_agent_runtime_logging_configuration may not be available in all
     # SDK versions — wrap the call in try/except and fall back gracefully.
