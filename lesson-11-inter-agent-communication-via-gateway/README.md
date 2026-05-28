@@ -110,7 +110,7 @@ weather, currency, news) and learn about mixing Lambda and REST API backends.
 ## Cleanup
 
 ```bash
-aws cloudformation delete-stack --stack-name lesson-11-gateway
+aws cloudformation delete-stack --stack-name lesson-stack
 ```
 
 If you created an AgentCore Gateway during the demo, delete it from the

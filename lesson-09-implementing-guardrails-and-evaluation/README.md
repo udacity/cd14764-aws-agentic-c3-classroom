@@ -62,5 +62,5 @@ lesson-09-implementing-guardrails-and-evaluation/
 The CloudFormation stack creates two Bedrock Guardrails (Healthcare + Trading). Guardrails carry a small ongoing charge per evaluation request, but unused guardrails cost nothing — still, tear them down when you're done so they don't clutter the console:
 
 ```bash
-aws cloudformation delete-stack --stack-name lesson-09-guardrails
+aws cloudformation delete-stack --stack-name lesson-stack
 ```

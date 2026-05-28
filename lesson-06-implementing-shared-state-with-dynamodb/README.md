@@ -42,5 +42,5 @@ lesson-06-implementing-shared-state-with-dynamodb/
 The CloudFormation stack creates two DynamoDB tables (TripState + OrderState), both billing on-demand. Tear them down when you're done:
 
 ```bash
-aws cloudformation delete-stack --stack-name lesson-06-shared-state
+aws cloudformation delete-stack --stack-name lesson-stack
 ```

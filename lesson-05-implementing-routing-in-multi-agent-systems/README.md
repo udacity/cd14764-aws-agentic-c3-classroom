@@ -38,5 +38,5 @@ lesson-05-implementing-routing-in-multi-agent-systems/
 The CloudFormation stack creates a DynamoDB audit table that bills on-demand. Tear it down when you're done with the lesson:
 
 ```bash
-aws cloudformation delete-stack --stack-name lesson-05-routing
+aws cloudformation delete-stack --stack-name lesson-stack
 ```

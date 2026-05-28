@@ -152,7 +152,7 @@ def _verify_audit_table():
         print(f"  ✗ Cannot access DynamoDB table '{ROUTING_AUDIT_TABLE}': {e}")
         print(f"    Deploy infrastructure first: aws cloudformation deploy "
               f"--template-file infrastructure/stack.yaml "
-              f"--stack-name lesson-05-routing --capabilities CAPABILITY_NAMED_IAM")
+              f"--stack-name lesson-stack --capabilities CAPABILITY_NAMED_IAM")
         raise SystemExit(1)
 
 
