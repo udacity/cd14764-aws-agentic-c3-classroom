@@ -673,7 +673,7 @@ def deploy_to_agentcore_runtime(
     Returns:
         The AgentCore Runtime ARN
     """
-    runtime_name = f"{config.PROJECT_NAME}-runtime"
+    runtime_name = f"{config.PROJECT_NAME}-runtime".replace('-', '_')
     s3_client    = boto3.client('s3', region_name=config.AWS_REGION)
 
     # Check if runtime already exists
