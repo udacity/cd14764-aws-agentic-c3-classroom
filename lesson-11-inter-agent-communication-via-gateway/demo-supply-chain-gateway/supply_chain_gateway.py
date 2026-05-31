@@ -87,10 +87,10 @@ NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")
 lambda_client = boto3.client("lambda", region_name=AWS_REGION)
 
 # Lambda function names (from CloudFormation)
-INVENTORY_FUNCTION = os.environ.get("INVENTORY_FUNCTION", "lesson-11-gateway-inventory")
-SHIPPING_FUNCTION = os.environ.get("SHIPPING_FUNCTION", "lesson-11-gateway-shipping")
-SUPPLIER_FUNCTION = os.environ.get("SUPPLIER_FUNCTION", "lesson-11-gateway-supplier")
-QUALITY_INSPECTION_FUNCTION = os.environ.get("QUALITY_INSPECTION_FUNCTION", "lesson-11-gateway-quality-inspection")
+INVENTORY_FUNCTION = os.environ.get("INVENTORY_FUNCTION", "lesson-11-demo-inventory")
+SHIPPING_FUNCTION = os.environ.get("SHIPPING_FUNCTION", "lesson-11-demo-shipping")
+SUPPLIER_FUNCTION = os.environ.get("SUPPLIER_FUNCTION", "lesson-11-demo-supplier")
+QUALITY_INSPECTION_FUNCTION = os.environ.get("QUALITY_INSPECTION_FUNCTION", "lesson-11-demo-quality-inspection")
 
 
 # STEP 1: LAMBDA GATEWAY — Routes tool calls to AWS Lambda functions

@@ -7,6 +7,18 @@
 ## Overview
 This exercise implements an analytics agent connected to utility services through AgentCore Gateway. Same pattern as the demo with mixed target types: 2 Lambda functions and 1 REST API.
 
+## Setup
+
+1. Copy the env template:
+   ```bash
+   cp .env.example .env
+   ```
+2. If you already deployed the stack while doing the starter (`lesson-11-exercise-gateway`), you don't need to deploy again — copy your starter `.env` values into this one. Otherwise:
+   ```bash
+   python infrastructure/deploy_stack.py
+   ```
+3. Copy the printed `AGENTCORE_ROLE_ARN` value into your `.env` (or reuse from your starter `.env`).
+
 ## Architecture
 - **Gateway:** SimulatedGateway with 3 registered targets
 - **Targets:** Weather Lambda, Currency Lambda, News REST API
@@ -22,6 +34,11 @@ This exercise implements an analytics agent connected to utility services throug
 ## Running
 ```bash
 python analytics_gateway.py
+```
+
+## Cleanup
+```bash
+aws cloudformation delete-stack --stack-name lesson-11-exercise-gateway
 ```
 
 ## Key Differences from Demo

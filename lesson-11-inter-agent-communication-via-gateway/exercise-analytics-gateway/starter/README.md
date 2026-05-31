@@ -7,6 +7,18 @@
 ## Overview
 Build an analytics agent connected to utility services through AgentCore Gateway following the demo pattern (supply_chain_gateway.py). Register 3 targets (2 Lambda + 1 REST API) and build an agent that discovers tools at runtime.
 
+## Setup
+
+1. Copy the env template and paste credentials from the "Load AWS Credentials" sidebar:
+   ```bash
+   cp .env.example .env
+   ```
+2. Deploy the Lambda backends and AgentCore Gateway role:
+   ```bash
+   python infrastructure/deploy_stack.py
+   ```
+3. Copy the printed `AGENTCORE_ROLE_ARN` value into your `.env`.
+
 ## Your Task
 Complete **9 TODOs** in `analytics_gateway.py`:
 
@@ -43,4 +55,9 @@ Complete **9 TODOs** in `analytics_gateway.py`:
 ## Running
 ```bash
 python analytics_gateway.py
+```
+
+## Cleanup
+```bash
+aws cloudformation delete-stack --stack-name lesson-11-exercise-gateway
 ```

@@ -1,13 +1,13 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Lesson 11: Inter-Agent Communication via Gateway
-  Creates Lambda functions as tool backends for the gateway pattern.
-  Both demo (supply chain) and exercise (analytics) Lambda functions included.
+  Lesson 11 Exercise: Analytics Gateway
+  Creates the Lambda tool backends and the AgentCore Gateway IAM role
+  for the analytics exercise (weather, currency, news, stock price).
 
 Parameters:
   ProjectName:
     Type: String
-    Default: lesson-11-gateway
+    Default: lesson-11-exercise
 
 Resources:
   LambdaExecutionRole:
@@ -23,100 +23,6 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-
-  # ─────────────────────────────────────────────────────
-  # DEMO: Supply Chain Gateway Lambda Functions
-  # ─────────────────────────────────────────────────────
-
-  InventoryFunction:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: !Sub ${ProjectName}-inventory
-      Runtime: python3.11
-      Handler: index.handler
-      Role: !GetAtt LambdaExecutionRole.Arn
-      Code:
-        ZipFile: |
-          import json
-          INVENTORY = {
-              "WIDGET-001": {"name": "Steel Bolts M8", "stock": 15000, "warehouse": "WH-East", "reorder_point": 5000},
-              "WIDGET-002": {"name": "Copper Wire 12AWG", "stock": 2000, "warehouse": "WH-West", "reorder_point": 3000},
-              "WIDGET-003": {"name": "Aluminum Sheet 2mm", "stock": 8500, "warehouse": "WH-East", "reorder_point": 2000},
-          }
-          def handler(event, context):
-              item_id = event.get("item_id", "")
-              if item_id in INVENTORY:
-                  item = INVENTORY[item_id].copy()
-                  item["needs_reorder"] = item["stock"] < item["reorder_point"]
-                  return {"status": "ok", "item": item}
-              return {"status": "ok", "inventory": list(INVENTORY.values())}
-
-  ShippingFunction:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: !Sub ${ProjectName}-shipping
-      Runtime: python3.11
-      Handler: index.handler
-      Role: !GetAtt LambdaExecutionRole.Arn
-      Code:
-        ZipFile: |
-          import json
-          SHIPMENTS = {
-              "SHIP-101": {"destination": "New York", "status": "in_transit", "eta": "2024-03-15", "carrier": "FedEx"},
-              "SHIP-102": {"destination": "Chicago", "status": "delayed", "eta": "2024-03-18", "carrier": "UPS", "delay_reason": "Weather disruption"},
-              "SHIP-103": {"destination": "Miami", "status": "delivered", "delivered_at": "2024-03-10", "carrier": "USPS"},
-          }
-          def handler(event, context):
-              tracking_id = event.get("tracking_id", "")
-              if tracking_id in SHIPMENTS:
-                  return {"status": "ok", "shipment": SHIPMENTS[tracking_id]}
-              return {"status": "ok", "all_shipments": list(SHIPMENTS.values())}
-
-  SupplierFunction:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: !Sub ${ProjectName}-supplier
-      Runtime: python3.11
-      Handler: index.handler
-      Role: !GetAtt LambdaExecutionRole.Arn
-      Code:
-        ZipFile: |
-          import json
-          SUPPLIERS = {
-              "SUP-A": {"name": "SteelCo Industries", "rating": 4.5, "lead_time_days": 7, "min_order": 1000},
-              "SUP-B": {"name": "CopperWire Direct", "rating": 3.8, "lead_time_days": 14, "min_order": 500},
-              "SUP-C": {"name": "MetalSheets Global", "rating": 4.2, "lead_time_days": 10, "min_order": 200},
-          }
-          def handler(event, context):
-              supplier_id = event.get("supplier_id", "")
-              if supplier_id in SUPPLIERS:
-                  return {"status": "ok", "supplier": SUPPLIERS[supplier_id]}
-              return {"status": "ok", "all_suppliers": list(SUPPLIERS.values())}
-
-  QualityInspectionFunction:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: !Sub ${ProjectName}-quality-inspection
-      Runtime: python3.11
-      Handler: index.handler
-      Role: !GetAtt LambdaExecutionRole.Arn
-      Code:
-        ZipFile: |
-          import json
-          INSPECTIONS = {
-              "WIDGET-001": {"last_inspection": "2024-03-01", "result": "PASS", "defect_rate": 0.02},
-              "WIDGET-002": {"last_inspection": "2024-02-28", "result": "FAIL", "defect_rate": 0.08, "issues": ["Insulation thickness below spec"]},
-              "WIDGET-003": {"last_inspection": "2024-03-05", "result": "PASS", "defect_rate": 0.01},
-          }
-          def handler(event, context):
-              item_id = event.get("item_id", "")
-              if item_id in INSPECTIONS:
-                  return {"status": "ok", "inspection": INSPECTIONS[item_id]}
-              return {"status": "ok", "all_inspections": list(INSPECTIONS.values())}
-
-  # ─────────────────────────────────────────────────────
-  # EXERCISE: Analytics Gateway Lambda Functions
-  # ─────────────────────────────────────────────────────
 
   WeatherFunction:
     Type: AWS::Lambda::Function
@@ -232,9 +138,6 @@ Resources:
               return {"status": "error", "message": f"Symbol '{symbol}' not found"}
       Timeout: 10
 
-  # ─────────────────────────────────────────────────────
-  # IAM Role for AgentCore Gateway
-  # ─────────────────────────────────────────────────────
   AgentCoreGatewayRole:
     Type: AWS::IAM::Role
     Properties:
@@ -257,22 +160,6 @@ Resources:
                 Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-*
 
 Outputs:
-  InventoryFunctionArn:
-    Value: !GetAtt InventoryFunction.Arn
-    Export:
-      Name: !Sub ${ProjectName}-inventory-arn
-  ShippingFunctionArn:
-    Value: !GetAtt ShippingFunction.Arn
-    Export:
-      Name: !Sub ${ProjectName}-shipping-arn
-  SupplierFunctionArn:
-    Value: !GetAtt SupplierFunction.Arn
-    Export:
-      Name: !Sub ${ProjectName}-supplier-arn
-  QualityInspectionFunctionArn:
-    Value: !GetAtt QualityInspectionFunction.Arn
-    Export:
-      Name: !Sub ${ProjectName}-quality-inspection-arn
   WeatherFunctionArn:
     Value: !GetAtt WeatherFunction.Arn
     Export:

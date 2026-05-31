@@ -1,22 +1,21 @@
 """
 deploy_stack.py
 ===============
-Deploys the Lesson 11 CloudFormation infrastructure using boto3.
-Run this ONCE before the demo or exercise scripts.
+Deploys the Lesson 11 Exercise CloudFormation infrastructure using boto3.
+Run this ONCE before the analytics gateway exercise.
 
 No AWS CLI required — uses boto3 directly.
 
 Usage:
-    cd lesson-11-inter-agent-communication-via-gateway/infrastructure
+    cd lesson-11-inter-agent-communication-via-gateway/exercise-analytics-gateway/starter/infrastructure
     python deploy_stack.py
 
 What it creates:
-    - Lambda functions  : lesson-11-gateway-{inventory,shipping,supplier,quality-inspection,
-                          weather,currency,news,stock-price}
-    - IAM Role          : lesson-11-gateway-agentcore-role  (for AgentCore Gateway)
+    - Lambda functions  : lesson-11-exercise-{weather,currency,news,stock-price}
+    - IAM Role          : lesson-11-exercise-agentcore-role  (for AgentCore Gateway)
 
 The AgentCore Role ARN is printed at the end — paste it into your .env as
-AGENTCORE_ROLE_ARN so the gateway scripts can use it.
+AGENTCORE_ROLE_ARN so the gateway script can use it.
 """
 
 import boto3
@@ -24,18 +23,15 @@ import os
 import time
 from dotenv import load_dotenv
 
-# ── Credential loading ─────────────────────────────────────────────────────────
-# Use abspath so this works regardless of where the script is invoked from.
-_THIS_DIR   = os.path.dirname(os.path.abspath(__file__))
-_LESSON_DIR = os.path.dirname(_THIS_DIR)
+_THIS_DIR     = os.path.dirname(os.path.abspath(__file__))
+_ACTIVITY_DIR = os.path.dirname(_THIS_DIR)
 
-# Load .env from lesson root first (AWS creds live there),
-# then infrastructure/ for any local overrides.
-load_dotenv(os.path.join(_LESSON_DIR, ".env"))
-load_dotenv(os.path.join(_THIS_DIR,   ".env"))
+load_dotenv(os.path.join(_ACTIVITY_DIR, ".env"))
+load_dotenv(os.path.join(_THIS_DIR,     ".env"))
 
 AWS_REGION    = os.environ.get("AWS_REGION", "us-east-1")
-STACK_NAME    = "lesson-11-gateway"
+STACK_NAME    = "lesson-11-exercise-gateway"
+PROJECT_NAME  = "lesson-11-exercise"
 TEMPLATE_FILE = os.path.join(_THIS_DIR, "stack.yaml")
 
 
@@ -45,7 +41,6 @@ def deploy():
     with open(TEMPLATE_FILE) as f:
         template_body = f.read()
 
-    # ── Check if stack already exists ─────────────────────────────────────
     existing = False
     try:
         stacks = cf.describe_stacks(StackName=STACK_NAME)["Stacks"]
@@ -55,7 +50,7 @@ def deploy():
 
         if status in ("CREATE_COMPLETE", "UPDATE_COMPLETE"):
             print("Stack is healthy — checking for template changes...")
-            existing = True   # fall through to update path below
+            existing = True
         elif "ROLLBACK" in status or "FAILED" in status:
             print("Stack is in a failed state. Deleting and redeploying...")
             cf.delete_stack(StackName=STACK_NAME)
@@ -73,12 +68,11 @@ def deploy():
         else:
             raise
 
-    # ── Create or update ───────────────────────────────────────────────────
     params = dict(
         StackName=STACK_NAME,
         TemplateBody=template_body,
         Parameters=[
-            {"ParameterKey": "ProjectName", "ParameterValue": STACK_NAME},
+            {"ParameterKey": "ProjectName", "ParameterValue": PROJECT_NAME},
         ],
         Capabilities=["CAPABILITY_NAMED_IAM"],
     )
@@ -103,14 +97,12 @@ def deploy():
 
 
 def _wait(cf, stack_name: str, operation: str):
-    """Poll until stack operation completes."""
     dots = 0
     while True:
         try:
             stacks = cf.describe_stacks(StackName=stack_name)["Stacks"]
             status = stacks[0]["StackStatus"]
         except cf.exceptions.ClientError:
-            # Stack deleted successfully
             print(" done.")
             return
 
@@ -131,29 +123,25 @@ def _wait(cf, stack_name: str, operation: str):
 
 
 def _print_outputs(stack: dict):
-    """Print stack outputs."""
     outputs = {o["OutputKey"]: o["OutputValue"] for o in stack.get("Outputs", [])}
-
     role_arn = outputs.get("AgentCoreGatewayRoleArn", "(not found)")
 
     print("\n" + "=" * 60)
-    print("  Lesson 11 Infrastructure — Ready")
+    print("  Lesson 11 Exercise Infrastructure — Ready")
     print("=" * 60)
     print(f"\n  AgentCore Gateway Role ARN:")
     print(f"    {role_arn}")
     print(f"\n  Lambda Functions:")
-    for key in ["InventoryFunctionArn", "ShippingFunctionArn", "SupplierFunctionArn",
-                "QualityInspectionFunctionArn", "WeatherFunctionArn",
-                "CurrencyFunctionArn", "NewsFunctionArn", "StockPriceFunctionArn"]:
+    for key in ["WeatherFunctionArn", "CurrencyFunctionArn",
+                "NewsFunctionArn", "StockPriceFunctionArn"]:
         arn = outputs.get(key, "(not found)")
-        label = key.replace("FunctionArn", "").replace("Function", "")
-        print(f"    {label:26s} {arn}")
+        label = key.replace("FunctionArn", "")
+        print(f"    {label:14s} {arn}")
 
     print(f"\n  Next step — paste the Role ARN into your .env:")
     print(f"    AGENTCORE_ROLE_ARN={role_arn}")
     print(f"\n  You are ready to run:")
-    print(f"    python demo-supply-chain-gateway/supply_chain_gateway.py")
-    print(f"    python exercise-analytics-gateway/solution/analytics_gateway.py\n")
+    print(f"    python analytics_gateway.py\n")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,182 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Lesson 11 Exercise: Analytics Gateway
+  Creates the Lambda tool backends and the AgentCore Gateway IAM role
+  for the analytics exercise (weather, currency, news, stock price).
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: lesson-11-exercise
+
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-lambda-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  WeatherFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-weather
+      Runtime: python3.11
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          WEATHER_DATA = {
+              "tokyo": {"city": "Tokyo", "temp_c": 22, "condition": "Partly Cloudy", "humidity": 65, "wind_kph": 12},
+              "london": {"city": "London", "temp_c": 14, "condition": "Rainy", "humidity": 82, "wind_kph": 20},
+              "new york": {"city": "New York", "temp_c": 18, "condition": "Sunny", "humidity": 45, "wind_kph": 8},
+              "sydney": {"city": "Sydney", "temp_c": 26, "condition": "Clear", "humidity": 55, "wind_kph": 15},
+          }
+          def handler(event, context):
+              city = event.get("city", "").lower()
+              if city in WEATHER_DATA:
+                  return {"status": "ok", "weather": WEATHER_DATA[city]}
+              return {"status": "error", "message": f"City '{city}' not found"}
+
+  CurrencyFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-currency
+      Runtime: python3.11
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          RATES = {
+              "USD": 1.0, "EUR": 0.92, "GBP": 0.79, "JPY": 151.5,
+              "AUD": 1.53, "CAD": 1.36, "CHF": 0.88,
+          }
+          def handler(event, context):
+              amount = event.get("amount", 0)
+              from_currency = event.get("from", "USD").upper()
+              to_currency = event.get("to", "EUR").upper()
+
+              if from_currency not in RATES or to_currency not in RATES:
+                  return {"status": "error", "message": "Unsupported currency"}
+
+              usd_amount = amount / RATES[from_currency]
+              converted = round(usd_amount * RATES[to_currency], 2)
+
+              return {
+                  "status": "ok",
+                  "conversion": {
+                      "from": from_currency, "to": to_currency,
+                      "original_amount": amount, "converted_amount": converted,
+                      "rate": round(RATES[to_currency] / RATES[from_currency], 4),
+                  },
+              }
+
+  NewsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-news
+      Runtime: python3.11
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          HEADLINES = {
+              "ai": [
+                  {"title": "OpenAI Announces GPT-5 with Multimodal Reasoning", "source": "TechCrunch"},
+                  {"title": "AWS Launches AgentCore for Multi-Agent Systems", "source": "AWS Blog"},
+                  {"title": "AI Regulation Framework Advances in EU Parliament", "source": "Reuters"},
+              ],
+              "finance": [
+                  {"title": "Fed Holds Interest Rates Steady at 5.25%", "source": "Bloomberg"},
+                  {"title": "S&P 500 Hits New All-Time High on Tech Rally", "source": "CNBC"},
+                  {"title": "Bitcoin Surges Past $70,000 Amid ETF Inflows", "source": "CoinDesk"},
+              ],
+              "technology": [
+                  {"title": "Apple Unveils M4 Ultra Chip at Developer Conference", "source": "The Verge"},
+                  {"title": "Quantum Computing Breakthrough: 1000-Qubit Processor", "source": "Nature"},
+                  {"title": "Cybersecurity Spending to Reach $200B in 2025", "source": "Gartner"},
+              ],
+          }
+          def handler(event, context):
+              topic = event.get("topic", "ai").lower()
+              if topic in HEADLINES:
+                  return {"status": "ok", "topic": topic, "headlines": HEADLINES[topic]}
+              return {"status": "ok", "topic": "general", "headlines": [
+                  item for sublist in HEADLINES.values() for item in sublist[:1]
+              ]}
+
+  StockPriceFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-stock-price
+      Runtime: python3.11
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          PRICES = {
+              "AMZN": {"price": 185.23, "change": "+1.2%", "name": "Amazon.com"},
+              "GOOG": {"price": 175.84, "change": "+0.8%", "name": "Alphabet"},
+              "AAPL": {"price": 189.51, "change": "-0.3%", "name": "Apple"},
+              "MSFT": {"price": 415.20, "change": "+1.5%", "name": "Microsoft"},
+              "NVDA": {"price": 875.40, "change": "+2.1%", "name": "NVIDIA"},
+          }
+          def handler(event, context):
+              symbol = event.get("symbol", "").upper()
+              if symbol in PRICES:
+                  return {"status": "ok", "symbol": symbol, **PRICES[symbol]}
+              return {"status": "error", "message": f"Symbol '{symbol}' not found"}
+      Timeout: 10
+
+  AgentCoreGatewayRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-agentcore-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: bedrock-agentcore.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: invoke-lambda
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-*
+
+Outputs:
+  WeatherFunctionArn:
+    Value: !GetAtt WeatherFunction.Arn
+    Export:
+      Name: !Sub ${ProjectName}-weather-arn
+  CurrencyFunctionArn:
+    Value: !GetAtt CurrencyFunction.Arn
+    Export:
+      Name: !Sub ${ProjectName}-currency-arn
+  NewsFunctionArn:
+    Value: !GetAtt NewsFunction.Arn
+    Export:
+      Name: !Sub ${ProjectName}-news-arn
+  StockPriceFunctionArn:
+    Value: !GetAtt StockPriceFunction.Arn
+    Export:
+      Name: !Sub ${ProjectName}-stock-price-arn
+  AgentCoreGatewayRoleArn:
+    Value: !GetAtt AgentCoreGatewayRole.Arn
+    Export:
+      Name: !Sub ${ProjectName}-agentcore-role-arn

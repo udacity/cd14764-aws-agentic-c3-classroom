@@ -80,10 +80,10 @@ NOVA_LITE_MODEL = os.environ.get("NOVA_LITE_MODEL", "amazon.nova-lite-v1:0")
 lambda_client = boto3.client("lambda", region_name=AWS_REGION)
 
 # Lambda function names (from CloudFormation)
-WEATHER_FUNCTION = os.environ.get("WEATHER_FUNCTION", "lesson-11-gateway-weather")
-CURRENCY_FUNCTION = os.environ.get("CURRENCY_FUNCTION", "lesson-11-gateway-currency")
-NEWS_FUNCTION = os.environ.get("NEWS_FUNCTION", "lesson-11-gateway-news")
-STOCK_PRICE_FUNCTION = os.environ.get("STOCK_PRICE_FUNCTION", "lesson-11-gateway-stock-price")
+WEATHER_FUNCTION = os.environ.get("WEATHER_FUNCTION", "lesson-11-exercise-weather")
+CURRENCY_FUNCTION = os.environ.get("CURRENCY_FUNCTION", "lesson-11-exercise-currency")
+NEWS_FUNCTION = os.environ.get("NEWS_FUNCTION", "lesson-11-exercise-news")
+STOCK_PRICE_FUNCTION = os.environ.get("STOCK_PRICE_FUNCTION", "lesson-11-exercise-stock-price")
 
 
 # LAMBDA GATEWAY
