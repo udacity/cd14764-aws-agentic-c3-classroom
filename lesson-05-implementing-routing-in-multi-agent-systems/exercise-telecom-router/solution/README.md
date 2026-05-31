@@ -7,6 +7,18 @@
 ## Overview
 This exercise builds a hybrid routing system for telecom customer support using the same four-strategy pattern from the demo, applied to a different domain with 20 tickets.
 
+## Setup
+
+1. Copy the env template:
+   ```bash
+   cp .env.example .env
+   ```
+2. If you already deployed the stack while doing the starter (`lesson-05-exercise-routing`), you don't need to deploy again — copy your starter `.env` values into this one. Otherwise:
+   ```bash
+   aws cloudformation deploy --template-file infrastructure/stack.yaml \
+       --stack-name lesson-05-exercise-routing
+   ```
+
 ## Architecture
 - **Priority:** Cancellation intent → RetentionAgent (keyword detection)
 - **Rule-based:** Billing keywords → BillingAgent, Technical keywords → TechnicalAgent
@@ -24,6 +36,11 @@ This exercise builds a hybrid routing system for telecom customer support using 
 ## Running
 ```bash
 python telecom_router.py
+```
+
+## Cleanup
+```bash
+aws cloudformation delete-stack --stack-name lesson-05-exercise-routing
 ```
 
 ## Key Differences from Demo

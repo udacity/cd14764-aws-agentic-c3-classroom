@@ -2,6 +2,8 @@
 
 This lesson teaches how to build a hybrid routing system that combines rule-based routing (fast, free, deterministic) with LLM-powered classification (flexible, handles ambiguity), plus priority routing for business-critical requests and a fallback safety net.
 
+Each activity folder below has its own `infrastructure/`, `.env.example`, and `README.md` — open the one you're working on for setup steps.
+
 ## Folder Structure
 
 ```
@@ -9,34 +11,21 @@ lesson-05-implementing-routing-in-multi-agent-systems/
 ├── README.md
 ├── demo-financial-router/
 │   ├── README.md
+│   ├── .env.example
+│   ├── infrastructure/stack.yaml         ← demo routing-audit table
 │   └── financial_router.py
 └── exercise-telecom-router/
-    ├── solution/
+    ├── starter/
     │   ├── README.md
+    │   ├── .env.example
+    │   ├── infrastructure/stack.yaml     ← exercise routing-audit table
     │   └── telecom_router.py
-    └── starter/
+    └── solution/
         ├── README.md
+        ├── .env.example
+        ├── infrastructure/stack.yaml     ← same as starter; deploy only if you skipped the starter
         └── telecom_router.py
 ```
 
-## Demo: Hybrid Router for Financial Transactions (Instructor-led)
-- **Domain:** Financial services (wire transfers, fraud reports, account inquiries)
-- **Architecture:** 5 specialist agents + 1 LLM classifier agent, Python hybrid router
-- **Routing strategies:** Priority (>$10K → SeniorReviewAgent), Rule-based (keywords), LLM classification (ambiguous), Fallback (low confidence)
-- **Test cases:** 10 requests covering all 4 routing paths
-- **Key insight:** Rules first, LLM second saves 70-80% of classification API costs
-
-## Exercise: Multi-Strategy Router for Telecom Tickets (Student-led)
-- **Domain:** Telecom support (billing, technical, cancellation)
-- **Architecture:** 4 specialist agents + 1 LLM classifier, same hybrid router pattern
-- **Routing strategies:** Priority (cancellation → RetentionAgent), Rule-based (billing/technical keywords), LLM classification, Fallback
-- **Test cases:** 20 tickets (40% billing, 30% technical, 10% cancellation, 20% ambiguous)
-- **Key insight:** Same hybrid pattern, different domain — routing effectiveness report with accuracy, latency, and distribution metrics
-
-## Cleanup
-
-The CloudFormation stack creates a DynamoDB audit table that bills on-demand. Tear it down when you're done with the lesson:
-
-```bash
-aws cloudformation delete-stack --stack-name lesson-stack
-```
+- **Demo (financial transactions):** 5 specialist agents + 1 LLM classifier, hybrid router with priority/rule/LLM/fallback paths.
+- **Exercise (telecom support):** 4 specialist agents + 1 LLM classifier, same hybrid router pattern applied to telecom tickets with a routing-effectiveness report.

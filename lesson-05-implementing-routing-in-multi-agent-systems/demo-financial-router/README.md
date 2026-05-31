@@ -7,6 +7,18 @@
 ## Overview
 This demo builds a hybrid routing system that combines four routing strategies: priority routing for high-value transactions, rule-based routing for known patterns, LLM-powered classification for ambiguous requests, and fallback routing when confidence is low.
 
+## Setup
+
+1. Copy the env template and load AWS credentials from the "Load AWS Credentials" sidebar:
+   ```bash
+   cp .env.example .env
+   ```
+2. Deploy the DynamoDB routing-audit table:
+   ```bash
+   aws cloudformation deploy --template-file infrastructure/stack.yaml \
+       --stack-name lesson-05-demo-routing
+   ```
+
 ## Architecture
 - **Priority routing:** Transactions > $10,000 → SeniorReviewAgent (immediate override)
 - **Rule-based routing:** Keyword matching → PaymentsAgent / FraudAgent / AccountAgent
@@ -28,6 +40,11 @@ This demo builds a hybrid routing system that combines four routing strategies: 
 ## Running
 ```bash
 python financial_router.py
+```
+
+## Cleanup
+```bash
+aws cloudformation delete-stack --stack-name lesson-05-demo-routing
 ```
 
 ## Key Takeaways

@@ -137,7 +137,7 @@ TICKETS = [
 # ── DynamoDB Audit Log ───────────────────────────────────────────────────────
 # Every routing decision is logged to DynamoDB for compliance auditing.
 # Table created by CloudFormation (infrastructure/stack.yaml).
-ROUTING_AUDIT_TABLE = os.environ.get("ROUTING_AUDIT_TABLE", "lesson-05-routing-routing-audit")
+ROUTING_AUDIT_TABLE = os.environ.get("ROUTING_AUDIT_TABLE", "lesson-05-exercise-routing-audit")
 
 dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
 audit_table = dynamodb.Table(ROUTING_AUDIT_TABLE)

@@ -1,12 +1,12 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Lesson 5: Implementing Routing in Multi-Agent Systems
-  Creates a DynamoDB table for routing audit logs.
+  Lesson 5 Demo: Financial Router
+  Creates the DynamoDB table for routing audit logs.
 
 Parameters:
   ProjectName:
     Type: String
-    Default: lesson-05-routing
+    Default: lesson-05-demo
 
 Resources:
   RoutingAuditTable:

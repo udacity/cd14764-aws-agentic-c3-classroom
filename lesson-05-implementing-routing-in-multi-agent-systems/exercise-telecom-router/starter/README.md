@@ -7,6 +7,18 @@
 ## Overview
 Build a hybrid routing system for telecom support tickets following the same pattern from the demo (financial_router.py).
 
+## Setup
+
+1. Copy the env template and load AWS credentials from the "Load AWS Credentials" sidebar:
+   ```bash
+   cp .env.example .env
+   ```
+2. Deploy the DynamoDB routing-audit table:
+   ```bash
+   aws cloudformation deploy --template-file infrastructure/stack.yaml \
+       --stack-name lesson-05-exercise-routing
+   ```
+
 ## Your Task
 Complete **18 TODOs** in `telecom_router.py`:
 
@@ -45,4 +57,9 @@ Each agent follows STEP 1 → STEP 2 → STEP 3 (model → prompt → agent).
 ## Running
 ```bash
 python telecom_router.py
+```
+
+## Cleanup
+```bash
+aws cloudformation delete-stack --stack-name lesson-05-exercise-routing
 ```
