@@ -5,7 +5,15 @@
 ![Architecture Diagram](architecture.svg)
 
 ## Overview
-This exercise implements a clinical decision support RAG system with two specialized retrievers (Drug Interactions and Clinical Guidelines). Same parallel retrieval pattern as the demo, with three additions: passage deduplication, structured clinical output, and graceful degradation when a Knowledge Base is unavailable.
+This exercise implements a clinical decision support RAG system with two specialized retrievers (Drug Interactions and Clinical Guidelines), each backed by a real Amazon Bedrock Knowledge Base. Same parallel retrieval pattern as the demo, with three additions: passage deduplication, structured clinical output, and graceful degradation when a Knowledge Base is unavailable.
+
+## Setup
+
+1. Copy the env template:
+   ```bash
+   cp .env.example .env
+   ```
+2. If you already deployed the stack and created the KBs while doing the starter (`lesson-08-exercise-rag`), you don't need to deploy or recreate anything — copy your starter `.env` values into this one. Otherwise, follow the full setup in the starter README (deploy stack → run `python seed_documents.py` → create both KBs in the Bedrock console → copy IDs into `.env`).
 
 ## Architecture
 - **2 retriever agents:** Drug Interaction Retriever (6 pharmaceutical docs), Clinical Guidelines Retriever (6 guideline docs)
@@ -24,6 +32,12 @@ This exercise implements a clinical decision support RAG system with two special
 ## Running
 ```bash
 python clinical_literature_rag.py
+```
+
+## Cleanup
+If you already cleaned up after the starter, you're done. Otherwise, delete the two Knowledge Bases from the Bedrock console first, then tear down the stack:
+```bash
+aws cloudformation delete-stack --stack-name lesson-08-exercise-rag
 ```
 
 ## Key Differences from Demo

@@ -1,13 +1,14 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Lesson 8: Implementing Multi-Agent RAG
-  Creates S3 bucket for Knowledge Base source documents.
+  Lesson 8 Demo: Multi-Agent RAG for Research Assistant
+  Creates the S3 source bucket that holds documents for the CS Papers and
+  Biology Papers Knowledge Bases.
   NOTE: Bedrock Knowledge Bases must be created manually in the AWS Console.
 
 Parameters:
   ProjectName:
     Type: String
-    Default: lesson-08-rag
+    Default: lesson-08-demo-rag
 
 Resources:
   KBSourceBucket:
