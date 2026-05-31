@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Lesson 6: Implementing Shared State with DynamoDB
-  Creates DynamoDB tables for trip state (demo) and order state (exercise).
+  Lesson 6 Exercise: Food Delivery Orders
+  Creates the DynamoDB table for shared order state with optimistic locking.
 
 Parameters:
   ProjectName:
@@ -9,21 +9,6 @@ Parameters:
     Default: lesson-06-shared-state
 
 Resources:
-  TripStateTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: !Sub ${ProjectName}-trip-state
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: trip_id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: trip_id
-          KeyType: HASH
-      TimeToLiveSpecification:
-        AttributeName: ttl
-        Enabled: true
-
   OrderStateTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -40,10 +25,6 @@ Resources:
         Enabled: true
 
 Outputs:
-  TripStateTableName:
-    Value: !Ref TripStateTable
-    Export:
-      Name: !Sub ${ProjectName}-TripStateTable
   OrderStateTableName:
     Value: !Ref OrderStateTable
     Export:

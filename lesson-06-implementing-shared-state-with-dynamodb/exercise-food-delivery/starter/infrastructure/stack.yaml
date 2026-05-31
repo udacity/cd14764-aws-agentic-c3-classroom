@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Lesson 6 Exercise: Food Delivery Orders
+  Creates the DynamoDB table for shared order state with optimistic locking.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: lesson-06-shared-state
+
+Resources:
+  OrderStateTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${ProjectName}-order-state
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: order_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: order_id
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+Outputs:
+  OrderStateTableName:
+    Value: !Ref OrderStateTable
+    Export:
+      Name: !Sub ${ProjectName}-OrderStateTable

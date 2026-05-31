@@ -5,7 +5,19 @@
 ![Architecture Diagram](architecture.svg)
 
 ## Overview
-Build a shared state system for food delivery orders following the same pattern from the demo (ride_sharing_state.py). Uses SimulatedDynamoDB for transactional state with optimistic locking, and a customer_memory dict for cross-session customer preferences (simulating AgentCore Memory SESSION_SUMMARY strategy).
+Build a shared state system for food delivery orders following the same pattern from the demo (ride_sharing_state.py). Uses a real DynamoDB table for transactional state with optimistic locking, and a customer_memory dict for cross-session customer preferences (simulating AgentCore Memory SESSION_SUMMARY strategy).
+
+## Setup
+
+1. Copy the env template and load AWS credentials from the "Load AWS Credentials" sidebar:
+   ```bash
+   cp .env.example .env
+   ```
+2. Deploy the DynamoDB table:
+   ```bash
+   aws cloudformation deploy --template-file infrastructure/stack.yaml \
+       --stack-name lesson-06-exercise-shared-state
+   ```
 
 ## Your Task
 Complete **18 TODOs** in `food_delivery_state.py`:
@@ -35,7 +47,7 @@ Each agent follows STEP 1 → STEP 2 → STEP 3 (model → prompt → agent).
 | TODO 18 | Concurrent scenario — run 4 agents in parallel | ThreadPoolExecutor(max_workers=4) |
 
 ## What's Already Done
-- SimulatedDynamoDB class (with optimistic locking, ConditionalCheckFailedException, TTL)
+- DynamoDB table client (with optimistic locking helpers, ConditionalCheckFailedException handling, TTL)
 - Customer memory dict (simulates AgentCore Memory SESSION_SUMMARY)
 - All `@tool` functions for all 4 agents
 - Scenario 3 (state recovery) — study how it uses recover_order()
@@ -49,4 +61,9 @@ Each agent follows STEP 1 → STEP 2 → STEP 3 (model → prompt → agent).
 ## Running
 ```bash
 python food_delivery_state.py
+```
+
+## Cleanup
+```bash
+aws cloudformation delete-stack --stack-name lesson-06-exercise-shared-state
 ```

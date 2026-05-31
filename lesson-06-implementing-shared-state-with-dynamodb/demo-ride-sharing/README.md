@@ -7,8 +7,20 @@
 ## Overview
 This demo builds a shared state system where 3 worker agents update the same record for a ride-sharing trip. Optimistic locking (version-based conditional writes) prevents lost updates when agents run concurrently, and ConditionalCheckFailedException triggers automatic retry with exponential backoff. A simulated AgentCore Memory provides cross-session rider preference tracking.
 
+## Setup
+
+1. Copy the env template and load AWS credentials from the "Load AWS Credentials" sidebar:
+   ```bash
+   cp .env.example .env
+   ```
+2. Deploy the DynamoDB table:
+   ```bash
+   aws cloudformation deploy --template-file infrastructure/stack.yaml \
+       --stack-name lesson-06-demo-shared-state
+   ```
+
 ## Architecture
-- **SimulatedDynamoDB:** In-memory state store with thread-safe conditional writes (same API patterns as boto3 DynamoDB)
+- **DynamoDB:** Real DynamoDB table with thread-safe conditional writes via boto3
 - **Optimistic locking:** Each write checks `version == expected_version` — if another agent wrote first, ConditionalCheckFailedException is raised
 - **3 worker agents:** DriverMatchAgent (writes driver), PricingAgent (writes fare), ETAAgent (writes ETA) — all update the SAME trip record
 - **Cross-session memory:** rider_memory dict simulates AgentCore Memory SESSION_SUMMARY strategy — remembers preferred driver across trips
@@ -18,7 +30,7 @@ This demo builds a shared state system where 3 worker agents update the same rec
 
 ## AWS Services Used
 - Amazon Bedrock (Nova Lite for agent inference)
-- Simulated DynamoDB (production-mapping comments show real boto3 API)
+- Amazon DynamoDB (real table for optimistic locking)
 - Simulated AgentCore Memory (production-mapping comments show real bedrock-agentcore-control API)
 
 ## Test Cases (3 trips)
@@ -31,6 +43,11 @@ This demo builds a shared state system where 3 worker agents update the same rec
 ## Running
 ```bash
 python ride_sharing_state.py
+```
+
+## Cleanup
+```bash
+aws cloudformation delete-stack --stack-name lesson-06-demo-shared-state
 ```
 
 ## Key Takeaways
