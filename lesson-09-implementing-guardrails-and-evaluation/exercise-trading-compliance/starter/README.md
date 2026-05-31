@@ -5,7 +5,20 @@
 ![Architecture Diagram](architecture.svg)
 
 ## Overview
-Build the governance stack for a financial trading compliance agent following the demo pattern (healthcare_guardrails.py). Implement 4 guardrail policy types, a kill switch, rate limiting, and audit logging. Add guardrail versioning and output guardrail scanning.
+Build the governance stack for a financial trading compliance agent following the demo pattern (healthcare_guardrails.py). Implement 4 guardrail policy types, a kill switch, rate limiting, and audit logging. Add guardrail versioning and output guardrail scanning. Uses a real Amazon Bedrock Guardrail via `bedrock-runtime.apply_guardrail()`.
+
+## Setup
+
+1. Copy the env template and load AWS credentials:
+   ```bash
+   cp .env.example .env
+   ```
+2. Deploy the Bedrock Guardrail (region must be us-east-1):
+   ```bash
+   aws cloudformation deploy --template-file infrastructure/stack.yaml \
+       --stack-name lesson-09-exercise-guardrails
+   ```
+3. Copy `TradingGuardrailId` from the stack Outputs tab into `TRADING_GUARDRAIL_ID` in your `.env` (short ID, not the full ARN).
 
 ## Your Task
 Complete **16 TODOs** in `trading_compliance.py`:
@@ -62,4 +75,9 @@ Complete **16 TODOs** in `trading_compliance.py`:
 ## Running
 ```bash
 python trading_compliance.py
+```
+
+## Cleanup
+```bash
+aws cloudformation delete-stack --stack-name lesson-09-exercise-guardrails
 ```

@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Lesson 9 Demo: Healthcare Agent Guardrails
+  Creates the Bedrock Guardrail used by the healthcare patient intake demo.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: lesson-09-guardrails
+
+Resources:
+  HealthcareGuardrail:
+    Type: AWS::Bedrock::Guardrail
+    Properties:
+      Name: !Sub ${ProjectName}-healthcare
+      Description: Healthcare patient intake guardrail — blocks harmful content, PII, denied topics
+      BlockedInputMessaging: "Your input was blocked by our safety guardrail."
+      BlockedOutputsMessaging: "The response was blocked by our safety guardrail."
+      ContentPolicyConfig:
+        FiltersConfig:
+          - Type: VIOLENCE
+            InputStrength: HIGH
+            OutputStrength: HIGH
+          - Type: HATE
+            InputStrength: HIGH
+            OutputStrength: HIGH
+          - Type: SEXUAL
+            InputStrength: HIGH
+            OutputStrength: HIGH
+          - Type: INSULTS
+            InputStrength: HIGH
+            OutputStrength: HIGH
+      SensitiveInformationPolicyConfig:
+        PiiEntitiesConfig:
+          - Type: US_SOCIAL_SECURITY_NUMBER
+            Action: BLOCK
+          - Type: EMAIL
+            Action: ANONYMIZE
+          - Type: PHONE
+            Action: ANONYMIZE
+      TopicPolicyConfig:
+        TopicsConfig:
+          - Name: legal-advice
+            Definition: "Requests for legal advice, legal opinions, or specific legal recommendations"
+            Type: DENY
+          - Name: prescriptions
+            Definition: "Requests for specific medication prescriptions or dosage recommendations"
+            Type: DENY
+      WordPolicyConfig:
+        ManagedWordListsConfig:
+          - Type: PROFANITY
+
+Outputs:
+  HealthcareGuardrailId:
+    Value: !Ref HealthcareGuardrail
+    Export:
+      Name: !Sub ${ProjectName}-HealthcareGuardrailId

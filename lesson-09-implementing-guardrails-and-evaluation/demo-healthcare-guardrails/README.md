@@ -5,7 +5,20 @@
 ![Architecture Diagram](architecture.svg)
 
 ## Overview
-This demo implements production-grade governance for a healthcare patient intake agent. A SimulatedGuardrail applies 4 policy types to every input and output. A kill switch monitors violation rates and disables the agent if thresholds are exceeded. A rate limiter prevents request floods. A metrics dashboard provides real-time visibility.
+This demo implements production-grade governance for a healthcare patient intake agent. A real Amazon Bedrock Guardrail applies 4 policy types to every input and output via `bedrock-runtime.apply_guardrail()`. A kill switch monitors violation rates and disables the agent if thresholds are exceeded. A rate limiter prevents request floods. A metrics dashboard provides real-time visibility.
+
+## Setup
+
+1. Copy the env template and load AWS credentials:
+   ```bash
+   cp .env.example .env
+   ```
+2. Deploy the Bedrock Guardrail (region must be us-east-1):
+   ```bash
+   aws cloudformation deploy --template-file infrastructure/stack.yaml \
+       --stack-name lesson-09-demo-guardrails
+   ```
+3. Copy `HealthcareGuardrailId` from the stack Outputs tab into `HEALTHCARE_GUARDRAIL_ID` in your `.env` (short ID, not the full ARN).
 
 ## Architecture
 - **Healthcare agent:** Strands Agent (Nova Lite) that answers patient intake questions
@@ -34,6 +47,11 @@ This demo implements production-grade governance for a healthcare patient intake
 ## Running
 ```bash
 python healthcare_guardrails.py
+```
+
+## Cleanup
+```bash
+aws cloudformation delete-stack --stack-name lesson-09-demo-guardrails
 ```
 
 ## Key Takeaways
