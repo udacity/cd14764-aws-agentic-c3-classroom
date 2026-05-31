@@ -72,16 +72,19 @@ _CF = _load_cf_exports()
 # Checks lesson-10 stack first, then project stack as fallback.
 # Deploy lesson-10 infra first: python infrastructure/deploy_stack.py
 _ROLE_ARN = (
-    _CF.get("lesson-10-runtime-AgentCoreRoleArn")       # lesson-10 stack (preferred)
+    _CF.get("lesson-10-demo-AgentCoreRoleArn")          # lesson-10 demo stack (preferred)
     or _CF.get("udacity-agentcore-AgentCoreRoleArn")    # project stack (fallback)
     or os.environ.get("AGENTCORE_ROLE_ARN", "")
 )
 _S3_BUCKET = (
-    _CF.get("lesson-10-runtime-ArtifactBucket")         # lesson-10 stack (preferred)
+    _CF.get("lesson-10-demo-ArtifactBucket")            # lesson-10 demo stack (preferred)
     or _CF.get("udacity-agentcore-PolicyBucket")        # project stack (fallback)
     or os.environ.get("S3_ARTIFACT_BUCKET", "")
 )
-_GUARDRAIL_ID      = os.environ.get("GUARDRAIL_ID", "gr-insurance-claims")
+_GUARDRAIL_ID = (
+    _CF.get("lesson-10-demo-GuardrailId")               # lesson-10 demo stack (preferred)
+    or os.environ.get("GUARDRAIL_ID", "")
+)
 _GUARDRAIL_VERSION = os.environ.get("GUARDRAIL_VERSION", "DRAFT")
 
 RUNTIME_CONFIG = {

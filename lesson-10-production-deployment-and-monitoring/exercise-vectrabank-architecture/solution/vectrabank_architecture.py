@@ -58,12 +58,12 @@ _CF = _load_cf_exports()
 # Checks lesson-10 stack first, then project stack as fallback.
 # Deploy lesson-10 infra first: python infrastructure/deploy_stack.py
 _ROLE_ARN = (
-    _CF.get("lesson-10-runtime-AgentCoreRoleArn")       # lesson-10 stack (preferred)
+    _CF.get("lesson-10-exercise-AgentCoreRoleArn")      # lesson-10 exercise stack (preferred)
     or _CF.get("udacity-agentcore-AgentCoreRoleArn")    # project stack (fallback)
     or os.environ.get("AGENTCORE_ROLE_ARN", "")
 )
 _S3_BUCKET = (
-    _CF.get("lesson-10-runtime-ArtifactBucket")         # lesson-10 stack (preferred)
+    _CF.get("lesson-10-exercise-ArtifactBucket")        # lesson-10 exercise stack (preferred)
     or _CF.get("udacity-agentcore-PolicyBucket")        # project stack (fallback)
     or os.environ.get("S3_ARTIFACT_BUCKET", "")
 )

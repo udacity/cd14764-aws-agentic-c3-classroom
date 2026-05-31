@@ -1,0 +1,150 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Lesson 10 Demo: Production Deployment and Monitoring
+  Creates the IAM role and S3 artifact bucket required to deploy
+  the insurance-claims AgentCore Runtime via create_agent_runtime().
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: lesson-10-demo
+    Description: Prefix for all resource names and CloudFormation exports
+
+Resources:
+
+  # ─────────────────────────────────────────────────────────
+  # S3 BUCKET — stores the deployment.zip artifact
+  # AgentCore Runtime requires an agentRuntimeArtifact on S3.
+  # ─────────────────────────────────────────────────────────
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${ProjectName}-artifacts-${AWS::AccountId}
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # ─────────────────────────────────────────────────────────
+  # AGENTCORE EXECUTION ROLE
+  # Assumed by the AgentCore Runtime when running your agents.
+  # Permissions: Bedrock model invocation, S3 artifact access,
+  #              CloudWatch Logs, X-Ray tracing, Guardrail apply.
+  # ─────────────────────────────────────────────────────────
+  AgentCoreRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-agentcore-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: bedrock-agentcore.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AgentCoreExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # Bedrock model invocation
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                  - bedrock:ApplyGuardrail
+                Resource: '*'
+              # S3 artifact access
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub arn:aws:s3:::${ArtifactBucket}
+                  - !Sub arn:aws:s3:::${ArtifactBucket}/*
+              # CloudWatch Logs
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                Resource: '*'
+              # X-Ray tracing
+              - Effect: Allow
+                Action:
+                  - xray:PutTraceSegments
+                  - xray:PutTelemetryRecords
+                  - xray:GetSamplingRules
+                  - xray:GetSamplingTargets
+                Resource: '*'
+
+  # ─────────────────────────────────────────────────────────
+  # BEDROCK GUARDRAIL
+  # Attached to the AgentCore Runtime to block harmful content,
+  # PII (SSN blocked; email/phone anonymized), and denied topics.
+  # ─────────────────────────────────────────────────────────
+  Guardrail:
+    Type: AWS::Bedrock::Guardrail
+    Properties:
+      Name: !Sub ${ProjectName}-guardrail
+      Description: Insurance claims guardrail — blocks harmful content, PII, denied topics
+      BlockedInputMessaging: "Your input was blocked by our safety guardrail."
+      BlockedOutputsMessaging: "The response was blocked by our safety guardrail."
+      ContentPolicyConfig:
+        FiltersConfig:
+          - Type: VIOLENCE
+            InputStrength: HIGH
+            OutputStrength: HIGH
+          - Type: HATE
+            InputStrength: HIGH
+            OutputStrength: HIGH
+          - Type: SEXUAL
+            InputStrength: HIGH
+            OutputStrength: HIGH
+          - Type: INSULTS
+            InputStrength: HIGH
+            OutputStrength: HIGH
+      SensitiveInformationPolicyConfig:
+        PiiEntitiesConfig:
+          - Type: US_SOCIAL_SECURITY_NUMBER
+            Action: BLOCK
+          - Type: EMAIL
+            Action: ANONYMIZE
+          - Type: PHONE
+            Action: ANONYMIZE
+      TopicPolicyConfig:
+        TopicsConfig:
+          - Name: legal-advice
+            Definition: "Requests for legal advice, legal opinions, or specific legal recommendations"
+            Type: DENY
+          - Name: prescriptions
+            Definition: "Requests for specific medication prescriptions or dosage recommendations"
+            Type: DENY
+      WordPolicyConfig:
+        ManagedWordListsConfig:
+          - Type: PROFANITY
+
+Outputs:
+  AgentCoreRoleArn:
+    Description: IAM Role ARN for AgentCore Runtime execution
+    Value: !GetAtt AgentCoreRole.Arn
+    Export:
+      Name: !Sub ${ProjectName}-AgentCoreRoleArn
+
+  ArtifactBucket:
+    Description: S3 bucket name for deployment artifacts
+    Value: !Ref ArtifactBucket
+    Export:
+      Name: !Sub ${ProjectName}-ArtifactBucket
+
+  GuardrailId:
+    Description: Bedrock Guardrail ID attached to the runtime
+    Value: !Ref Guardrail
+    Export:
+      Name: !Sub ${ProjectName}-GuardrailId

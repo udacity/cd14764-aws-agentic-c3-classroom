@@ -1,0 +1,155 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Lesson 10 Exercise: VectraBank Multi-Agent Architecture
+  Creates the IAM role and S3 artifact bucket required to deploy
+  the VectraBank AgentCore Runtime via create_agent_runtime().
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: lesson-10-exercise
+    Description: Prefix for all resource names and CloudFormation exports
+
+Resources:
+
+  # ─────────────────────────────────────────────────────────
+  # S3 BUCKET — stores the deployment.zip artifact
+  # AgentCore Runtime requires an agentRuntimeArtifact on S3.
+  # ─────────────────────────────────────────────────────────
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${ProjectName}-artifacts-${AWS::AccountId}
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # ─────────────────────────────────────────────────────────
+  # AGENTCORE EXECUTION ROLE
+  # Assumed by the AgentCore Runtime when running your agents.
+  # Permissions: Bedrock model invocation, S3 artifact access,
+  #              CloudWatch Logs, X-Ray tracing, Guardrail apply.
+  # ─────────────────────────────────────────────────────────
+  AgentCoreRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-agentcore-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: bedrock-agentcore.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AgentCoreExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # Bedrock model invocation
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                  - bedrock:ApplyGuardrail
+                Resource: '*'
+              # S3 artifact access
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub arn:aws:s3:::${ArtifactBucket}
+                  - !Sub arn:aws:s3:::${ArtifactBucket}/*
+              # CloudWatch Logs
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                Resource: '*'
+              # X-Ray tracing
+              - Effect: Allow
+                Action:
+                  - xray:PutTraceSegments
+                  - xray:PutTelemetryRecords
+                  - xray:GetSamplingRules
+                  - xray:GetSamplingTargets
+                Resource: '*'
+
+  # ─────────────────────────────────────────────────────────
+  # BEDROCK GUARDRAIL
+  # Attached to the AgentCore Runtime to enforce financial
+  # compliance: PII blocking, insider-trading topic denial,
+  # trading-recommendations denial, competitor disparagement.
+  # ─────────────────────────────────────────────────────────
+  Guardrail:
+    Type: AWS::Bedrock::Guardrail
+    Properties:
+      Name: !Sub ${ProjectName}-guardrail
+      Description: VectraBank compliance guardrail — blocks PII, insider trading, recommendations, profanity
+      BlockedInputMessaging: "Your input was blocked by our compliance guardrail."
+      BlockedOutputsMessaging: "The response was blocked by our compliance guardrail."
+      ContentPolicyConfig:
+        FiltersConfig:
+          - Type: VIOLENCE
+            InputStrength: HIGH
+            OutputStrength: HIGH
+          - Type: HATE
+            InputStrength: HIGH
+            OutputStrength: HIGH
+          - Type: INSULTS
+            InputStrength: HIGH
+            OutputStrength: HIGH
+      SensitiveInformationPolicyConfig:
+        PiiEntitiesConfig:
+          - Type: CREDIT_DEBIT_CARD_NUMBER
+            Action: BLOCK
+          - Type: US_SOCIAL_SECURITY_NUMBER
+            Action: BLOCK
+          - Type: US_BANK_ACCOUNT_NUMBER
+            Action: BLOCK
+          - Type: EMAIL
+            Action: ANONYMIZE
+          - Type: PHONE
+            Action: ANONYMIZE
+      TopicPolicyConfig:
+        TopicsConfig:
+          - Name: insider-trading
+            Definition: "Requests involving insider information, non-public material information, or trading on undisclosed corporate actions"
+            Type: DENY
+          - Name: trading-recommendations
+            Definition: "Requests for specific stock buy or sell recommendations, investment advice, or opinions on whether to invest in specific securities or assets"
+            Type: DENY
+          - Name: competitor-disparagement
+            Definition: "Negative statements, criticism, or disparagement of competitor companies, their products, services, or platforms"
+            Type: DENY
+      WordPolicyConfig:
+        ManagedWordListsConfig:
+          - Type: PROFANITY
+
+Outputs:
+  AgentCoreRoleArn:
+    Description: IAM Role ARN for AgentCore Runtime execution
+    Value: !GetAtt AgentCoreRole.Arn
+    Export:
+      Name: !Sub ${ProjectName}-AgentCoreRoleArn
+
+  ArtifactBucket:
+    Description: S3 bucket name for deployment artifacts
+    Value: !Ref ArtifactBucket
+    Export:
+      Name: !Sub ${ProjectName}-ArtifactBucket
+
+  GuardrailId:
+    Description: Bedrock Guardrail ID attached to the runtime
+    Value: !Ref Guardrail
+    Export:
+      Name: !Sub ${ProjectName}-GuardrailId
