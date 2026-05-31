@@ -21,13 +21,24 @@ This exercise implements a saga-based checkout flow where an order spans invento
 
 ## Setup
 
-Before running, complete the setup in the parent `README.md`:
-1. `.env` exists in `lesson-07-saga-pattern-and-state-coordination/` with your credentials, region, and model
-2. The `lesson-07-saga` CloudFormation stack is deployed in your region
+1. Copy the env template:
+   ```bash
+   cp .env.example .env
+   ```
+2. If you already deployed the stack while doing the starter (`lesson-07-exercise-saga`), you don't need to deploy again — copy your starter `.env` values into this one to point at the same resources. Otherwise:
+   ```bash
+   aws cloudformation deploy --template-file infrastructure/stack.yaml \
+       --stack-name lesson-07-exercise-saga
+   ```
 
 ## Running
 ```bash
 python ecommerce_checkout_saga.py
+```
+
+## Cleanup
+```bash
+aws cloudformation delete-stack --stack-name lesson-07-exercise-saga
 ```
 
 ## Key Differences from Demo

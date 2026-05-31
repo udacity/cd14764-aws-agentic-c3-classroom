@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Lesson 7 Exercise: Saga Pattern for E-Commerce Checkout
+  Creates the DynamoDB table that tracks saga state for the checkout exercise.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: lesson-07-saga
+
+Resources:
+  CheckoutSagaTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${ProjectName}-checkout-saga
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: checkout_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: checkout_id
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+Outputs:
+  CheckoutSagaTableName:
+    Value: !Ref CheckoutSagaTable
+    Export:
+      Name: !Sub ${ProjectName}-CheckoutSagaTable

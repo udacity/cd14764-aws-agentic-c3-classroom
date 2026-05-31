@@ -18,9 +18,15 @@ This demo implements the Saga pattern for a travel booking system where a trip r
 
 ## Setup
 
-Before running, complete the setup in the parent `README.md`:
-1. `.env` exists in `lesson-07-saga-pattern-and-state-coordination/` with your credentials, region, and model
-2. The `lesson-07-saga` CloudFormation stack is deployed in your region
+1. Copy the env template and paste credentials from the "Load AWS Credentials" sidebar:
+   ```bash
+   cp .env.example .env
+   ```
+2. Deploy the DynamoDB saga-state table:
+   ```bash
+   aws cloudformation deploy --template-file infrastructure/stack.yaml \
+       --stack-name lesson-07-demo-saga
+   ```
 
 ## Test Cases (3 packages)
 | Saga | Scenario | Key Behavior |
@@ -32,6 +38,11 @@ Before running, complete the setup in the parent `README.md`:
 ## Running
 ```bash
 python travel_booking_saga.py
+```
+
+## Cleanup
+```bash
+aws cloudformation delete-stack --stack-name lesson-07-demo-saga
 ```
 
 ## Key Takeaways

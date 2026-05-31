@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Lesson 7 Demo: Saga Pattern for Travel Booking
+  Creates the DynamoDB table that tracks saga state for the travel booking demo.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: lesson-07-saga
+
+Resources:
+  SagaStateTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${ProjectName}-saga-state
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: saga_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: saga_id
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+Outputs:
+  SagaStateTableName:
+    Value: !Ref SagaStateTable
+    Export:
+      Name: !Sub ${ProjectName}-SagaStateTable

@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Lesson 7: Saga Pattern and State Coordination
-  Creates DynamoDB tables for saga state (demo: travel booking, exercise: checkout).
+  Lesson 7 Exercise: Saga Pattern for E-Commerce Checkout
+  Creates the DynamoDB table that tracks saga state for the checkout exercise.
 
 Parameters:
   ProjectName:
@@ -9,21 +9,6 @@ Parameters:
     Default: lesson-07-saga
 
 Resources:
-  SagaStateTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: !Sub ${ProjectName}-saga-state
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: saga_id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: saga_id
-          KeyType: HASH
-      TimeToLiveSpecification:
-        AttributeName: ttl
-        Enabled: true
-
   CheckoutSagaTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -40,10 +25,6 @@ Resources:
         Enabled: true
 
 Outputs:
-  SagaStateTableName:
-    Value: !Ref SagaStateTable
-    Export:
-      Name: !Sub ${ProjectName}-SagaStateTable
   CheckoutSagaTableName:
     Value: !Ref CheckoutSagaTable
     Export:
