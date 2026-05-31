@@ -2,6 +2,8 @@
 
 This lesson teaches how to run multiple independent specialist agents in parallel using Python's `ThreadPoolExecutor`, then combine their findings with a SynthesizerAgent.
 
+Each activity folder below has its own `.env.example` and `README.md` — open the one you're working on for setup steps.
+
 ## Folder Structure
 
 ```
@@ -9,13 +11,16 @@ lesson-03-implementing-agentic-parallelization-workflows/
 ├── README.md
 ├── demo-parallel-document-analysis/
 │   ├── README.md
+│   ├── .env.example
 │   └── document_analysis.py
 └── exercise-contract-compliance/
-    ├── solution/
+    ├── starter/
     │   ├── README.md
+    │   ├── .env.example
     │   └── contract_compliance.py
-    └── starter/
+    └── solution/
         ├── README.md
+        ├── .env.example
         └── contract_compliance.py
 ```
 

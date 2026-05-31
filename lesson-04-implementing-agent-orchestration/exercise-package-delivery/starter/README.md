@@ -47,6 +47,11 @@ Pattern references:
 | PKG-002 | International | US → DE, DHL International, premium insurance + customs |
 | PKG-003 | HALTED | Empty address → gate stops workflow |
 
+## Setup
+
+1. Copy the env template: `cp .env.example .env`
+2. Ensure AWS credentials are loaded (use the "Load AWS Credentials" sidebar in the Udacity lab).
+
 ## Running
 ```bash
 python delivery_workflow.py

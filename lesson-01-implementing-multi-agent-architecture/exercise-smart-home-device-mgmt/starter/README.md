@@ -26,3 +26,14 @@ This folder contains the starter code for the Module 1 exercise.
 ## Pattern Reference
 Follow the same multi-agent coordinator pattern from the demo (healthcare_triage.py):
 each agent gets its own BedrockModel, system prompt, and tool.
+
+## Setup
+
+1. Copy the env template: `cp .env.example .env`
+2. Ensure AWS credentials are loaded (use the "Load AWS Credentials" sidebar in the Udacity lab).
+
+
+## How to Run
+```bash
+python smart_home_device_mgmt.py
+```

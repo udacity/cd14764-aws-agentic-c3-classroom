@@ -2,6 +2,8 @@
 
 This lesson covers building multi-agent systems with the Strands Agents SDK: separate Agent instances with single responsibilities, inter-agent communication through a coordinator, and the Agent class, @tool decorator, and BedrockModel.
 
+Each activity folder below has its own `.env.example` and `README.md` — open the one you're working on for setup steps.
+
 ## Folder Structure
 
 ```
@@ -9,14 +11,17 @@ lesson-01-implementing-multi-agent-architecture/
 ├── README.md
 ├── demo-healthcare-triage/
 │   ├── README.md
+│   ├── .env.example
 │   ├── architecture.svg
 │   └── healthcare_triage.py
 └── exercise-smart-home-device-mgmt/
-    ├── solution/
+    ├── starter/
     │   ├── README.md
+    │   ├── .env.example
     │   └── smart_home_device_mgmt.py
-    └── starter/
+    └── solution/
         ├── README.md
+        ├── .env.example
         └── smart_home_device_mgmt.py
 ```
 

@@ -2,6 +2,8 @@
 
 This lesson covers assigning different Bedrock foundation models to different agents based on task requirements (fast vs. deep vs. balanced).
 
+Each activity folder below has its own `.env.example` and `README.md` — open the one you're working on for setup steps.
+
 ## Folder Structure
 
 ```
@@ -9,13 +11,16 @@ lesson-02-implementing-multi-model-multi-agent-systems/
 ├── README.md
 ├── demo-multi-model-incident-response/
 │   ├── README.md
+│   ├── .env.example
 │   └── incident_response.py
 └── exercise-content-moderation-pipeline/
-    ├── solution/
+    ├── starter/
     │   ├── README.md
+    │   ├── .env.example
     │   └── content_moderation.py
-    └── starter/
+    └── solution/
         ├── README.md
+        ├── .env.example
         └── content_moderation.py
 ```
 

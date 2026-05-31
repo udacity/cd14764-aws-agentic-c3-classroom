@@ -21,6 +21,11 @@
 | IPProtectionAgent | Nova Pro | IP ownership, licensing, non-compete | 0.1 |
 | SynthesizerAgent | Claude 3 Sonnet | Combines findings → compliance decision | 0.2 |
 
+## Setup
+
+1. Copy the env template: `cp .env.example .env`
+2. Ensure AWS credentials are loaded (use the "Load AWS Credentials" sidebar in the Udacity lab).
+
 ## How to Run
 ```bash
 python contract_compliance.py

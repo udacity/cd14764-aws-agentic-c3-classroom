@@ -27,6 +27,11 @@
 2. **Synthesis phase**: SynthesizerAgent reads all specialist caches, produces unified report
 3. **Comparison**: Same analysis runs sequentially to demonstrate speedup
 
+## Setup
+
+1. Copy the env template: `cp .env.example .env`
+2. Ensure AWS credentials are loaded (use the "Load AWS Credentials" sidebar in the Udacity lab).
+
 ## How to Run
 ```bash
 python document_analysis.py

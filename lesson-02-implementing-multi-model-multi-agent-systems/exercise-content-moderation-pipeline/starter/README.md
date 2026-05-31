@@ -18,3 +18,14 @@ This folder contains the starter code for the Module 2 exercise.
 - All 3 tool functions (screen_post, deep_review_post, generate_notice)
 - Sample data (9 posts, screening rules, deep review verdicts, notice templates)
 - Main function with conditional routing logic and latency reporting
+
+## Setup
+
+1. Copy the env template: `cp .env.example .env`
+2. Ensure AWS credentials are loaded (use the "Load AWS Credentials" sidebar in the Udacity lab).
+
+
+## How to Run
+```bash
+python content_moderation.py
+```

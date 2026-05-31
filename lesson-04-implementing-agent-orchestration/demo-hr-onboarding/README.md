@@ -23,6 +23,11 @@ This demo builds an orchestrated employee onboarding workflow that demonstrates 
 | EMP-002 Bob Martinez | Sales | Sales onboarding | Normal |
 | EMP-003 Carol Johnson | Engineering | Engineering onboarding | Simulated laptop failure (retry) |
 
+## Setup
+
+1. Copy the env template: `cp .env.example .env`
+2. Ensure AWS credentials are loaded (use the "Load AWS Credentials" sidebar in the Udacity lab).
+
 ## Running
 ```bash
 python hr_onboarding.py

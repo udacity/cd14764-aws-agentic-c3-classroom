@@ -15,6 +15,11 @@ This folder contains the working solution for the Module 2 exercise.
 - Fast-track path: safe posts skip Claude entirely (Nova Lite only)
 - Latency comparison showing fast-track vs full pipeline speedup
 
+## Setup
+
+1. Copy the env template: `cp .env.example .env`
+2. Ensure AWS credentials are loaded (use the "Load AWS Credentials" sidebar in the Udacity lab).
+
 ## How to Run
 ```bash
 python content_moderation.py

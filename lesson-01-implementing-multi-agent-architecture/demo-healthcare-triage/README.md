@@ -17,6 +17,11 @@ This folder contains the working solution for the Module 1 demo.
 - Coordinator pattern: calling agents in sequence, passing outputs forward
 - Fresh agent instantiation per test case to avoid context bleed
 
+## Setup
+
+1. Copy the env template: `cp .env.example .env`
+2. Ensure AWS credentials are loaded (use the "Load AWS Credentials" sidebar in the Udacity lab).
+
 ## How to Run
 ```bash
 python healthcare_triage.py

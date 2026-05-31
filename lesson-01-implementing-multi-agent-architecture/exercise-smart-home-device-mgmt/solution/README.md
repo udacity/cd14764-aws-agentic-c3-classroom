@@ -15,6 +15,11 @@ This folder contains the working solution for the Module 1 exercise.
 - Coordinator calls agents in sequence, passing outputs forward
 - Each agent has a single responsibility and its own tool
 
+## Setup
+
+1. Copy the env template: `cp .env.example .env`
+2. Ensure AWS credentials are loaded (use the "Load AWS Credentials" sidebar in the Udacity lab).
+
 ## How to Run
 ```bash
 python smart_home_device_mgmt.py

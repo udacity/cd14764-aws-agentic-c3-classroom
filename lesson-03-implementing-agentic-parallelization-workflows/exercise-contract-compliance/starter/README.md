@@ -40,6 +40,11 @@ Complete 4 build functions, each with 3 TODOs (12 TODOs total):
 Follow the same 3 steps shown in the demo (`document_analysis.py`):
 - STEP 1 → BedrockModel  |  STEP 2 → System Prompt  |  STEP 3 → Agent
 
+## Setup
+
+1. Copy the env template: `cp .env.example .env`
+2. Ensure AWS credentials are loaded (use the "Load AWS Credentials" sidebar in the Udacity lab).
+
 ## How to Run
 ```bash
 python contract_compliance.py

@@ -2,6 +2,8 @@
 
 This lesson teaches how to combine sequential, parallel, and conditional execution patterns into a single orchestrated workflow using a Python code orchestrator (not an LLM).
 
+Each activity folder below has its own `.env.example` and `README.md` — open the one you're working on for setup steps.
+
 ## Folder Structure
 
 ```
@@ -9,13 +11,16 @@ lesson-04-implementing-agent-orchestration/
 ├── README.md
 ├── demo-hr-onboarding/
 │   ├── README.md
+│   ├── .env.example
 │   └── hr_onboarding.py
 └── exercise-package-delivery/
-    ├── solution/
+    ├── starter/
     │   ├── README.md
+    │   ├── .env.example
     │   └── delivery_workflow.py
-    └── starter/
+    └── solution/
         ├── README.md
+        ├── .env.example
         └── delivery_workflow.py
 ```
 

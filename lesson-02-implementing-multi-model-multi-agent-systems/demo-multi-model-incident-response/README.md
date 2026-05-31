@@ -15,6 +15,11 @@ This folder contains the working solution for the Module 2 demo.
 - Python-orchestrated pipeline across three agents
 - Latency comparison table showing model speed/quality tradeoffs
 
+## Setup
+
+1. Copy the env template: `cp .env.example .env`
+2. Ensure AWS credentials are loaded (use the "Load AWS Credentials" sidebar in the Udacity lab).
+
 ## How to Run
 ```bash
 python incident_response.py

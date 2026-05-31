@@ -23,6 +23,11 @@ This exercise builds an orchestrated logistics workflow for package delivery tha
 | PKG-002 Equipment | US → DE | International | Customs declaration |
 | PKG-003 Books | US → US | HALTED | Empty address → gate stops workflow |
 
+## Setup
+
+1. Copy the env template: `cp .env.example .env`
+2. Ensure AWS credentials are loaded (use the "Load AWS Credentials" sidebar in the Udacity lab).
+
 ## Running
 ```bash
 python delivery_workflow.py
