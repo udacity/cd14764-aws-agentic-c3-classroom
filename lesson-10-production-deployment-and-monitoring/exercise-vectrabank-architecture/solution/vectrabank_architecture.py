@@ -90,7 +90,9 @@ VECTRABANK_RUNTIME_CONFIG = {
         "serverProtocol": "MCP",
     },
 
-    # Note: injected via before-call event hook in deploy_to_agentcore() — see Step 5
+    # Which guardrail the agents should use. This is recorded here for
+    # reference and printed in the summary below; the agents apply it at
+    # model-invocation time (see deploy_to_agentcore()).
     "guardrailConfiguration": {
         "guardrailIdentifier": _GUARDRAIL_ID,
         "guardrailVersion": _GUARDRAIL_VERSION,
@@ -341,18 +343,25 @@ def deploy_to_agentcore() -> str:
     except Exception as e:
         print(f"  [Note] Could not check existing runtimes: {e}")
 
-    # ── Resolve account context ───────────────────────────────────────────
+    # ── Confirm which AWS account and region we're deploying into ──────────
+    # Before creating real cloud resources, look up the account tied to the
+    # current credentials. This is a quick safety check so you can see exactly
+    # where the runtime will be created.
     sts        = boto3.client("sts", region_name=AWS_REGION)
     account_id = sts.get_caller_identity()["Account"]
     print(f"  AWS Account: {account_id}  |  Region: {AWS_REGION}")
 
-    # NOTE: AgentCore Runtime has no runtime-level guardrail parameter on
-    # create_agent_runtime. Guardrails are enforced at model-invocation time
-    # (bedrock-runtime invoke_model with guardrailIdentifier) inside the agent
-    # code — not on the control-plane call below.
-    print(f"  Guardrail (enforced at invoke-time): {_GUARDRAIL_ID} (v{_GUARDRAIL_VERSION})")
+    # Where do guardrails go? NOT on the runtime itself — the
+    # create_agent_runtime API has no guardrail parameter. Instead, each agent
+    # applies the guardrail at the moment it calls the model (bedrock-runtime
+    # invoke_model with a guardrailIdentifier). We print it here so you can
+    # confirm which guardrail your agents are configured to use.
+    print(f"  Guardrail (agents apply this when calling the model): {_GUARDRAIL_ID} (v{_GUARDRAIL_VERSION})")
 
-    # -- Upload deployment artifact to S3 --
+    # ── Package the agent code and upload it to S3 ────────────────────────
+    # AgentCore loads the runtime's code from an S3 object. For this exercise
+    # we upload a minimal placeholder main.py; a real project would zip and
+    # upload your actual agent code here.
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("main.py", "# VectraBank AgentCore Runtime entry point\n")
@@ -393,11 +402,11 @@ def deploy_to_agentcore() -> str:
     runtime_arn = response.get("agentRuntimeArn", response.get("arn", ""))
     print(f"  Runtime ARN: {runtime_arn}")
 
-    # ── Observability ─────────────────────────────────────────────────────
-    # AgentCore Runtime emits logs to CloudWatch automatically. X-Ray tracing
-    # and the custom dashboard are configured separately via the CloudWatch /
-    # X-Ray APIs (see VECTRABANK_MONITORING above) — create_agent_runtime has
-    # no logging-configuration parameter on the control plane.
+    # ── Observability: how logs and traces get collected ─────────────────
+    # AgentCore Runtime sends its logs to CloudWatch automatically once it's
+    # running — there's nothing to enable on the create call above. X-Ray
+    # tracing and the custom dashboard are set up separately through the
+    # CloudWatch / X-Ray APIs (using the VECTRABANK_MONITORING config above).
     sampling = VECTRABANK_MONITORING["xray_tracing"]["sampling_rate"] * 100
     print(f"  Observability: CloudWatch logs auto-enabled; "
           f"X-Ray sampling {sampling:.0f}% configured via CloudWatch")
