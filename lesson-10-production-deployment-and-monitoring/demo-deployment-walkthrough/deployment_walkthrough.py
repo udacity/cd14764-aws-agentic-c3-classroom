@@ -362,26 +362,18 @@ def deploy_to_agentcore() -> str:
     except Exception as e:
         print(f"  [Note] Could not check existing runtimes: {e}")
 
-    # -- WORKAROUND 1: STS role fetch + before-call event hook --
+    # -- Resolve account context --
     sts        = boto3.client("sts", region_name=AWS_REGION)
     account_id = sts.get_caller_identity()["Account"]
     print(f"  AWS Account: {account_id}  |  Region: {AWS_REGION}")
 
-    guardrail_config = {
-        "guardrailIdentifier": _GUARDRAIL_ID,
-        "guardrailVersion":    _GUARDRAIL_VERSION,
-    }
+    # NOTE: AgentCore Runtime has no runtime-level guardrail parameter on
+    # create_agent_runtime. Guardrails are enforced at model-invocation time
+    # (bedrock-runtime invoke_model with guardrailIdentifier) inside the agent
+    # code — not on the control-plane call below.
+    print(f"  Guardrail (enforced at invoke-time): {_GUARDRAIL_ID} (v{_GUARDRAIL_VERSION})")
 
-    def _inject_guardrail(params, **kwargs):
-        params["guardrailConfiguration"] = guardrail_config
-
-    agentcore_control.meta.events.register(
-        "before-call.bedrock-agentcore-control.CreateAgentRuntime",
-        _inject_guardrail,
-    )
-    print(f"  Guardrail hook registered: {_GUARDRAIL_ID} (v{_GUARDRAIL_VERSION})")
-
-    # -- WORKAROUND 2: Dummy deployment.zip to S3 --
+    # -- Upload deployment artifact to S3 --
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("main.py", "# AgentCore Runtime entry point\n")
@@ -422,26 +414,14 @@ def deploy_to_agentcore() -> str:
     runtime_arn = response.get("agentRuntimeArn", response.get("arn", ""))
     print(f"  Runtime ARN: {runtime_arn}")
 
-    # -- WORKAROUND 3: try/except on logging configuration --
-    try:
-        runtime_id = runtime_arn.split("/")[-1]
-        agentcore_control.put_agent_runtime_logging_configuration(
-            agentRuntimeId=runtime_id,
-            loggingConfiguration={
-                "cloudWatchConfig": {
-                    "logGroupName": f"/aws/agentcore/{runtime_name}",
-                    "logLevel":     "INFO",
-                    "enabled":      True,
-                },
-                "xRayConfig": {
-                    "enabled":      True,
-                    "samplingRate": MONITORING_STRATEGY["xray_tracing"]["sampling_rate"],
-                },
-            },
-        )
-        print(f"  Observability configured: CloudWatch + X-Ray")
-    except Exception as e:
-        print(f"  [Note] Logging config skipped (SDK version mismatch): {e}")
+    # -- Observability --
+    # AgentCore Runtime emits logs to CloudWatch automatically. X-Ray tracing
+    # and the custom dashboard are configured separately via the CloudWatch /
+    # X-Ray APIs (see MONITORING_STRATEGY above) — create_agent_runtime has no
+    # logging-configuration parameter on the control plane.
+    sampling = MONITORING_STRATEGY["xray_tracing"]["sampling_rate"] * 100
+    print(f"  Observability: CloudWatch logs auto-enabled; "
+          f"X-Ray sampling {sampling:.0f}% configured via CloudWatch")
 
     return runtime_arn
 

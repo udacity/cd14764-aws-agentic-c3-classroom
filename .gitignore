@@ -1,2 +1,5 @@
 Exercise Planning Document.md
 __pycache__/
+
+# Local environment / secrets (never commit)
+.env
