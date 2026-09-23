@@ -1,8 +1,8 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
   Lesson 10 Exercise: VectraBank Multi-Agent Architecture
-  Creates the IAM role and S3 artifact bucket required to deploy
-  the VectraBank AgentCore Runtime via create_agent_runtime().
+  Creates the execution role and guardrail for the VectraBank AgentCore Runtime.
+  AgentCore CLI manages runtime deployment and artifact storage.
 
 Parameters:
   ProjectName:
@@ -11,22 +11,6 @@ Parameters:
     Description: Prefix for all resource names and CloudFormation exports
 
 Resources:
-
-  # ─────────────────────────────────────────────────────────
-  # S3 BUCKET — stores the deployment.zip artifact
-  # AgentCore Runtime requires an agentRuntimeArtifact on S3.
-  # ─────────────────────────────────────────────────────────
-  ArtifactBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub ${ProjectName}-artifacts-${AWS::AccountId}
-      VersioningConfiguration:
-        Status: Enabled
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
 
   # ─────────────────────────────────────────────────────────
   # AGENTCORE EXECUTION ROLE
@@ -57,15 +41,10 @@ Resources:
                   - bedrock:InvokeModelWithResponseStream
                   - bedrock:ApplyGuardrail
                 Resource: '*'
-              # S3 artifact access
+              # Read CLI/CDK deployment assets in this account and region.
               - Effect: Allow
-                Action:
-                  - s3:GetObject
-                  - s3:PutObject
-                  - s3:ListBucket
-                Resource:
-                  - !Sub arn:aws:s3:::${ArtifactBucket}
-                  - !Sub arn:aws:s3:::${ArtifactBucket}/*
+                Action: s3:GetObject
+                Resource: !Sub arn:${AWS::Partition}:s3:::cdk-*-assets-${AWS::AccountId}-${AWS::Region}/*
               # CloudWatch Logs
               - Effect: Allow
                 Action:
@@ -142,14 +121,8 @@ Outputs:
     Export:
       Name: !Sub ${ProjectName}-AgentCoreRoleArn
 
-  ArtifactBucket:
-    Description: S3 bucket name for deployment artifacts
-    Value: !Ref ArtifactBucket
-    Export:
-      Name: !Sub ${ProjectName}-ArtifactBucket
-
   GuardrailId:
-    Description: Bedrock Guardrail ID attached to the runtime
+    Description: Bedrock Guardrail ID for application model calls
     Value: !Ref Guardrail
     Export:
       Name: !Sub ${ProjectName}-GuardrailId

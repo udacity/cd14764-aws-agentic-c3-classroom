@@ -1,0 +1,20 @@
+{
+  "$schema": "https://schema.agentcore.aws.dev/v1/agentcore.json",
+  "name": "lesson10demo",
+  "version": 1,
+  "managedBy": "CDK",
+  "runtimes": [
+    {
+      "name": "insurance_claims_runtime",
+      "build": "CodeZip",
+      "entrypoint": "main.py",
+      "codeLocation": "runtime/",
+      "runtimeVersion": "PYTHON_3_12",
+      "networkMode": "PUBLIC",
+      "protocol": "HTTP",
+      "instrumentation": {
+        "enableOtel": false
+      }
+    }
+  ]
+}

@@ -1,44 +1,62 @@
 # Exercise Solution: VectraBank Deployment Architecture
 
-## Architecture
-
 ![Architecture Diagram](architecture.svg)
 
-## Overview
-This exercise creates a production deployment plan for VectraBank's financial services multi-agent system. Same planning pattern as the demo, with additions: VPC network mode, operational runbooks, stricter compliance thresholds, and a 4-agent architecture preview.
+This activity reviews runtime configuration, agent roles, monitoring and costs.
+The Python script deploys through the provided `agentcore_cli.py` helper using
+AgentCore CLI 0.30.0, already available in the classroom environment.
+
+**Scope:** The deployed HTTP endpoint is a deployment smoke test. Agent definitions,
+Knowledge Base IDs, dashboards, alarms and X-Ray sampling are architecture plans;
+this activity does not execute the proposed multi-agent workflow or create those
+monitoring resources. `runtime/main.py` makes no model calls. Guardrail identifiers
+are supplied as runtime environment variables for future application model calls.
+
+**Video note:** The video shows the earlier AWS SDK deployment workflow. Follow
+these instructions and the updated workspace files for AgentCore CLI deployment.
 
 ## Setup
 
-1. Copy the env template:
-   ```bash
-   cp .env.example .env
-   ```
-2. If you already deployed the stack while doing the starter (`lesson-10-exercise-runtime`), you don't need to deploy again — copy your starter `.env` values into this one. Otherwise:
+1. Copy `.env.example` to `.env` and paste the student AWS credentials from
+   “Load AWS Credentials.” Check `AWS_REGION`.
+2. Deploy the supporting execution role and guardrail:
    ```bash
    python infrastructure/deploy_stack.py
    ```
 
-All resource identifiers are auto-discovered from CloudFormation exports via `_load_cf_exports()` — no manual paste needed (see the starter page for details).
+The helper reads the role and guardrail from the `lesson-10-exercise-runtime` stack.
+The CLI manages the separate runtime stack and deployment asset storage.
+When moving from starter to solution, reuse the supporting stack and remove the
+starter runtime stack first. Run setup again only if the supporting stack is absent
+or the infrastructure template changed.
 
-## Architecture Plan
-- **4 agents:** QueryRouter, MarketDataRetriever, ComplianceRetriever, FinancialAdvisor
-- **3 Knowledge Bases:** Market Data, Compliance/Regulations, Financial Products
-- **VPC network mode:** Financial services stay internal
-- **Operational runbook (NEW):** 4 procedures for deploy, rollback, kill switch, latency
+## Run
 
-## Running
+Run from this activity directory:
+
 ```bash
 python vectrabank_architecture.py
+agentcore status
+agentcore invoke '{"prompt":"deployment smoke test"}'
 ```
 
+The expected invocation response says “Lesson 10 deployment smoke test passed”;
+it does not validate model access or process a business request. The runtime uses
+PUBLIC networking and HTTP. Real VPC deployment requires additional network resources.
+Re-running the Python script updates the CLI configuration and existing runtime.
+Never copy AWS credentials into the runtime configuration. The execution role
+provides the runtime's AWS access.
+
 ## Cleanup
-If you already tore down the stack after the starter, you're done. Otherwise:
+
+In the CloudFormation console, delete `AgentCore-lesson10solution-default` and wait for
+completion. Then delete the supporting infrastructure when it is no longer needed
+by either exercise folder:
+
 ```bash
 aws cloudformation delete-stack --stack-name lesson-10-exercise-runtime
 ```
 
-## Key Differences from Demo
-- **VPC network mode** — financial services = internal only (vs PUBLIC in demo)
-- **Operational runbook** — NEW: 4 step-by-step incident procedures
-- **Stricter thresholds** — 2% error rate, 10% X-Ray sampling for audit
-- **4 agents** — router + 2 retrievers + synthesizer (capstone preview)
+Do not delete a CLI-managed runtime individually in the AgentCore console.
+The shared `CDKToolkit` bootstrap stack may be used by other activities; leave it in place.
+For a different student account or region, start with a fresh copy of this activity.

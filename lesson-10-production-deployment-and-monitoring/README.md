@@ -1,37 +1,20 @@
 # Lesson 10 — Production Deployment and Monitoring
 
-This lesson deploys a real AgentCore Runtime to AWS Bedrock and observes CloudWatch metrics, alarms, and X-Ray traces. You will use the `bedrock-agentcore-control` boto3 client to deploy, configure, and monitor a production-ready agent runtime.
+The demo, exercise starter and solution use AgentCore CLI 0.30.0 for runtime deployment.
+Open the activity README for setup, invocation and cleanup:
 
-Each activity folder below has its own `infrastructure/`, `.env.example`, and `README.md` — open the one you're working on for setup steps.
+- [Insurance claims demo](demo-deployment-walkthrough/README.md)
+- [VectraBank starter](exercise-vectrabank-architecture/starter/README.md)
+- [VectraBank solution](exercise-vectrabank-architecture/solution/README.md)
 
-## Folder Structure
+Each activity is self-contained: `agentcore_cli.py` provides deployment support,
+`agentcore/` holds CLI configuration, `runtime/` contains the HTTP smoke-test endpoint,
+and `infrastructure/` provisions the execution role and guardrail using CloudFormation.
+Python 3.12+ and the CLI are provided by the classroom environment.
 
-```
-lesson-10-production-deployment-and-monitoring/
-├── README.md
-├── demo-deployment-walkthrough/
-│   ├── README.md
-│   ├── .env.example
-│   ├── infrastructure/
-│   │   ├── deploy_stack.py
-│   │   └── stack.yaml                    ← demo AgentCore role + S3 bucket
-│   └── deployment_walkthrough.py
-└── exercise-vectrabank-architecture/
-    ├── starter/
-    │   ├── README.md
-    │   ├── .env.example
-    │   ├── infrastructure/
-    │   │   ├── deploy_stack.py
-    │   │   └── stack.yaml                ← exercise AgentCore role + S3 bucket
-    │   └── vectrabank_architecture.py
-    └── solution/
-        ├── README.md
-        ├── .env.example
-        ├── infrastructure/                ← same as starter; deploy only if you skipped the starter
-        └── vectrabank_architecture.py
-```
+The runtime smoke test verifies deployment, not a complete business workflow.
+Agent roles, monitoring, costs and operational runbooks remain architecture exercises.
+The starter retains all eight student TODO sections. Neither model access nor
+monitoring configuration is verified by a successful smoke test.
 
-- **Demo (insurance claims):** Production-ready AgentCore Runtime deployment with monitoring, guardrails, and a 6-step gated pipeline.
-- **Exercise (VectraBank):** Same deployment pattern with VPC network mode, stricter compliance thresholds, operational runbooks, and a 4-agent architecture.
-
-**Guardrail prerequisite:** Both activities expect `GUARDRAIL_ID` in `.env` from Lesson 9.
+The videos show the previous SDK deployment. Use the updated activity instructions.

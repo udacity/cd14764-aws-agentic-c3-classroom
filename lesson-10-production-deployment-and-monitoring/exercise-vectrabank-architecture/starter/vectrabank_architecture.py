@@ -17,15 +17,17 @@ with additions:
 Instructions:
   - Follow the demo pattern (deployment_walkthrough.py)
   - Look for TODO 1-8 below
-  - Define configs as Python dicts (no AWS calls needed)
+  - Define configs as Python dicts; the provided helper handles deployment
   - Focus on WHAT to configure and WHY
 """
 
 import json
 import os
+from pathlib import Path
+import agentcore_cli
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 
 # ═══════════════════════════════════════════════════════
@@ -34,9 +36,9 @@ load_dotenv()
 
 # TODO 1: Define the AgentCore Runtime configuration
 # Hint: Same structure as demo, but:
-#   - networkMode: "VPC" (financial services = internal only)
-#   - Add vpcConfiguration with vpcId, subnetIds, securityGroupIds
-#   - Guardrail: "gr-vectrabank-compliance" version "1"
+#   - Use networkMode "PUBLIC" and serverProtocol "HTTP" in this lab
+#   - Document private subnets and security groups for a production VPC
+#   - Role and guardrail IDs are discovered by the provided helper
 #   - Environment variables: 3 KB IDs, state table, audit table, region, log level
 VECTRABANK_RUNTIME_CONFIG = {
     "agentRuntimeName": "vectrabank-financial-services",
@@ -222,6 +224,20 @@ OPERATIONAL_RUNBOOK = {
 #  MAIN
 # ═══════════════════════════════════════════════════════
 
+def deploy_to_agentcore() -> str:
+    """Provided infrastructure; student architecture TODOs remain above."""
+    required = ("networkConfiguration", "protocolConfiguration", "environmentVariables")
+    if any(key not in VECTRABANK_RUNTIME_CONFIG for key in required) or len(VECTRABANK_AGENTS) != 4:
+        raise ValueError("Complete the runtime configuration and four agent definitions before deployment.")
+    resources = agentcore_cli.load_resources("lesson-10-exercise")
+    config = {**VECTRABANK_RUNTIME_CONFIG,
+              "roleArn": resources["AgentCoreRoleArn"],
+              "guardrailConfiguration": {
+                  "guardrailIdentifier": resources["GuardrailId"],
+                  "guardrailVersion": os.environ.get("GUARDRAIL_VERSION", "DRAFT")}}
+    return agentcore_cli.deploy(config)
+
+
 def main():
     print("=" * 70)
     print("  VectraBank Deployment Architecture — Module 10 Exercise")
@@ -259,6 +275,8 @@ def main():
     print(f"  3. STRICTER THRESHOLDS — 2% error rate for financial compliance")
     print(f"  4. OPERATIONAL RUNBOOK — deploy, rollback, kill switch, latency procedures (NEW)")
     print(f"  5. AUDIT TRAIL — X-Ray at 10% sampling + full guardrail audit log\n")
+
+    deploy_to_agentcore()
 
 
 if __name__ == "__main__":

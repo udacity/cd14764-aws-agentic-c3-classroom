@@ -12,10 +12,10 @@ Usage:
 
 What it creates:
     - IAM Role  : lesson-10-exercise-agentcore-role
-    - S3 Bucket : lesson-10-exercise-artifacts-<ACCOUNT_ID>
+    - Bedrock Guardrail for the activity
 
 Outputs are exported as CloudFormation exports so the lesson script
-discovers them automatically via _load_cf_exports().
+discovers them automatically from the foundation stack outputs.
 """
 
 import boto3
@@ -49,9 +49,7 @@ def deploy():
         print(f"Stack '{STACK_NAME}' already exists (status: {status})")
 
         if status in ("CREATE_COMPLETE", "UPDATE_COMPLETE"):
-            print("Stack is healthy — printing outputs and exiting.\n")
-            _print_outputs(stacks[0])
-            return
+            print("Checking for infrastructure updates.\n")
         elif "ROLLBACK" in status or "FAILED" in status:
             print("Stack is in a failed state. Deleting and redeploying...")
             cf.delete_stack(StackName=STACK_NAME)
@@ -133,8 +131,6 @@ def _print_outputs(stack: dict):
     print("=" * 60)
     print(f"\n  AgentCore Role ARN:")
     print(f"    {outputs.get('AgentCoreRoleArn', '(not found)')}")
-    print(f"\n  S3 Artifact Bucket:")
-    print(f"    {outputs.get('ArtifactBucket', '(not found)')}")
     print(f"\n  Bedrock Guardrail ID:")
     print(f"    {outputs.get('GuardrailId', '(not found)')}")
     print(f"\n  These values are exported as CloudFormation exports.")
